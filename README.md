@@ -30,6 +30,12 @@
 - Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
 - Styling with [Tailwind CSS](https://tailwindcss.com)
 - Components with [shadcn/ui](https://ui.shadcn.com/)
+- **Development Tools**:
+  - **Prettier**: Code formatting with Tailwind CSS plugin
+  - **ESLint**: Code linting with Next.js configuration
+  - **Husky**: Git hooks for pre-commit and commit-msg validation
+  - **Commitlint**: Conventional commit message enforcement
+  - **lint-staged**: Run linters and formatters on staged files
 - Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
   - Environment variables automatically assigned to Vercel project
 
@@ -90,12 +96,43 @@ Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can b
 5. You can now run the Next.js local development server:
 
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
    The starter kit should now be running on [localhost:3000](http://localhost:3000/).
 
 6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+
+## Available Scripts
+
+```bash
+# Development
+pnpm dev          # Start development server with Turbopack
+pnpm build        # Build for production
+pnpm start        # Start production server
+
+# Code Quality
+pnpm lint         # Run ESLint
+pnpm lint:fix     # Fix ESLint issues automatically
+pnpm format       # Format code with Prettier
+pnpm format:check # Check code formatting
+pnpm type-check   # Run TypeScript type checking
+```
+
+## Development Tools
+
+This project includes several development tools to maintain code quality:
+
+- **ESLint**: Lints JavaScript/TypeScript code for potential issues and code style violations
+- **Prettier**: Formats code consistently across the project with Tailwind CSS class sorting
+- **Husky**: Manages Git hooks to run linters and formatters before commits
+- **Commitlint**: Enforces conventional commit message format
+- **lint-staged**: Runs linters and formatters only on staged files for better performance
+
+### Git Hooks
+
+- **pre-commit**: Runs ESLint and Prettier on staged files
+- **commit-msg**: Validates commit messages using conventional commit format
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
 
