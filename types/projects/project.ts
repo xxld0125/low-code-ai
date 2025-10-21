@@ -144,3 +144,37 @@ export interface ProjectActions {
   setCurrentProject: (project: ProjectDetails | null) => void
   reset: () => void
 }
+
+// Validation function for project data
+export function validateProjectData(data: Partial<ProjectFormData>): ProjectValidationResult {
+  const errors: ProjectValidationError[] = []
+
+  // Validate name
+  if (!data.name || data.name.trim().length === 0) {
+    errors.push({
+      field: 'name',
+      message: 'Project name is required',
+      code: 'REQUIRED',
+    })
+  } else if (data.name.trim().length > 100) {
+    errors.push({
+      field: 'name',
+      message: 'Project name must be 100 characters or less',
+      code: 'TOO_LONG',
+    })
+  }
+
+  // Validate description (optional but has length limit if provided)
+  if (data.description && data.description.trim().length > 500) {
+    errors.push({
+      field: 'description',
+      message: 'Description must be 500 characters or less',
+      code: 'TOO_LONG',
+    })
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  }
+}

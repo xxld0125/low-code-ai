@@ -13,7 +13,10 @@ import { handleAPIError } from '@/lib/projects/error-handling'
 /**
  * GET /api/projects/[projectId]/collaborators - List project collaborators
  */
-export async function GET(request: NextRequest, { params }: { params: { projectId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
   try {
     const supabase = await createClient()
     const {
@@ -25,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
       return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
     }
 
-    const projectId = params.projectId
+    const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {
@@ -54,6 +57,7 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
 
     // Get collaborators
     const collaborators = await getProjectCollaborators(projectId, user.id, {
+      project_id: projectId,
       limit,
       offset,
     })
@@ -78,7 +82,10 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
 /**
  * POST /api/projects/[projectId]/collaborators - Invite a collaborator
  */
-export async function POST(request: NextRequest, { params }: { params: { projectId: string } }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
   try {
     const supabase = await createClient()
     const {
@@ -90,7 +97,7 @@ export async function POST(request: NextRequest, { params }: { params: { project
       return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
     }
 
-    const projectId = params.projectId
+    const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {
@@ -100,6 +107,7 @@ export async function POST(request: NextRequest, { params }: { params: { project
     // Parse request body
     const body = await request.json()
     const invitationData: CreateInvitationRequest = {
+      project_id: projectId,
       invited_email: body.invited_email,
       role: body.role,
     }

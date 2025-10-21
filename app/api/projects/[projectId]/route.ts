@@ -13,7 +13,10 @@ import { handleAPIError } from '@/lib/projects/error-handling'
 /**
  * GET /api/projects/[projectId] - Get project details
  */
-export async function GET(request: NextRequest, { params }: { params: { projectId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
   try {
     const supabase = await createClient()
     const {
@@ -25,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
       return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
     }
 
-    const projectId = params.projectId
+    const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {
@@ -47,7 +50,10 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
 /**
  * PUT /api/projects/[projectId] - Update project
  */
-export async function PUT(request: NextRequest, { params }: { params: { projectId: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
   try {
     const supabase = await createClient()
     const {
@@ -59,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: { projectI
       return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
     }
 
-    const projectId = params.projectId
+    const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {
@@ -130,7 +136,10 @@ export async function PUT(request: NextRequest, { params }: { params: { projectI
 /**
  * DELETE /api/projects/[projectId] - Delete project
  */
-export async function DELETE(request: NextRequest, { params }: { params: { projectId: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
   try {
     const supabase = await createClient()
     const {
@@ -142,7 +151,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { proje
       return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
     }
 
-    const projectId = params.projectId
+    const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {

@@ -34,14 +34,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate parameters
-    if ((params.limit || 50) < 1 || (params.limit || 50) > 100) {
+    const limit = params.limit || 50
+    const offset = params.offset || 0
+
+    if (limit < 1 || limit > 100) {
       return NextResponse.json(
         { error: { message: 'Limit must be between 1 and 100' } },
         { status: 400 }
       )
     }
 
-    if ((params.offset || 0) < 0) {
+    if (offset < 0) {
       return NextResponse.json(
         { error: { message: 'Offset must be non-negative' } },
         { status: 400 }
@@ -62,9 +65,9 @@ export async function GET(request: NextRequest) {
         projects,
         pagination: {
           total: allProjects.length,
-          limit: params.limit,
-          offset: params.offset,
-          hasMore: params.offset + params.limit < allProjects.length,
+          limit: limit,
+          offset: offset,
+          hasMore: offset + limit < allProjects.length,
         },
       },
     })

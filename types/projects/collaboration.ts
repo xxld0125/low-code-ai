@@ -2,6 +2,8 @@
  * Collaboration types for the project management feature
  */
 
+import type { Invitation } from './invitation'
+
 export interface Collaborator {
   id: string
   project_id: string

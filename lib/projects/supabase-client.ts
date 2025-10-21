@@ -17,6 +17,57 @@ import type {
   PaginationParams,
 } from '@/types/projects'
 
+// Database query result types
+interface DbCollaborator {
+  id: string
+  project_id: string
+  user_id: string
+  role: string
+  invited_at: string
+  joined_at?: string | null
+  last_accessed_at?: string | null
+  user?: {
+    id: string
+    email: string
+    name?: string | null
+    avatar_url?: string | null
+  }
+}
+
+interface DbInvitation {
+  id: string
+  project_id: string
+  invited_by: string
+  invited_email: string
+  role: string
+  token: string
+  expires_at: string
+  accepted_at?: string | null
+  declined_at?: string | null
+  created_at: string
+  project?: Project
+  inviter?: {
+    id: string
+    email: string
+    name?: string | null
+    avatar_url?: string | null
+  }
+}
+
+interface ActivityLogEntry {
+  id: string
+  project_id: string
+  user_id: string
+  action: string
+  details: Record<string, unknown>
+  created_at: string
+  user?: {
+    id: string
+    email: string
+    name?: string | null
+  }
+}
+
 export class ProjectSupabaseClient {
   private supabase: ReturnType<typeof createSupabaseClient>
 
@@ -146,17 +197,20 @@ export class ProjectSupabaseClient {
       throw new Error(`Failed to fetch collaborators: ${error.message}`)
     }
 
-    return data.map(collaborator => ({
-      ...collaborator,
-      user: collaborator.user
-        ? {
-            id: collaborator.user.id,
-            email: collaborator.user.email,
-            name: collaborator.user.name,
-            avatar_url: collaborator.user.avatar_url,
-          }
-        : undefined,
-    }))
+    return data.map(
+      (collaborator: DbCollaborator): Collaborator => ({
+        ...collaborator,
+        role: collaborator.role as Collaborator['role'],
+        user: collaborator.user
+          ? {
+              id: collaborator.user.id,
+              email: collaborator.user.email,
+              name: collaborator.user.name,
+              avatar_url: collaborator.user.avatar_url,
+            }
+          : undefined,
+      })
+    )
   }
 
   async inviteCollaborator(projectId: string, data: CreateInvitationRequest): Promise<Invitation> {
@@ -231,17 +285,20 @@ export class ProjectSupabaseClient {
       throw new Error(`Failed to fetch invitations: ${error.message}`)
     }
 
-    return data.map(invitation => ({
-      ...invitation,
-      project: invitation.project || undefined,
-      inviter: invitation.inviter
-        ? {
-            id: invitation.inviter.id,
-            email: invitation.inviter.email,
-            name: invitation.inviter.name,
-          }
-        : undefined,
-    }))
+    return data.map(
+      (invitation: DbInvitation): Invitation => ({
+        ...invitation,
+        role: invitation.role as Invitation['role'],
+        project: invitation.project || undefined,
+        inviter: invitation.inviter
+          ? {
+              id: invitation.inviter.id,
+              email: invitation.inviter.email,
+              name: invitation.inviter.name,
+            }
+          : undefined,
+      })
+    )
   }
 
   async acceptInvitation(token: string): Promise<string> {
@@ -330,7 +387,7 @@ export class ProjectSupabaseClient {
       throw new Error(`Failed to fetch activity log: ${error.message}`)
     }
 
-    return data
+    return data as unknown as ActivityLogEntry[]
   }
 
   // Permission checking
