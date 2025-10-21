@@ -58,10 +58,10 @@ description: 'Task list for Project Management feature implementation'
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T015 [P] [US1] API test for POST /api/projects in tests/projects/api/create-project.test.ts
-- [ ] T016 [P] [US1] API test for GET /api/projects in tests/projects/api/get-projects.test.ts
-- [ ] T017 [P] [US1] Database test for projects table constraints in tests/projects/database/projects.test.ts
-- [ ] T018 [P] [US1] Integration test for project creation workflow in tests/projects/integration/project-workflow.test.ts
+- [x] T015 [P] [US1] API test for POST /api/projects in tests/projects/api/create-project.test.ts
+- [x] T016 [P] [US1] API test for GET /api/projects in tests/projects/api/get-projects.test.ts
+- [x] T017 [P] [US1] Database test for projects table constraints in tests/projects/database/projects.test.ts
+- [x] T018 [P] [US1] Integration test for project creation workflow in tests/projects/integration/project-workflow.test.ts
 
 ### Implementation for User Story 1
 
