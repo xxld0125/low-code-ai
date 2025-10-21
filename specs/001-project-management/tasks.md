@@ -26,7 +26,6 @@ description: 'Task list for Project Management feature implementation'
 - [ ] T003 [P] Configure TypeScript strict mode and ESLint rules for project files
 - [ ] T004 [P] Setup API testing framework with Supabase test database
 - [ ] T005 [P] Setup database testing utilities and test data factories
-- [ ] T006 [P] Configure performance monitoring for API endpoints (< 100ms response time)
 
 ---
 
@@ -36,15 +35,14 @@ description: 'Task list for Project Management feature implementation'
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create database schema with migrations for all project management tables
-- [ ] T008 [P] Implement Row Level Security (RLS) policies for all tables
-- [ ] T009 [P] Create database functions (get_user_projects, create_project, invite_collaborator)
-- [ ] T010 Setup project type definitions in types/projects/
-- [ ] T011 Configure Supabase client extensions for project management
-- [ ] T012 Create base project utilities in lib/projects/
-- [ ] T013 [P] Setup API routing structure for /api/projects/
-- [ ] T014 [P] Configure error handling for project management APIs
-- [ ] T015 [P] Setup performance monitoring for database queries (< 100ms query time)
+- [ ] T006 Create database schema with migrations for all project management tables
+- [ ] T007 [P] Implement Row Level Security (RLS) policies for all tables
+- [ ] T008 [P] Create database functions (get_user_projects, create_project, invite_collaborator)
+- [ ] T009 Setup project type definitions in types/projects/
+- [ ] T010 Configure Supabase client extensions for project management
+- [ ] T011 Create base project utilities in lib/projects/
+- [ ] T012 [P] Setup API routing structure for /api/projects/
+- [ ] T013 [P] Configure error handling for project management APIs
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -60,26 +58,26 @@ description: 'Task list for Project Management feature implementation'
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T016 [P] [US1] API test for POST /api/projects in tests/projects/api/create-project.test.ts
-- [ ] T017 [P] [US1] API test for GET /api/projects in tests/projects/api/get-projects.test.ts
-- [ ] T018 [P] [US1] Database test for projects table constraints in tests/projects/database/projects.test.ts
-- [ ] T019 [P] [US1] Integration test for project creation workflow in tests/projects/integration/project-workflow.test.ts
+- [ ] T015 [P] [US1] API test for POST /api/projects in tests/projects/api/create-project.test.ts
+- [ ] T016 [P] [US1] API test for GET /api/projects in tests/projects/api/get-projects.test.ts
+- [ ] T017 [P] [US1] Database test for projects table constraints in tests/projects/database/projects.test.ts
+- [ ] T018 [P] [US1] Integration test for project creation workflow in tests/projects/integration/project-workflow.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Create Project type definitions in types/projects/project.ts
-- [ ] T021 [P] [US1] Create project database queries in lib/projects/queries.ts
-- [ ] T022 [P] [US1] Create project database mutations in lib/projects/mutations.ts
-- [ ] T023 [US1] Implement GET /api/projects endpoint in app/api/projects/route.ts
-- [ ] T024 [US1] Implement POST /api/projects endpoint in app/api/projects/route.ts
-- [ ] T025 [P] [US1] Create ProjectList component in components/projects/ProjectList.tsx
-- [ ] T026 [P] [US1] Create ProjectCard component in components/projects/ProjectCard.tsx
-- [ ] T027 [P] [US1] Create CreateProjectModal component in components/projects/CreateProjectModal.tsx
-- [ ] T028 [US1] Create project dashboard page in app/protected/projects/page.tsx
-- [ ] T029 [US1] Create project creation page in app/protected/projects/create/page.tsx
-- [ ] T030 [P] [US1] Setup Zustand store for project state management in stores/project-store.ts
-- [ ] T031 [US1] Add validation and error handling for project creation
-- [ ] T032 [US1] Add loading states and user feedback for project operations
+- [ ] T019 [P] [US1] Create Project type definitions in types/projects/project.ts
+- [ ] T020 [P] [US1] Create project database queries in lib/projects/queries.ts
+- [ ] T021 [P] [US1] Create project database mutations in lib/projects/mutations.ts
+- [ ] T022 [US1] Implement GET /api/projects endpoint in app/api/projects/route.ts
+- [ ] T023 [US1] Implement POST /api/projects endpoint in app/api/projects/route.ts
+- [ ] T024 [P] [US1] Create ProjectList component in components/projects/ProjectList.tsx
+- [ ] T025 [P] [US1] Create ProjectCard component in components/projects/ProjectCard.tsx
+- [ ] T026 [P] [US1] Create CreateProjectModal component in components/projects/CreateProjectModal.tsx
+- [ ] T027 [US1] Create project dashboard page in app/protected/projects/page.tsx
+- [ ] T028 [US1] Create project creation page in app/protected/projects/create/page.tsx
+- [ ] T029 [P] [US1] Setup Zustand store for project state management in stores/project-store.ts
+- [ ] T030 [US1] Add validation and error handling for project creation
+- [ ] T031 [US1] Add loading states and user feedback for project operations
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -93,22 +91,22 @@ description: 'Task list for Project Management feature implementation'
 
 ### Tests for User Story 2 (API and Database Testing)
 
-- [ ] T033 [P] [US2] API test for PUT /api/projects/[id] in tests/projects/api/update-project.test.ts
-- [ ] T034 [P] [US2] API test for DELETE /api/projects/[id] in tests/projects/api/delete-project.test.ts
-- [ ] T035 [P] [US2] Database test for project ownership permissions in tests/projects/database/permissions.test.ts
-- [ ] T036 [P] [US2] Integration test for project rename workflow in tests/projects/integration/rename-workflow.test.ts
+- [ ] T032 [P] [US2] API test for PUT /api/projects/[id] in tests/projects/api/update-project.test.ts
+- [ ] T033 [P] [US2] API test for DELETE /api/projects/[id] in tests/projects/api/delete-project.test.ts
+- [ ] T034 [P] [US2] Database test for project ownership permissions in tests/projects/database/permissions.test.ts
+- [ ] T035 [P] [US2] Integration test for project rename workflow in tests/projects/integration/rename-workflow.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Create project permissions utilities in lib/projects/permissions.ts
-- [ ] T038 [P] [US2] Update project mutations to include rename and delete operations
-- [ ] T039 [US2] Implement PUT /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
-- [ ] T040 [US2] Implement DELETE /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
-- [ ] T041 [P] [US2] Create ProjectSettings component in components/projects/ProjectSettings.tsx
-- [ ] T042 [P] [US2] Create project settings page in app/protected/projects/[projectId]/settings/page.tsx
-- [ ] T043 [US2] Integrate rename and delete operations with ProjectCard component
-- [ ] T044 [US2] Add confirmation dialogs for destructive operations
-- [ ] T045 [US2] Add permission validation and error handling for project operations
+- [ ] T036 [P] [US2] Create project permissions utilities in lib/projects/permissions.ts
+- [ ] T037 [P] [US2] Update project mutations to include rename and delete operations
+- [ ] T038 [US2] Implement PUT /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
+- [ ] T039 [US2] Implement DELETE /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
+- [ ] T040 [P] [US2] Create ProjectSettings component in components/projects/ProjectSettings.tsx
+- [ ] T041 [P] [US2] Create project settings page in app/protected/projects/[projectId]/settings/page.tsx
+- [ ] T042 [US2] Integrate rename and delete operations with ProjectCard component
+- [ ] T043 [US2] Add confirmation dialogs for destructive operations
+- [ ] T044 [US2] Add permission validation and error handling for project operations
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -122,32 +120,32 @@ description: 'Task list for Project Management feature implementation'
 
 ### Tests for User Story 3 (API and Database Testing)
 
-- [ ] T046 [P] [US3] API test for POST /api/projects/[id]/collaborators in tests/projects/api/invite-collaborator.test.ts
-- [ ] T047 [P] [US3] API test for DELETE /api/projects/[id]/collaborators/[userId] in tests/projects/api/remove-collaborator.test.ts
-- [ ] T048 [P] [US3] API test for POST /api/invitations/accept in tests/projects/api/accept-invitation.test.ts
-- [ ] T049 [P] [US3] Database test for collaboration constraints in tests/projects/database/collaborations.test.ts
-- [ ] T050 [P] [US3] Integration test for invitation workflow in tests/projects/integration/invitation-workflow.test.ts
+- [ ] T045 [P] [US3] API test for POST /api/projects/[id]/collaborators in tests/projects/api/invite-collaborator.test.ts
+- [ ] T046 [P] [US3] API test for DELETE /api/projects/[id]/collaborators/[userId] in tests/projects/api/remove-collaborator.test.ts
+- [ ] T047 [P] [US3] API test for POST /api/invitations/accept in tests/projects/api/accept-invitation.test.ts
+- [ ] T048 [P] [US3] Database test for collaboration constraints in tests/projects/database/collaborations.test.ts
+- [ ] T049 [P] [US3] Integration test for invitation workflow in tests/projects/integration/invitation-workflow.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T051 [P] [US3] Create collaboration type definitions in types/projects/collaboration.ts
-- [ ] T052 [P] [US3] Create invitation type definitions in types/projects/invitation.ts
-- [ ] T053 [P] [US3] Create collaboration database queries in lib/projects/collaboration-queries.ts
-- [ ] T054 [P] [US3] Create invitation database queries in lib/projects/invitation-queries.ts
-- [ ] T055 [P] [US3] Create invitation database mutations in lib/projects/invitation-mutations.ts
-- [ ] T056 [US3] Implement GET /api/projects/[projectId]/collaborators endpoint in app/api/projects/[projectId]/collaborators/route.ts
-- [ ] T057 [US3] Implement POST /api/projects/[projectId]/collaborators endpoint in app/api/projects/[projectId]/collaborators/route.ts
-- [ ] T058 [US3] Implement DELETE /api/projects/[projectId]/collaborators/[userId] endpoint in app/api/projects/[projectId]/collaborators/[userId]/route.ts
-- [ ] T059 [US3] Implement GET /api/invitations endpoint in app/api/invitations/route.ts
-- [ ] T060 [US3] Implement POST /api/invitations/accept endpoint in app/api/invitations/accept/route.ts
-- [ ] T061 [US3] Implement POST /api/invitations/decline endpoint in app/api/invitations/decline/route.ts
-- [ ] T062 [P] [US3] Create CollaboratorManager component in components/projects/CollaboratorManager.tsx
-- [ ] T063 [P] [US3] Create InviteCollaborator component in components/projects/InviteCollaborator.tsx
-- [ ] T064 [P] [US3] Create collaboration management page in app/protected/projects/[projectId]/collaborate/page.tsx
-- [ ] T065 [P] [US3] Update ProjectCard to show collaboration status
-- [ ] T066 [US3] Update project store to handle collaborators and invitations
-- [ ] T067 [US3] Add invitation status tracking and notifications
-- [ ] T068 [US3] Add role-based permission checking for all project operations
+- [ ] T050 [P] [US3] Create collaboration type definitions in types/projects/collaboration.ts
+- [ ] T051 [P] [US3] Create invitation type definitions in types/projects/invitation.ts
+- [ ] T052 [P] [US3] Create collaboration database queries in lib/projects/collaboration-queries.ts
+- [ ] T053 [P] [US3] Create invitation database queries in lib/projects/invitation-queries.ts
+- [ ] T054 [P] [US3] Create invitation database mutations in lib/projects/invitation-mutations.ts
+- [ ] T055 [US3] Implement GET /api/projects/[projectId]/collaborators endpoint in app/api/projects/[projectId]/collaborators/route.ts
+- [ ] T056 [US3] Implement POST /api/projects/[projectId]/collaborators endpoint in app/api/projects/[projectId]/collaborators/route.ts
+- [ ] T057 [US3] Implement DELETE /api/projects/[projectId]/collaborators/[userId] endpoint in app/api/projects/[projectId]/collaborators/[userId]/route.ts
+- [ ] T058 [US3] Implement GET /api/invitations endpoint in app/api/invitations/route.ts
+- [ ] T059 [US3] Implement POST /api/invitations/accept endpoint in app/api/invitations/accept/route.ts
+- [ ] T060 [US3] Implement POST /api/invitations/decline endpoint in app/api/invitations/decline/route.ts
+- [ ] T061 [P] [US3] Create CollaboratorManager component in components/projects/CollaboratorManager.tsx
+- [ ] T062 [P] [US3] Create InviteCollaborator component in components/projects/InviteCollaborator.tsx
+- [ ] T063 [P] [US3] Create collaboration management page in app/protected/projects/[projectId]/collaborate/page.tsx
+- [ ] T064 [P] [US3] Update ProjectCard to show collaboration status
+- [ ] T065 [US3] Update project store to handle collaborators and invitations
+- [ ] T066 [US3] Add invitation status tracking and notifications
+- [ ] T067 [US3] Add role-based permission checking for all project operations
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -157,20 +155,13 @@ description: 'Task list for Project Management feature implementation'
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T069 [P] Create ProjectActivityLog component in components/projects/ProjectActivityLog.tsx
-- [ ] T070 [P] Add project overview page in app/protected/projects/[projectId]/page.tsx
-- [ ] T071 Code cleanup and refactoring across all project components
-- [ ] T072 Performance optimization for API response times (< 100ms target)
-- [ ] T073 [P] Bundle size analysis and optimization (< 150KB gzipped for project features)
-- [ ] T074 Security hardening for all project operations
-- [ ] T075 Run quickstart.md validation and update documentation
-- [ ] T076 [P] Accessibility audit and WCAG 2.1 AA compliance verification
-- [ ] T077 [P] Performance regression testing and Core Web Vitals validation
-- [ ] T078 [P] Cross-browser and responsive design testing for project management interface
-- [ ] T079 [P] Load testing for concurrent project operations
-- [ ] T080 Database query optimization and indexing review
-- [ ] T081 Error handling and user experience improvements
-- [ ] T082 Code quality metrics review and technical debt assessment
+- [ ] T068 [P] Create ProjectActivityLog component in components/projects/ProjectActivityLog.tsx
+- [ ] T069 [P] Add project overview page in app/protected/projects/[projectId]/page.tsx
+- [ ] T070 Code cleanup and refactoring across all project components
+- [ ] T071 Security hardening for all project operations
+- [ ] T072 Run quickstart.md validation and update documentation
+- [ ] T073 Error handling and user experience improvements
+- [ ] T074 Code quality metrics review and technical debt assessment
 
 ---
 
@@ -264,20 +255,12 @@ With multiple developers:
 
 ---
 
-## Performance & Quality Requirements
-
-### API Performance Targets
-
-- **Project Operations**: < 100ms response time
-- **Database Queries**: < 100ms average query time
-- **Project List Loading**: < 200ms for up to 100 projects
+## Quality Requirements
 
 ### Code Quality Standards
 
 - **TypeScript**: Strict mode with comprehensive type coverage
 - **Testing**: API and database integration tests required
-- **Accessibility**: WCAG 2.1 AA compliance
-- **Bundle Size**: < 150KB gzipped for project management features
 
 ### Security Requirements
 
@@ -296,6 +279,5 @@ With multiple developers:
 - Verify API and database tests fail before implementing
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
-- Performance requirements must be met for all API endpoints
 - Security policies (RLS) must be enforced for all database operations
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
