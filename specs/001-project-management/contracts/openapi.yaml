@@ -1,0 +1,756 @@
+openapi: 3.0.3
+info:
+  title: Low-Code Platform Project Management API
+  description: API for managing projects, collaborations, and invitations in the low-code platform
+  version: 1.0.0
+  contact:
+    name: Low-Code Platform Team
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.lowcode-platform.com/v1
+    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /projects:
+    get:
+      tags:
+        - Projects
+      summary: Get user's projects
+      description: Retrieve all projects that the authenticated user owns or collaborates on
+      operationId: getUserProjects
+      parameters:
+        - name: include_archived
+          in: query
+          description: Include archived projects in the response
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: limit
+          in: query
+          description: Maximum number of projects to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of projects to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of projects retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Projects
+      summary: Create a new project
+      description: Create a new project owned by the authenticated user
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Project name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /projects/{projectId}:
+    get:
+      tags:
+        - Projects
+      summary: Get project details
+      description: Retrieve detailed information about a specific project
+      operationId: getProject
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetails'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Projects
+      summary: Update project
+      description: Update project information (only project owners can update)
+      operationId: updateProject
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Project name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Projects
+      summary: Delete project
+      description: Delete a project (only project owners can delete)
+      operationId: deleteProject
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Project deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /projects/{projectId}/collaborators:
+    get:
+      tags:
+        - Collaborations
+      summary: Get project collaborators
+      description: Retrieve all collaborators for a specific project
+      operationId: getProjectCollaborators
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Collaborators retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collaborators:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collaborator'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Collaborations
+      summary: Invite collaborator
+      description: Invite a user to collaborate on a project (only project owners can invite)
+      operationId: inviteCollaborator
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteCollaboratorRequest'
+      responses:
+        '201':
+          description: Invitation sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: User already collaborates on this project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /projects/{projectId}/collaborators/{userId}:
+    delete:
+      tags:
+        - Collaborations
+      summary: Remove collaborator
+      description: Remove a collaborator from a project (only project owners can remove)
+      operationId: removeCollaborator
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          description: User ID to remove
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Collaborator removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /invitations/accept:
+    post:
+      tags:
+        - Invitations
+      summary: Accept project invitation
+      description: Accept a pending project invitation
+      operationId: acceptInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInvitationRequest'
+      responses:
+        '200':
+          description: Invitation accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Invitation not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /invitations/decline:
+    post:
+      tags:
+        - Invitations
+      summary: Decline project invitation
+      description: Decline a pending project invitation
+      operationId: declineInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInvitationRequest'
+      responses:
+        '200':
+          description: Invitation declined successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invitation declined successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Invitation not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /invitations:
+    get:
+      tags:
+        - Invitations
+      summary: Get user's pending invitations
+      description: Retrieve all pending invitations for the authenticated user
+      operationId: getUserInvitations
+      responses:
+        '200':
+          description: Invitations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invitation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "My Awesome Project"
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: "A project for building amazing web applications"
+        owner_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-21T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-01-21T15:45:00Z"
+        status:
+          type: string
+          enum: [active, archived, suspended]
+          example: "active"
+        user_role:
+          type: string
+          enum: [owner, editor, viewer]
+          example: "owner"
+      required:
+        - id
+        - name
+        - owner_id
+        - created_at
+        - updated_at
+        - status
+        - user_role
+
+    ProjectDetails:
+      allOf:
+        - $ref: '#/components/schemas/Project'
+        - type: object
+          properties:
+            settings:
+              type: object
+              additionalProperties: true
+              example:
+                theme: "default"
+                version: "1.0.0"
+            collaborators_count:
+              type: integer
+              minimum: 0
+              example: 3
+            last_activity:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2025-01-21T14:20:00Z"
+
+    CreateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "My New Project"
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: "A description of my new project"
+      required:
+        - name
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Updated Project Name"
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: "Updated project description"
+        status:
+          type: string
+          enum: [active, archived, suspended]
+          example: "archived"
+        settings:
+          type: object
+          additionalProperties: true
+          example:
+            theme: "dark"
+            version: "1.1.0"
+
+    Collaborator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174002"
+        user_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174002"
+        email:
+          type: string
+          format: email
+          example: "collaborator@example.com"
+        name:
+          type: string
+          example: "John Doe"
+        role:
+          type: string
+          enum: [owner, editor, viewer]
+          example: "editor"
+        invited_at:
+          type: string
+          format: date-time
+          example: "2025-01-20T09:00:00Z"
+        joined_at:
+          type: string
+          format: date-time
+          example: "2025-01-20T10:30:00Z"
+        last_accessed_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2025-01-21T08:15:00Z"
+      required:
+        - id
+        - user_id
+        - email
+        - role
+        - invited_at
+
+    InviteCollaboratorRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "newcollaborator@example.com"
+        role:
+          type: string
+          enum: [editor, viewer]
+          example: "editor"
+      required:
+        - email
+        - role
+
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174003"
+        project_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        project_name:
+          type: string
+          example: "My Awesome Project"
+        invited_by:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+        invited_email:
+          type: string
+          format: email
+          example: "invited@example.com"
+        role:
+          type: string
+          enum: [editor, viewer]
+          example: "viewer"
+        token:
+          type: string
+          example: "abc123def456..."
+        expires_at:
+          type: string
+          format: date-time
+          example: "2025-01-27T09:00:00Z"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-21T09:00:00Z"
+      required:
+        - id
+        - project_id
+        - project_name
+        - invited_by
+        - invited_email
+        - role
+        - token
+        - expires_at
+        - created_at
+
+    AcceptInvitationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "abc123def456..."
+      required:
+        - token
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+        offset:
+          type: integer
+          minimum: 0
+          example: 0
+        total:
+          type: integer
+          minimum: 0
+          example: 45
+        has_more:
+          type: boolean
+          example: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Project name already exists"
+        message:
+          type: string
+          example: "A project with this name already exists in your workspace"
+        code:
+          type: string
+          example: "PROJECT_NAME_EXISTS"
+      required:
+        - error
+        - message
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unauthorized"
+              message:
+                type: string
+                example: "Authentication is required to access this resource"
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Forbidden"
+              message:
+                type: string
+                example: "You don't have permission to perform this action"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Not Found"
+              message:
+                type: string
+                example: "The requested resource was not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Internal Server Error"
+              message:
+                type: string
+                example: "An unexpected error occurred"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase JWT token obtained through authentication
+
+tags:
+  - name: Projects
+    description: Project management operations
+  - name: Collaborations
+    description: Project collaboration management
+  - name: Invitations
+    description: Project invitation management
