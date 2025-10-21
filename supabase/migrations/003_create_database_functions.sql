@@ -49,8 +49,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Function: Create Project
 CREATE OR REPLACE FUNCTION create_project(
   p_name TEXT,
-  p_description TEXT DEFAULT NULL,
-  p_owner_id UUID
+  p_owner_id UUID,
+  p_description TEXT DEFAULT NULL
 )
 RETURNS UUID AS $$
 DECLARE
@@ -97,10 +97,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Function: Update Project
 CREATE OR REPLACE FUNCTION update_project(
   p_project_id UUID,
+  p_user_id UUID,
   p_name TEXT DEFAULT NULL,
   p_description TEXT DEFAULT NULL,
-  p_status TEXT DEFAULT NULL,
-  p_user_id UUID
+  p_status TEXT DEFAULT NULL
 )
 RETURNS BOOLEAN AS $$
 DECLARE
