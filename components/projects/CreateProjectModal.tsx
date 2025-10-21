@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -33,11 +33,13 @@ interface CreateProjectModalProps {
   }
 }
 
+const EMPTY_INITIAL_DATA = {}
+
 export function CreateProjectModal({
   open,
   onOpenChange,
   onSubmit,
-  initialData = {},
+  initialData = EMPTY_INITIAL_DATA,
 }: CreateProjectModalProps) {
   const [formData, setFormData] = useState({
     name: initialData.name || '',
@@ -47,20 +49,17 @@ export function CreateProjectModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Memoize initialData to prevent unnecessary re-renders
-  const memoizedInitialData = useMemo(() => initialData, [initialData])
-
   // Reset form when modal opens/closes
   useEffect(() => {
     if (open) {
       setFormData({
-        name: memoizedInitialData.name || '',
-        description: memoizedInitialData.description || '',
+        name: initialData.name || '',
+        description: initialData.description || '',
       })
       setErrors({})
       setSubmitError(null)
     }
-  }, [open, memoizedInitialData])
+  }, [open, initialData.name, initialData.description])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
