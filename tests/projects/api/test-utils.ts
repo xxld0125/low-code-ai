@@ -107,7 +107,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }
@@ -132,7 +132,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }
@@ -163,7 +163,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }
@@ -186,7 +186,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }
@@ -226,7 +226,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }
@@ -251,7 +251,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }
@@ -276,7 +276,7 @@ export class APITestHelpers {
         ? {
             message: error.message,
             code: error.code,
-            details: error.details,
+            details: typeof error.details === 'string' ? { error: error.details } : error.details,
           }
         : undefined,
     }

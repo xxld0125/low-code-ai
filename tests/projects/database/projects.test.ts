@@ -134,10 +134,14 @@ describe('Database: Projects Table Constraints', () => {
       const projectData = ProjectTestDataFactory.createValidProject({
         owner_id: testUserId,
       })
-      delete projectData.id // Remove ID to test auto-generation
+      const { ...projectDataWithoutId } = projectData // Remove ID to test auto-generation
 
       // Act
-      const result = await supabase.from('projects').insert(projectData).select('id').single()
+      const result = await supabase
+        .from('projects')
+        .insert(projectDataWithoutId)
+        .select('id')
+        .single()
 
       // Assert
       console.log('Primary key generation result:', result)
@@ -187,10 +191,9 @@ describe('Database: Projects Table Constraints', () => {
   describe('NOT NULL Constraints', () => {
     test('should require name field', async () => {
       // Arrange
-      const projectData = ProjectTestDataFactory.createValidProject({
+      const { ...projectData } = ProjectTestDataFactory.createValidProject({
         owner_id: testUserId,
-      })
-      delete projectData.name // Remove required field
+      }) // Remove required field
 
       // Act
       const result = await supabase.from('projects').insert(projectData).select()
@@ -211,10 +214,10 @@ describe('Database: Projects Table Constraints', () => {
       const projectData = ProjectTestDataFactory.createValidProject({
         owner_id: testUserId,
       })
-      delete projectData.owner_id // Remove required field
+      const { ...projectDataWithoutOwner } = projectData // Remove required field
 
       // Act
-      const result = await supabase.from('projects').insert(projectData).select()
+      const result = await supabase.from('projects').insert(projectDataWithoutOwner).select()
 
       // Assert
       console.log('Missing owner_id field result:', result)
@@ -306,7 +309,7 @@ describe('Database: Projects Table Constraints', () => {
       // Arrange
       const projectWithInvalidStatus = ProjectTestDataFactory.createValidProject({
         owner_id: testUserId,
-        status: 'invalid_status',
+        status: 'invalid_status' as ProjectData['status'],
       })
 
       // Act
@@ -324,7 +327,7 @@ describe('Database: Projects Table Constraints', () => {
     })
 
     test('should accept valid status values', async () => {
-      const validStatuses = ['active', 'archived', 'suspended']
+      const validStatuses: ProjectData['status'][] = ['active', 'archived', 'suspended']
       const results = []
 
       for (const status of validStatuses) {
@@ -359,13 +362,12 @@ describe('Database: Projects Table Constraints', () => {
       const projectData = ProjectTestDataFactory.createValidProject({
         owner_id: testUserId,
       })
-      delete projectData.created_at
-      delete projectData.updated_at
+      const { ...projectDataWithoutTimestamps } = projectData
 
       // Act
       const result = await supabase
         .from('projects')
-        .insert(projectData)
+        .insert(projectDataWithoutTimestamps)
         .select('created_at, updated_at')
         .single()
 
@@ -388,13 +390,12 @@ describe('Database: Projects Table Constraints', () => {
       const projectData = ProjectTestDataFactory.createValidProject({
         owner_id: testUserId,
       })
-      delete projectData.is_deleted
-      delete projectData.status
+      const { ...projectDataWithoutDefaults } = projectData
 
       // Act
       const result = await supabase
         .from('projects')
-        .insert(projectData)
+        .insert(projectDataWithoutDefaults)
         .select('is_deleted, status')
         .single()
 

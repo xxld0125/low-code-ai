@@ -91,22 +91,22 @@ description: 'Task list for Project Management feature implementation'
 
 ### Tests for User Story 2 (API and Database Testing)
 
-- [ ] T032 [P] [US2] API test for PUT /api/projects/[id] in tests/projects/api/update-project.test.ts
-- [ ] T033 [P] [US2] API test for DELETE /api/projects/[id] in tests/projects/api/delete-project.test.ts
-- [ ] T034 [P] [US2] Database test for project ownership permissions in tests/projects/database/permissions.test.ts
-- [ ] T035 [P] [US2] Integration test for project rename workflow in tests/projects/integration/rename-workflow.test.ts
+- [x] T032 [P] [US2] API test for PUT /api/projects/[id] in tests/projects/api/update-project.test.ts
+- [x] T033 [P] [US2] API test for DELETE /api/projects/[id] in tests/projects/api/delete-project.test.ts
+- [x] T034 [P] [US2] Database test for project ownership permissions in tests/projects/database/permissions.test.ts
+- [x] T035 [P] [US2] Integration test for project rename workflow in tests/projects/integration/rename-workflow.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T036 [P] [US2] Create project permissions utilities in lib/projects/permissions.ts
-- [ ] T037 [P] [US2] Update project mutations to include rename and delete operations
-- [ ] T038 [US2] Implement PUT /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
-- [ ] T039 [US2] Implement DELETE /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
-- [ ] T040 [P] [US2] Create ProjectSettings component in components/projects/ProjectSettings.tsx
-- [ ] T041 [P] [US2] Create project settings page in app/protected/projects/[projectId]/settings/page.tsx
-- [ ] T042 [US2] Integrate rename and delete operations with ProjectCard component
-- [ ] T043 [US2] Add confirmation dialogs for destructive operations
-- [ ] T044 [US2] Add permission validation and error handling for project operations
+- [x] T036 [P] [US2] Create project permissions utilities in lib/projects/permissions.ts
+- [x] T037 [P] [US2] Update project mutations to include rename and delete operations
+- [x] T038 [US2] Implement PUT /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
+- [x] T039 [US2] Implement DELETE /api/projects/[projectId] endpoint in app/api/projects/[projectId]/route.ts
+- [x] T040 [P] [US2] Create ProjectSettings component in components/projects/ProjectSettings.tsx
+- [x] T041 [P] [US2] Create project settings page in app/protected/projects/[projectId]/settings/page.tsx
+- [x] T042 [US2] Integrate rename and delete operations with ProjectCard component
+- [x] T043 [US2] Add confirmation dialogs for destructive operations
+- [x] T044 [US2] Add permission validation and error handling for project operations
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

@@ -22,7 +22,7 @@ const config: Config = {
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
 }

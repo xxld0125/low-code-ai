@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import type {
   Project,
   ProjectWithUserRole,
+  ProjectDetails,
   Collaborator,
   Invitation,
   PaginationParams,
@@ -129,14 +130,7 @@ export async function getProjectById(projectId: string, userId: string): Promise
 export async function getProjectDetails(
   projectId: string,
   userId: string
-): Promise<
-  Project & {
-    owner_name?: string
-    owner_email?: string
-    collaborators_count?: number
-    last_activity?: string | null
-  }
-> {
+): Promise<ProjectDetails> {
   const supabase = await createClient()
 
   // Check access first
@@ -217,20 +211,23 @@ export async function getProjectCollaborators(
     throw new Error(`Failed to fetch collaborators: ${error.message}`)
   }
 
-  return data.map(
-    (collaborator: DbCollaborator): Collaborator => ({
-      ...collaborator,
-      role: collaborator.role as Collaborator['role'],
-      user: collaborator.user
-        ? {
-            id: collaborator.user.id,
-            email: collaborator.user.email,
-            name: collaborator.user.name,
-            avatar_url: collaborator.user.avatar_url,
-          }
-        : undefined,
+  return data
+    .filter(item => !('error' in item))
+    .map(collaborator => {
+      const collab = collaborator as DbCollaborator
+      return {
+        ...collab,
+        role: collab.role as Collaborator['role'],
+        user: collab.user
+          ? {
+              id: collab.user.id,
+              email: collab.user.email,
+              name: collab.user.name,
+              avatar_url: collab.user.avatar_url,
+            }
+          : undefined,
+      } as Collaborator
     })
-  )
 }
 
 /**
@@ -274,19 +271,22 @@ export async function getProjectInvitations(
     throw new Error(`Failed to fetch invitations: ${error.message}`)
   }
 
-  return data.map(
-    (invitation: DbInvitation): Invitation => ({
-      ...invitation,
-      role: invitation.role as Invitation['role'],
-      inviter: invitation.inviter
-        ? {
-            id: invitation.inviter.id,
-            email: invitation.inviter.email,
-            name: invitation.inviter.name,
-          }
-        : undefined,
+  return data
+    .filter(item => !('error' in item))
+    .map(invitation => {
+      const inv = invitation as DbInvitation
+      return {
+        ...inv,
+        role: inv.role as Invitation['role'],
+        inviter: inv.inviter
+          ? {
+              id: inv.inviter.id,
+              email: inv.inviter.email,
+              name: inv.inviter.name,
+            }
+          : undefined,
+      } as Invitation
     })
-  )
 }
 
 /**
@@ -334,20 +334,23 @@ export async function getUserInvitations(
     throw new Error(`Failed to fetch user invitations: ${error.message}`)
   }
 
-  return data.map(
-    (invitation: DbInvitation): Invitation => ({
-      ...invitation,
-      role: invitation.role as Invitation['role'],
-      project: invitation.project || undefined,
-      inviter: invitation.inviter
-        ? {
-            id: invitation.inviter.id,
-            email: invitation.inviter.email,
-            name: invitation.inviter.name,
-          }
-        : undefined,
+  return data
+    .filter(item => !('error' in item))
+    .map(invitation => {
+      const inv = invitation as DbInvitation
+      return {
+        ...inv,
+        role: inv.role as Invitation['role'],
+        project: inv.project || undefined,
+        inviter: inv.inviter
+          ? {
+              id: inv.inviter.id,
+              email: inv.inviter.email,
+              name: inv.inviter.name,
+            }
+          : undefined,
+      } as Invitation
     })
-  )
 }
 
 /**
@@ -447,7 +450,7 @@ export async function getUserProjectRole(
     .select('role')
     .eq('project_id', projectId)
     .eq('user_id', userId)
-    .eq('joined_at', null)
+    .not('joined_at', 'is', null)
     .single()
 
   return collaborator?.role || null

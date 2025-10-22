@@ -218,4 +218,74 @@ export class DatabaseTestHelpers {
 
     return !error && !!data
   }
+
+  // Alias methods for backward compatibility
+  static async createTestClient(): Promise<TestDatabaseClient> {
+    const client = createClient(testDbUrl, testDbKey)
+
+    const cleanup = async () => {
+      // Clean up test data in proper order
+      await client.from('project_activity_log').delete().neq('id', -1)
+      await client.from('project_collaborators').delete().neq('id', -1)
+      await client.from('project_invitations').delete().neq('id', -1)
+      await client.from('projects').delete().neq('id', -1)
+    }
+
+    const switchUser = async (userId: string) => {
+      // This is a no-op for test database client since we don't have actual user auth
+      // In a real scenario, this would update the user context or auth token
+      console.log(`Switching to user context: ${userId}`)
+    }
+
+    return { client, cleanup, switchUser }
+  }
+
+  static async createUser(overrides: Partial<TestUser> = {}): Promise<TestUser> {
+    return {
+      id: faker.string.uuid(),
+      email: faker.internet.email(),
+      name: faker.person.fullName(),
+      ...overrides,
+    }
+  }
+
+  static async addCollaborator(
+    client: SupabaseClient,
+    projectId: string,
+    userId: string,
+    role: 'owner' | 'editor' | 'viewer' = 'editor'
+  ): Promise<TestCollaborator> {
+    const collaboratorData = ProjectDataFactory.createCollaborator({
+      project_id: projectId,
+      user_id: userId,
+      role,
+    })
+
+    const { data, error } = await client
+      .from('project_collaborators')
+      .insert(collaboratorData)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to add test collaborator: ${error.message}`)
+    }
+
+    return data
+  }
 }
+
+// Alias types for backward compatibility
+export interface TestDatabaseClient {
+  client: SupabaseClient
+  cleanup: () => Promise<void>
+  switchUser: (userId: string) => Promise<void>
+}
+
+export interface TestUser {
+  id: string
+  email: string
+  name?: string
+}
+
+export { DatabaseTestHelpers as TestDatabaseHelpers }

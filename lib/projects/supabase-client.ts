@@ -197,20 +197,23 @@ export class ProjectSupabaseClient {
       throw new Error(`Failed to fetch collaborators: ${error.message}`)
     }
 
-    return data.map(
-      (collaborator: DbCollaborator): Collaborator => ({
-        ...collaborator,
-        role: collaborator.role as Collaborator['role'],
-        user: collaborator.user
-          ? {
-              id: collaborator.user.id,
-              email: collaborator.user.email,
-              name: collaborator.user.name,
-              avatar_url: collaborator.user.avatar_url,
-            }
-          : undefined,
+    return data
+      .filter(item => !('error' in item))
+      .map(collaborator => {
+        const collab = collaborator as DbCollaborator
+        return {
+          ...collab,
+          role: collab.role as Collaborator['role'],
+          user: collab.user
+            ? {
+                id: collab.user.id,
+                email: collab.user.email,
+                name: collab.user.name,
+                avatar_url: collab.user.avatar_url,
+              }
+            : undefined,
+        } as Collaborator
       })
-    )
   }
 
   async inviteCollaborator(projectId: string, data: CreateInvitationRequest): Promise<Invitation> {
@@ -285,20 +288,23 @@ export class ProjectSupabaseClient {
       throw new Error(`Failed to fetch invitations: ${error.message}`)
     }
 
-    return data.map(
-      (invitation: DbInvitation): Invitation => ({
-        ...invitation,
-        role: invitation.role as Invitation['role'],
-        project: invitation.project || undefined,
-        inviter: invitation.inviter
-          ? {
-              id: invitation.inviter.id,
-              email: invitation.inviter.email,
-              name: invitation.inviter.name,
-            }
-          : undefined,
+    return data
+      .filter(item => !('error' in item))
+      .map(invitation => {
+        const inv = invitation as DbInvitation
+        return {
+          ...inv,
+          role: inv.role as Invitation['role'],
+          project: inv.project || undefined,
+          inviter: inv.inviter
+            ? {
+                id: inv.inviter.id,
+                email: inv.inviter.email,
+                name: inv.inviter.name,
+              }
+            : undefined,
+        } as Invitation
       })
-    )
   }
 
   async acceptInvitation(token: string): Promise<string> {

@@ -33,7 +33,7 @@ export interface PaginationResponse {
 export interface APIError {
   message: string
   code?: string
-  details?: Record<string, unknown>
+  details?: Record<string, unknown> | string
   status?: number
 }
 

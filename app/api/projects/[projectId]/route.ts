@@ -6,9 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { updateProject, deleteProject } from '@/lib/projects/mutations'
-import { getProjectById, getProjectDetails } from '@/lib/projects/queries'
-import type { UpdateProjectData } from '@/types/projects'
+import { getProjectDetails, getUserProjectRole } from '@/lib/projects/queries'
+import type { UpdateProjectData, ProjectRole } from '@/types/projects'
 import { handleAPIError } from '@/lib/projects/error-handling'
+import { ProjectOperationValidator } from '@/lib/projects/operation-validator'
 
 /**
  * GET /api/projects/[projectId] - Get project details
@@ -62,62 +63,82 @@ export async function PUT(
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
+      return handleAPIError(
+        { message: 'Authentication required', code: 'AUTHENTICATION_ERROR' },
+        'Authentication required'
+      )
     }
 
     const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {
-      return NextResponse.json({ error: { message: 'Invalid project ID' } }, { status: 400 })
+      return handleAPIError(
+        { message: 'Invalid project ID', code: 'VALIDATION_ERROR' },
+        'Invalid project ID'
+      )
     }
 
     // Parse request body
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return handleAPIError(
+        { message: 'Invalid request body', code: 'VALIDATION_ERROR' },
+        'Invalid request body'
+      )
+    }
+
     const updateData: UpdateProjectData = {
       name: body.name,
       description: body.description,
       status: body.status,
     }
 
-    // Validate input
-    if (updateData.name !== undefined) {
-      if (!updateData.name || updateData.name.trim().length === 0) {
-        return NextResponse.json(
-          { error: { message: 'Project name cannot be empty' } },
-          { status: 400 }
-        )
-      }
-
-      if (updateData.name.length > 100) {
-        return NextResponse.json(
-          { error: { message: 'Project name must be 100 characters or less' } },
-          { status: 400 }
-        )
-      }
-    }
-
-    if (
-      updateData.description !== undefined &&
-      updateData.description &&
-      updateData.description.length > 500
-    ) {
-      return NextResponse.json(
-        { error: { message: 'Project description must be 500 characters or less' } },
-        { status: 400 }
+    // Get project details for validation
+    const existingProject = await getProjectDetails(projectId, user.id)
+    if (!existingProject) {
+      return handleAPIError(
+        { message: 'Project not found or access denied', code: 'NOT_FOUND' },
+        'Project not found'
       )
     }
 
-    if (updateData.status && !['active', 'archived', 'suspended'].includes(updateData.status)) {
-      return NextResponse.json({ error: { message: 'Invalid project status' } }, { status: 400 })
+    // Get user role properly
+    const userRoleStr = await getUserProjectRole(projectId, user.id)
+    if (!userRoleStr) {
+      return handleAPIError(
+        { message: 'Access denied to project', code: 'AUTHORIZATION_ERROR' },
+        'Access denied'
+      )
     }
 
-    // Check if project exists and user has access
-    const existingProject = await getProjectById(projectId, user.id)
-    if (!existingProject) {
-      return NextResponse.json(
-        { error: { message: 'Project not found or access denied' } },
-        { status: 404 }
+    // Validate and convert user role
+    const validRoles: ProjectRole[] = ['owner', 'editor', 'viewer']
+    if (!validRoles.includes(userRoleStr as ProjectRole)) {
+      return handleAPIError(
+        { message: 'Invalid user role', code: 'AUTHORIZATION_ERROR' },
+        'Invalid user role'
+      )
+    }
+
+    const userRole: ProjectRole = userRoleStr as ProjectRole
+
+    // Validate operation using the comprehensive validator
+    const validation = await ProjectOperationValidator.validateOperation({
+      operation: 'update',
+      userId: user.id,
+      projectId,
+      userRole,
+      project: existingProject,
+      data: updateData as Record<string, unknown>,
+    })
+
+    if (!validation.isValid) {
+      return handleAPIError(
+        validation.error || { message: 'Validation failed', code: 'VALIDATION_ERROR' },
+        'Project update validation failed'
       )
     }
 
@@ -148,22 +169,64 @@ export async function DELETE(
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: { message: 'Authentication required' } }, { status: 401 })
+      return handleAPIError(
+        { message: 'Authentication required', code: 'AUTHENTICATION_ERROR' },
+        'Authentication required'
+      )
     }
 
     const { projectId } = await params
 
     // Validate project ID
     if (!projectId || typeof projectId !== 'string') {
-      return NextResponse.json({ error: { message: 'Invalid project ID' } }, { status: 400 })
+      return handleAPIError(
+        { message: 'Invalid project ID', code: 'VALIDATION_ERROR' },
+        'Invalid project ID'
+      )
     }
 
-    // Check if project exists and user has access
-    const existingProject = await getProjectById(projectId, user.id)
+    // Get project details for validation
+    const existingProject = await getProjectDetails(projectId, user.id)
     if (!existingProject) {
-      return NextResponse.json(
-        { error: { message: 'Project not found or access denied' } },
-        { status: 404 }
+      return handleAPIError(
+        { message: 'Project not found or access denied', code: 'NOT_FOUND' },
+        'Project not found'
+      )
+    }
+
+    // Get user role properly
+    const userRoleStr = await getUserProjectRole(projectId, user.id)
+    if (!userRoleStr) {
+      return handleAPIError(
+        { message: 'Access denied to project', code: 'AUTHORIZATION_ERROR' },
+        'Access denied'
+      )
+    }
+
+    // Validate and convert user role
+    const validRoles: ProjectRole[] = ['owner', 'editor', 'viewer']
+    if (!validRoles.includes(userRoleStr as ProjectRole)) {
+      return handleAPIError(
+        { message: 'Invalid user role', code: 'AUTHORIZATION_ERROR' },
+        'Invalid user role'
+      )
+    }
+
+    const userRole: ProjectRole = userRoleStr as ProjectRole
+
+    // Validate operation using the comprehensive validator
+    const validation = await ProjectOperationValidator.validateOperation({
+      operation: 'delete',
+      userId: user.id,
+      projectId,
+      userRole,
+      project: existingProject,
+    })
+
+    if (!validation.isValid) {
+      return handleAPIError(
+        validation.error || { message: 'Validation failed', code: 'VALIDATION_ERROR' },
+        'Project delete validation failed'
       )
     }
 

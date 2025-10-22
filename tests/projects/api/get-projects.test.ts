@@ -275,8 +275,7 @@ describe('GET /api/projects - List Projects API', () => {
         .from('projects')
         .select('*')
         .eq('owner_id', testUserId)
-        .limit(1)
-        .offset(1)
+        .range(1, 2)
 
       // Assert
       console.log('Paginated projects API Response:', result)

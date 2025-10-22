@@ -26,7 +26,7 @@ import {
   useUpdateProject,
 } from '@/stores/project-store'
 import { Plus, Search, Filter } from 'lucide-react'
-import type { ProjectWithUserRole } from '@/types/projects'
+import type { ProjectWithUserRole, UpdateProjectData } from '@/types/projects'
 
 interface ProjectListProps {
   className?: string
@@ -90,10 +90,7 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
     }
   }
 
-  const handleUpdateProject = async (
-    projectId: string,
-    data: { status: ProjectWithUserRole['status'] }
-  ) => {
+  const handleUpdateProject = async (projectId: string, data: UpdateProjectData) => {
     try {
       await updateProject(projectId, data)
     } catch (error) {

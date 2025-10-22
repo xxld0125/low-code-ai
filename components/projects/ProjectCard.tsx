@@ -34,9 +34,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { ProjectStatus, ProjectRole } from '@/types/projects'
-import { formatDistanceToNow } from '@/lib/utils/date'
+import { ProjectStatus, ProjectRole, UpdateProjectData } from '@/types/projects'
+import { formatRelativeTime } from '@/lib/utils/date'
 import {
   MoreHorizontal,
   Settings,
@@ -60,15 +70,25 @@ interface ProjectCardProps {
     collaborators_count?: number
     last_accessed_at?: string | null
   }
-  onDelete?: (projectId: string) => void
-  onUpdate?: (projectId: string, data: { status: ProjectStatus }) => void
+  onDelete?: (projectId: string) => Promise<void>
+  onUpdate?: (projectId: string, data: UpdateProjectData) => Promise<void>
+  onRename?: (projectId: string, newName: string) => Promise<void>
   className?: string
 }
 
-export function ProjectCard({ project, onDelete, onUpdate, className = '' }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  onDelete,
+  onUpdate,
+  onRename,
+  className = '',
+}: ProjectCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const [newName, setNewName] = useState(project.name || '')
+  const [isRenaming, setIsRenaming] = useState(false)
 
   const handleDelete = async () => {
     if (!onDelete) return
@@ -96,6 +116,25 @@ export function ProjectCard({ project, onDelete, onUpdate, className = '' }: Pro
     } finally {
       setIsUpdating(false)
     }
+  }
+
+  const handleRename = async () => {
+    if (!onRename || !newName.trim()) return
+
+    setIsRenaming(true)
+    try {
+      await onRename(project.id, newName.trim())
+      setIsRenameDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to rename project:', error)
+    } finally {
+      setIsRenaming(false)
+    }
+  }
+
+  const openRenameDialog = () => {
+    setNewName(project.name)
+    setIsRenameDialogOpen(true)
   }
 
   const canManageProject = project.user_role === 'owner' || project.user_role === 'editor'
@@ -165,6 +204,15 @@ export function ProjectCard({ project, onDelete, onUpdate, className = '' }: Pro
                     </Link>
                   </DropdownMenuItem>
 
+                  {canManageProject && (
+                    <>
+                      <DropdownMenuItem onClick={openRenameDialog} className="flex items-center">
+                        <Edit className="mr-2 h-4 w-4" />
+                        Rename Project
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
                   {project.user_role === 'owner' && (
                     <>
                       <DropdownMenuItem asChild>
@@ -224,14 +272,13 @@ export function ProjectCard({ project, onDelete, onUpdate, className = '' }: Pro
 
             {/* Last updated */}
             <div className="text-xs text-muted-foreground">
-              Updated {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
+              Updated {formatRelativeTime(project.updated_at)}
             </div>
 
             {/* Last accessed */}
             {project.last_accessed_at && (
               <div className="text-xs text-muted-foreground">
-                Last accessed{' '}
-                {formatDistanceToNow(new Date(project.last_accessed_at), { addSuffix: true })}
+                Last accessed {formatRelativeTime(project.last_accessed_at)}
               </div>
             )}
           </div>
@@ -285,6 +332,56 @@ export function ProjectCard({ project, onDelete, onUpdate, className = '' }: Pro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rename dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Project</DialogTitle>
+            <DialogDescription>
+              Enter a new name for &quot;{project.name}&quot;. Project names must be 100 characters
+              or less.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-name">Project Name</Label>
+              <Input
+                id="new-name"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                placeholder="Enter project name"
+                maxLength={100}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && newName.trim()) {
+                    handleRename()
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground">{newName.length}/100 characters</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRenameDialogOpen(false)}
+              disabled={isRenaming}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleRename} disabled={!newName.trim() || isRenaming}>
+              {isRenaming ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Renaming...
+                </>
+              ) : (
+                'Rename Project'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
