@@ -120,11 +120,13 @@ description: 'Task list for Project Management feature implementation'
 
 ### Tests for User Story 3 (API and Database Testing)
 
+<!--
 - [ ] T045 [P] [US3] API test for POST /api/projects/[id]/collaborators in tests/projects/api/invite-collaborator.test.ts
 - [ ] T046 [P] [US3] API test for DELETE /api/projects/[id]/collaborators/[userId] in tests/projects/api/remove-collaborator.test.ts
 - [ ] T047 [P] [US3] API test for POST /api/invitations/accept in tests/projects/api/accept-invitation.test.ts
 - [ ] T048 [P] [US3] Database test for collaboration constraints in tests/projects/database/collaborations.test.ts
 - [ ] T049 [P] [US3] Integration test for invitation workflow in tests/projects/integration/invitation-workflow.test.ts
+-->
 
 ### Implementation for User Story 3
 
