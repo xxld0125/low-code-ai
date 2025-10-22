@@ -130,6 +130,7 @@ description: 'Task list for Project Management feature implementation'
 
 ### Implementation for User Story 3
 
+<!--
 - [ ] T050 [P] [US3] Create collaboration type definitions in types/projects/collaboration.ts
 - [ ] T051 [P] [US3] Create invitation type definitions in types/projects/invitation.ts
 - [ ] T052 [P] [US3] Create collaboration database queries in lib/projects/collaboration-queries.ts
@@ -148,6 +149,7 @@ description: 'Task list for Project Management feature implementation'
 - [ ] T065 [US3] Update project store to handle collaborators and invitations
 - [ ] T066 [US3] Add invitation status tracking and notifications
 - [ ] T067 [US3] Add role-based permission checking for all project operations
+-->
 
 **Checkpoint**: All user stories should now be independently functional
 
