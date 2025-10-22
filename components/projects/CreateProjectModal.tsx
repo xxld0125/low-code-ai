@@ -1,6 +1,6 @@
 /**
- * CreateProjectModal Component
- * Modal for creating a new project
+ * 创建项目模态框组件
+ * 用于创建新项目的模态框
  */
 
 'use client'
@@ -49,7 +49,7 @@ export function CreateProjectModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Reset form when modal opens/closes
+  // 模态框打开/关闭时重置表单
   useEffect(() => {
     if (open) {
       setFormData({
@@ -64,7 +64,7 @@ export function CreateProjectModal({
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
 
-    // Clear error for this field when user starts typing
+    // 用户开始输入时清除该字段的错误信息
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -73,7 +73,7 @@ export function CreateProjectModal({
       })
     }
 
-    // Clear general submit error when user makes changes
+    // 用户更改时清除一般的提交错误
     if (submitError) {
       setSubmitError(null)
     }
@@ -111,11 +111,11 @@ export function CreateProjectModal({
         description: formData.description.trim() || undefined,
       })
 
-      // Reset form on success
+      // 成功时重置表单
       setFormData({ name: '', description: '' })
       setErrors({})
 
-      // Parent component should close the modal
+      // 父组件应该关闭模态框
     } catch (error: unknown) {
       console.error('Failed to create project:', error)
       setSubmitError(error instanceof Error ? error.message : 'Failed to create project')
@@ -136,51 +136,47 @@ export function CreateProjectModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Create New Project
+            创建新项目
           </DialogTitle>
-          <DialogDescription>
-            Create a new project to start building your low-code application.
-          </DialogDescription>
+          <DialogDescription>创建一个新项目来开始构建您的低代码应用程序。</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Project Name */}
+          {/* 项目名称 */}
           <div className="space-y-2">
-            <Label htmlFor="project-name">Project Name *</Label>
+            <Label htmlFor="project-name">项目名称 *</Label>
             <Input
               id="project-name"
               value={formData.name}
               onChange={e => handleInputChange('name', e.target.value)}
-              placeholder="Enter project name"
+              placeholder="输入项目名称"
               disabled={isSubmitting}
               className={errors.name ? 'border-red-500' : ''}
               maxLength={100}
               autoFocus
             />
             {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
-            <p className="text-xs text-muted-foreground">{formData.name.length}/100 characters</p>
+            <p className="text-xs text-muted-foreground">{formData.name.length}/100 字符</p>
           </div>
 
-          {/* Project Description */}
+          {/* 项目描述 */}
           <div className="space-y-2">
-            <Label htmlFor="project-description">Description</Label>
+            <Label htmlFor="project-description">描述</Label>
             <Textarea
               id="project-description"
               value={formData.description}
               onChange={e => handleInputChange('description', e.target.value)}
-              placeholder="Describe your project (optional)"
+              placeholder="描述您的项目（可选）"
               disabled={isSubmitting}
               className={errors.description ? 'border-red-500' : ''}
               maxLength={500}
               rows={3}
             />
             {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
-            <p className="text-xs text-muted-foreground">
-              {formData.description.length}/500 characters
-            </p>
+            <p className="text-xs text-muted-foreground">{formData.description.length}/500 字符</p>
           </div>
 
-          {/* Submit Error */}
+          {/* 提交错误 */}
           {submitError && (
             <Alert variant="destructive">
               <X className="h-4 w-4" />
@@ -190,16 +186,16 @@ export function CreateProjectModal({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-              Cancel
+              取消
             </Button>
             <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>
               {isSubmitting ? (
                 <>
                   <LoadingSpinner size="sm" className="mr-2" />
-                  Creating...
+                  创建中...
                 </>
               ) : (
-                'Create Project'
+                '创建项目'
               )}
             </Button>
           </DialogFooter>

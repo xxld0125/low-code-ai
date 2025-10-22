@@ -1,6 +1,6 @@
 /**
- * ProjectCard Component
- * Displays a single project in a card format with actions
+ * 项目卡片组件
+ * 以卡片格式显示单个项目并包含操作按钮
  */
 
 'use client'
@@ -200,7 +200,7 @@ export function ProjectCard({
                   <DropdownMenuItem asChild>
                     <Link href={`/protected/projects/${project.id}`} className="flex items-center">
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      Open Project
+                      打开项目
                     </Link>
                   </DropdownMenuItem>
 
@@ -208,7 +208,7 @@ export function ProjectCard({
                     <>
                       <DropdownMenuItem onClick={openRenameDialog} className="flex items-center">
                         <Edit className="mr-2 h-4 w-4" />
-                        Rename Project
+                        重命名项目
                       </DropdownMenuItem>
                     </>
                   )}
@@ -221,7 +221,7 @@ export function ProjectCard({
                           className="flex items-center"
                         >
                           <Settings className="mr-2 h-4 w-4" />
-                          Settings
+                          设置
                         </Link>
                       </DropdownMenuItem>
 
@@ -237,7 +237,7 @@ export function ProjectCard({
                         ) : (
                           <Archive className="mr-2 h-4 w-4" />
                         )}
-                        {project.status === 'archived' ? 'Unarchive' : 'Archive'}
+                        {project.status === 'archived' ? '取消归档' : '归档'}
                       </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
@@ -247,7 +247,7 @@ export function ProjectCard({
                         className="flex items-center text-red-600 focus:text-red-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Project
+                        删除项目
                       </DropdownMenuItem>
                     </>
                   )}
@@ -263,22 +263,22 @@ export function ProjectCard({
 
         <CardContent className="pb-3">
           <div className="space-y-2">
-            {/* Collaborators count */}
+            {/* 协作者数量 */}
             <div className="flex items-center text-sm text-muted-foreground">
               <Users className="mr-1 h-4 w-4" />
               {project.collaborators_count || 1}{' '}
-              {project.collaborators_count === 1 ? 'collaborator' : 'collaborators'}
+              {project.collaborators_count === 1 ? '个协作者' : '个协作者'}
             </div>
 
-            {/* Last updated */}
+            {/* 最后更新 */}
             <div className="text-xs text-muted-foreground">
-              Updated {formatRelativeTime(project.updated_at)}
+              更新于 {formatRelativeTime(project.updated_at)}
             </div>
 
-            {/* Last accessed */}
+            {/* 最后访问 */}
             {project.last_accessed_at && (
               <div className="text-xs text-muted-foreground">
-                Last accessed {formatRelativeTime(project.last_accessed_at)}
+                最后访问于 {formatRelativeTime(project.last_accessed_at)}
               </div>
             )}
           </div>
@@ -290,12 +290,12 @@ export function ProjectCard({
               {project.user_role === 'viewer' ? (
                 <>
                   <Eye className="mr-2 h-4 w-4" />
-                  View Project
+                  查看项目
                 </>
               ) : (
                 <>
                   <Edit className="mr-2 h-4 w-4" />
-                  {project.status === 'archived' ? 'Manage Project' : 'Open Project'}
+                  {project.status === 'archived' ? '管理项目' : '打开项目'}
                 </>
               )}
             </Button>
@@ -303,18 +303,18 @@ export function ProjectCard({
         </CardFooter>
       </Card>
 
-      {/* Delete confirmation dialog */}
+      {/* 删除确认对话框 */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>您确定要删除吗？</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the project &quot;
-              {project.name}&quot; and all associated data.
+              此操作无法撤销。这将永久删除项目 &quot;
+              {project.name}&quot; 和所有相关数据。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
@@ -323,34 +323,33 @@ export function ProjectCard({
               {isDeleting ? (
                 <>
                   <LoadingSpinner size="sm" className="mr-2" />
-                  Deleting...
+                  删除中...
                 </>
               ) : (
-                'Delete Project'
+                '删除项目'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Rename dialog */}
+      {/* 重命名对话框 */}
       <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Project</DialogTitle>
+            <DialogTitle>重命名项目</DialogTitle>
             <DialogDescription>
-              Enter a new name for &quot;{project.name}&quot;. Project names must be 100 characters
-              or less.
+              为 &quot;{project.name}&quot; 输入新名称。项目名称必须为 100 个字符或更少。
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-name">Project Name</Label>
+              <Label htmlFor="new-name">项目名称</Label>
               <Input
                 id="new-name"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
-                placeholder="Enter project name"
+                placeholder="输入项目名称"
                 maxLength={100}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && newName.trim()) {
@@ -358,7 +357,7 @@ export function ProjectCard({
                   }
                 }}
               />
-              <p className="text-xs text-muted-foreground">{newName.length}/100 characters</p>
+              <p className="text-xs text-muted-foreground">{newName.length}/100 字符</p>
             </div>
           </div>
           <DialogFooter>
@@ -367,16 +366,16 @@ export function ProjectCard({
               onClick={() => setIsRenameDialogOpen(false)}
               disabled={isRenaming}
             >
-              Cancel
+              取消
             </Button>
             <Button onClick={handleRename} disabled={!newName.trim() || isRenaming}>
               {isRenaming ? (
                 <>
                   <LoadingSpinner size="sm" className="mr-2" />
-                  Renaming...
+                  重命名中...
                 </>
               ) : (
-                'Rename Project'
+                '重命名项目'
               )}
             </Button>
           </DialogFooter>

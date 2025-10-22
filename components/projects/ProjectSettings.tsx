@@ -1,7 +1,7 @@
 /**
- * ProjectSettings Component
- * Provides a comprehensive settings interface for project management
- * Allows owners to rename, change status, and manage project details
+ * 项目设置组件
+ * 为项目管理提供综合设置界面
+ * 允许所有者重命名、更改状态和管理项目详细信息
  */
 
 'use client'
@@ -87,18 +87,18 @@ export function ProjectSettings({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Check if user can make changes
+  // 检查用户是否可以进行更改
   const canManageProject = userRole === 'owner'
   const canEditProject = userRole === 'owner' || userRole === 'editor'
 
-  // Handle form input changes
+  // 处理表单输入更改
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     setErrors(prev => ({ ...prev, [field]: '' }))
     setHasChanges(true)
   }
 
-  // Validate form data
+  // 验证表单数据
   const validateForm = (): boolean => {
     const validation = validateProjectData(formData)
 
@@ -115,14 +115,14 @@ export function ProjectSettings({
     return true
   }
 
-  // Handle form submission
+  // 处理表单提交
   const handleSave = async () => {
     if (!canEditProject || !onUpdate) return
 
     if (!validateForm()) {
       toast({
-        title: 'Validation Error',
-        description: 'Please fix the errors before saving.',
+        title: '验证错误',
+        description: '请修复错误后再保存。',
         variant: 'destructive',
       })
       return
@@ -144,26 +144,26 @@ export function ProjectSettings({
         updateData.status = formData.status as ProjectStatus
       }
 
-      // Only update if there are actual changes
+      // 仅在有实际更改时才更新
       if (Object.keys(updateData).length > 0) {
         await onUpdate(project.id, updateData)
         setHasChanges(false)
 
         toast({
-          title: 'Success',
-          description: 'Project settings updated successfully.',
+          title: '成功',
+          description: '项目设置更新成功。',
         })
       } else {
         toast({
-          title: 'No Changes',
-          description: 'No changes to save.',
+          title: '无更改',
+          description: '没有要保存的更改。',
         })
       }
     } catch (error) {
       console.error('Failed to update project:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to update project settings.',
+        title: '错误',
+        description: '更新项目设置失败。',
         variant: 'destructive',
       })
     } finally {
@@ -171,7 +171,7 @@ export function ProjectSettings({
     }
   }
 
-  // Handle project deletion
+  // 处理项目删除
   const handleDelete = async () => {
     if (!canManageProject || !onDelete) return
 
@@ -179,8 +179,8 @@ export function ProjectSettings({
     try {
       await onDelete(project.id)
       toast({
-        title: 'Success',
-        description: 'Project deleted successfully.',
+        title: '成功',
+        description: '项目删除成功。',
       })
 
       // Redirect to projects page
@@ -188,8 +188,8 @@ export function ProjectSettings({
     } catch (error) {
       console.error('Failed to delete project:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to delete project.',
+        title: '错误',
+        description: '删除项目失败。',
         variant: 'destructive',
       })
     } finally {
@@ -198,12 +198,12 @@ export function ProjectSettings({
     }
   }
 
-  // Handle status change
+  // 处理状态更改
   const handleStatusChange = (newStatus: ProjectStatus) => {
     handleInputChange('status', newStatus)
   }
 
-  // Get status badge color
+  // 获取状态徽章颜色
   const getStatusColor = (status: ProjectStatus) => {
     switch (status) {
       case 'active':
@@ -217,7 +217,7 @@ export function ProjectSettings({
     }
   }
 
-  // Get role badge color
+  // 获取角色徽章颜色
   const getRoleColor = (role: ProjectRole) => {
     switch (role) {
       case 'owner':
@@ -243,12 +243,12 @@ export function ProjectSettings({
             className="flex items-center"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            返回
           </Button>
 
           <div className="flex items-center space-x-2">
             <Settings className="h-5 w-5 text-muted-foreground" />
-            <h1 className="text-2xl font-bold">Project Settings</h1>
+            <h1 className="text-2xl font-bold">项目设置</h1>
           </div>
         </div>
 
@@ -262,7 +262,7 @@ export function ProjectSettings({
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Save Changes
+                保存更改
               </>
             )}
           </Button>
@@ -274,9 +274,9 @@ export function ProjectSettings({
         <CardHeader>
           <CardTitle className="flex items-center">
             <Shield className="mr-2 h-5 w-5" />
-            Project Overview
+            项目概览
           </CardTitle>
-          <CardDescription>Basic information and settings for your project</CardDescription>
+          <CardDescription>项目的基本信息和设置</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Project Name */}

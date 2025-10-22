@@ -1,6 +1,6 @@
 /**
- * ProjectActionButtons Component
- * Shared action buttons for project operations across different components
+ * 项目操作按钮组件
+ * 跨不同组件的项目操作共享按钮
  */
 
 'use client'
@@ -115,19 +115,19 @@ export function ProjectActionButtons({
           {showSettings && (
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
-              Settings
+              设置
             </DropdownMenuItem>
           )}
 
           <DropdownMenuItem>
             <Edit className="mr-2 h-4 w-4" />
-            Rename
+            重命名
           </DropdownMenuItem>
 
           <DropdownMenuItem disabled>
             <ExternalLink className="mr-2 h-4 w-4" />
-            Open in Designer
-            <span className="ml-2 rounded bg-muted px-2 py-1 text-xs">Coming Soon</span>
+            在设计器中打开
+            <span className="ml-2 rounded bg-muted px-2 py-1 text-xs">即将推出</span>
           </DropdownMenuItem>
 
           {isOwner && <DropdownMenuSeparator />}
@@ -135,7 +135,7 @@ export function ProjectActionButtons({
           {isOwner && (
             <DropdownMenuItem onClick={() => updateActionState({ archiveDialogOpen: true })}>
               <Archive className="mr-2 h-4 w-4" />
-              Archive
+              归档
             </DropdownMenuItem>
           )}
 
@@ -145,33 +145,32 @@ export function ProjectActionButtons({
               className="text-red-600 focus:text-red-600"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              删除
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Delete Confirmation Dialog */}
+      {/* 删除确认对话框 */}
       <AlertDialog
         open={actionState.deleteDialogOpen}
         onOpenChange={open => updateActionState({ deleteDialogOpen: open })}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogTitle>删除项目</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{projectName}&quot;? This action cannot be
-              undone and all project data will be permanently lost.
+              您确定要删除 &quot;{projectName}&quot; 吗？此操作无法 撤销，所有项目数据将永久丢失。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionState.isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={actionState.isDeleting}>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteProject}
               disabled={actionState.isDeleting}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              {actionState.isDeleting ? 'Deleting...' : 'Delete Project'}
+              {actionState.isDeleting ? '删除中...' : '删除项目'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -184,16 +183,15 @@ export function ProjectActionButtons({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive Project</AlertDialogTitle>
+            <AlertDialogTitle>归档项目</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to archive &quot;{projectName}&quot;? The project will be hidden
-              from the main view but can be restored later.
+              您确定要归档 &quot;{projectName}&quot; 吗？项目将从 主视图隐藏，但以后可以恢复。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionState.isArchiving}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={actionState.isArchiving}>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleArchiveProject} disabled={actionState.isArchiving}>
-              {actionState.isArchiving ? 'Archiving...' : 'Archive Project'}
+              {actionState.isArchiving ? '归档中...' : '归档项目'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

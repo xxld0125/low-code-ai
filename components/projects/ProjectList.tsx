@@ -1,6 +1,6 @@
 /**
- * ProjectList Component
- * Displays a list of user's projects with filtering and pagination
+ * 项目列表组件
+ * 显示用户的项目列表，包含筛选和分页功能
  */
 
 'use client'
@@ -45,16 +45,16 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
   const deleteProject = useDeleteProject()
   const updateProject = useUpdateProject()
 
-  // Remove duplicate projects by ID, keeping the first occurrence
+  // 根据 ID 移除重复项目，保留第一次出现
   const uniqueProjects = projects.filter(
     (project: ProjectWithUserRole, index: number, self: ProjectWithUserRole[]) => {
-      // Skip projects without valid IDs
+      // 跳过没有有效 ID 的项目
       if (!project.id) return false
       return index === self.findIndex((p: ProjectWithUserRole) => p.id === project.id)
     }
   )
 
-  // Filter projects based on search and status
+  // 根据搜索和状态筛选项目
   const filteredProjects = uniqueProjects.filter((project: ProjectWithUserRole) => {
     const matchesSearch =
       searchQuery === '' ||
@@ -66,7 +66,7 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
     return matchesSearch && matchesStatus
   })
 
-  // Load projects on component mount
+  // 组件挂载时加载项目
   useEffect(() => {
     fetchProjects()
   }, [fetchProjects])
@@ -111,11 +111,11 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
     return (
       <div className={`py-12 text-center ${className}`}>
         <div className="mb-4 text-red-600">
-          <p className="text-lg font-medium">Error loading projects</p>
+          <p className="text-lg font-medium">加载项目出错</p>
           <p className="mt-1 text-sm">{error}</p>
         </div>
         <Button onClick={() => fetchProjects()} variant="outline">
-          Try Again
+          重试
         </Button>
       </div>
     )
@@ -125,36 +125,34 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
     return (
       <div className={`flex items-center justify-center py-12 ${className}`}>
         <LoadingSpinner size="lg" />
-        <span className="ml-2 text-muted-foreground">Loading projects...</span>
+        <span className="ml-2 text-muted-foreground">正在加载项目...</span>
       </div>
     )
   }
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Header with controls */}
+      {/* 带控件的页头 */}
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-          <p className="text-muted-foreground">
-            {pagination.total} {pagination.total === 1 ? 'project' : 'projects'} total
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight">项目</h2>
+          <p className="text-muted-foreground">共 {pagination.total} 个项目</p>
         </div>
 
         {showCreateButton && (
           <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            New Project
+            新建项目
           </Button>
         )}
       </div>
 
-      {/* Filters and search */}
+      {/* 筛选器和搜索 */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
           <Input
-            placeholder="Search projects..."
+            placeholder="搜索项目..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -164,33 +162,33 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
             <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="按状态筛选" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Projects</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="all">所有项目</SelectItem>
+            <SelectItem value="active">活跃</SelectItem>
+            <SelectItem value="archived">已归档</SelectItem>
+            <SelectItem value="suspended">已暂停</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Project grid */}
+      {/* 项目网格 */}
       {filteredProjects.length === 0 && !loading ? (
         <div className="py-12 text-center">
           <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
             <Search className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="mb-2 text-lg font-medium">No projects found</h3>
+          <h3 className="mb-2 text-lg font-medium">未找到项目</h3>
           <p className="mb-6 text-muted-foreground">
             {searchQuery || statusFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Get started by creating your first project'}
+              ? '请尝试调整您的搜索或筛选条件'
+              : '通过创建您的第一个项目来开始'}
           </p>
           {showCreateButton && !searchQuery && statusFilter === 'all' && (
             <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Project
+              创建项目
             </Button>
           )}
         </div>
@@ -207,7 +205,7 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
         </div>
       )}
 
-      {/* Load more button */}
+      {/* 加载更多按钮 */}
       {pagination.hasMore && (
         <div className="flex justify-center pt-4">
           <Button
@@ -219,24 +217,24 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
             {loading ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Loading...
+                加载中...
               </>
             ) : (
-              'Load More'
+              '加载更多'
             )}
           </Button>
         </div>
       )}
 
-      {/* Loading overlay for pagination */}
+      {/* 分页加载覆盖层 */}
       {loading && projects.length > 0 && (
         <div className="flex justify-center py-4">
           <LoadingSpinner size="sm" />
-          <span className="ml-2 text-sm text-muted-foreground">Loading more projects...</span>
+          <span className="ml-2 text-sm text-muted-foreground">正在加载更多项目...</span>
         </div>
       )}
 
-      {/* Create project modal */}
+      {/* 创建项目模态框 */}
       <CreateProjectModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}

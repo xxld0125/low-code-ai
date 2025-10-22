@@ -1,12 +1,12 @@
 /**
- * ProjectsLoadingSkeleton Component
- * Loading skeleton for the projects page
+ * 项目加载骨架组件
+ * 项目页面的加载骨架屏
  */
 
 export function ProjectsLoadingSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Header skeleton */}
+      {/* 页头骨架屏 */}
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="space-y-2">
           <div className="h-8 w-32 animate-pulse rounded bg-muted" />
@@ -15,7 +15,7 @@ export function ProjectsLoadingSkeleton() {
         <div className="h-10 w-32 animate-pulse rounded bg-muted" />
       </div>
 
-      {/* Filters skeleton */}
+      {/* 筛选器骨架屏 */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
           <div className="h-10 w-full animate-pulse rounded bg-muted" />
@@ -23,7 +23,7 @@ export function ProjectsLoadingSkeleton() {
         <div className="h-10 w-48 animate-pulse rounded bg-muted" />
       </div>
 
-      {/* Project cards skeleton */}
+      {/* 项目卡片骨架屏 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="space-y-4 rounded-lg border p-6">

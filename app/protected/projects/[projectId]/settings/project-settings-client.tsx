@@ -1,6 +1,6 @@
 /**
- * Project Settings Client Component
- * Client-side component for project settings with interactive features
+ * 项目设置客户端组件
+ * 具有交互功能的项目设置客户端组件
  */
 
 'use client'
@@ -21,7 +21,7 @@ interface ProjectSettingsClientProps {
 export function ProjectSettingsClient({ project, userRole }: ProjectSettingsClientProps) {
   const router = useRouter()
 
-  // Handle project update
+  // 处理项目更新
   const handleUpdateProject = async (projectId: string, updateData: UpdateProjectData) => {
     try {
       const response = await fetch(`/api/projects/${projectId}`, {
@@ -37,7 +37,7 @@ export function ProjectSettingsClient({ project, userRole }: ProjectSettingsClie
         throw new Error(errorData.error?.message || 'Failed to update project')
       }
 
-      // Refresh the page to show updated data
+      // 刷新页面以显示更新的数据
       router.refresh()
     } catch (error) {
       console.error('Failed to update project:', error)
@@ -45,7 +45,7 @@ export function ProjectSettingsClient({ project, userRole }: ProjectSettingsClie
     }
   }
 
-  // Handle project deletion
+  // 处理项目删除
   const handleDeleteProject = async (projectId: string) => {
     try {
       const response = await fetch(`/api/projects/${projectId}`, {
@@ -57,7 +57,7 @@ export function ProjectSettingsClient({ project, userRole }: ProjectSettingsClie
         throw new Error(errorData.error?.message || 'Failed to delete project')
       }
 
-      // Redirect to projects page after successful deletion
+      // 成功删除后重定向到项目页面
       router.push('/protected/projects')
     } catch (error) {
       console.error('Failed to delete project:', error)
@@ -67,27 +67,25 @@ export function ProjectSettingsClient({ project, userRole }: ProjectSettingsClie
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* 页头 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/protected/projects" className="flex items-center">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Projects
+              返回项目列表
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Page Header */}
+      {/* 页面标题 */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Project Settings</h1>
-        <p className="mt-2 text-muted-foreground">
-          Manage settings and configuration for &quot;{project.name}&quot;
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">项目设置</h1>
+        <p className="mt-2 text-muted-foreground">管理 &quot;{project.name}&quot; 的设置和配置</p>
       </div>
 
-      {/* Settings Component */}
+      {/* 设置组件 */}
       <ProjectSettings
         project={project}
         userRole={userRole}

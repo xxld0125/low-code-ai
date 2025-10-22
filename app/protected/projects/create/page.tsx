@@ -1,6 +1,6 @@
 /**
- * Create Project Page
- * Dedicated page for creating a new project
+ * 创建项目页面
+ * 用于创建新项目的专用页面
  */
 
 'use client'
@@ -35,7 +35,7 @@ export default function CreateProjectPage() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
 
-    // Clear error for this field when user starts typing
+    // 当用户开始输入时清除该字段的错误信息
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -44,7 +44,7 @@ export default function CreateProjectPage() {
       })
     }
 
-    // Clear general submit error when user makes changes
+    // 当用户更改时清除一般的提交错误
     if (submitError) {
       setSubmitError(null)
     }
@@ -84,7 +84,7 @@ export default function CreateProjectPage() {
 
       setIsSuccess(true)
 
-      // Redirect to the new project after a short delay
+      // 短暂延迟后重定向到新项目
       setTimeout(() => {
         router.push(`/protected/projects/${newProject.id}`)
       }, 1500)
@@ -100,7 +100,7 @@ export default function CreateProjectPage() {
     router.back()
   }
 
-  // Success state
+  // 成功状态
   if (isSuccess) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -110,15 +110,14 @@ export default function CreateProjectPage() {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
-              <CardTitle>Project Created Successfully!</CardTitle>
+              <CardTitle>项目创建成功！</CardTitle>
               <CardDescription>
-                Your new project &quot;{formData.name}&quot; has been created and you&apos;ll be
-                redirected to it shortly.
+                您的新项目 &quot;{formData.name}&quot; 已创建，您即将被 重定向到该项目。
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button asChild>
-                <Link href={`/protected/projects`}>Go to Projects</Link>
+                <Link href={`/protected/projects`}>前往项目</Link>
               </Button>
             </CardContent>
           </Card>
@@ -130,7 +129,7 @@ export default function CreateProjectPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-2xl space-y-6">
-        {/* Header */}
+        {/* 页头 */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -139,55 +138,51 @@ export default function CreateProjectPage() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            返回
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
-            <p className="mt-2 text-muted-foreground">
-              Set up a new project for your low-code development
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">创建新项目</h1>
+            <p className="mt-2 text-muted-foreground">为您的低代码开发建立新项目</p>
           </div>
         </div>
 
-        {/* Form */}
+        {/* 表单 */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              Project Details
+              项目详情
             </CardTitle>
-            <CardDescription>Provide the basic information for your new project</CardDescription>
+            <CardDescription>提供您新项目的基本信息</CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Project Name */}
+              {/* 项目名称 */}
               <div className="space-y-2">
-                <Label htmlFor="project-name">Project Name *</Label>
+                <Label htmlFor="project-name">项目名称 *</Label>
                 <Input
                   id="project-name"
                   value={formData.name}
                   onChange={e => handleInputChange('name', e.target.value)}
-                  placeholder="Enter project name"
+                  placeholder="输入项目名称"
                   disabled={isSubmitting}
                   className={errors.name ? 'border-red-500' : ''}
                   maxLength={100}
                   autoFocus
                 />
                 {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
-                <p className="text-xs text-muted-foreground">
-                  {formData.name.length}/100 characters
-                </p>
+                <p className="text-xs text-muted-foreground">{formData.name.length}/100 字符</p>
               </div>
 
-              {/* Project Description */}
+              {/* 项目描述 */}
               <div className="space-y-2">
-                <Label htmlFor="project-description">Description</Label>
+                <Label htmlFor="project-description">描述</Label>
                 <Textarea
                   id="project-description"
                   value={formData.description}
                   onChange={e => handleInputChange('description', e.target.value)}
-                  placeholder="Describe your project (optional)"
+                  placeholder="描述您的项目（可选）"
                   disabled={isSubmitting}
                   className={errors.description ? 'border-red-500' : ''}
                   maxLength={500}
@@ -195,11 +190,11 @@ export default function CreateProjectPage() {
                 />
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
                 <p className="text-xs text-muted-foreground">
-                  {formData.description.length}/500 characters
+                  {formData.description.length}/500 字符
                 </p>
               </div>
 
-              {/* Submit Error */}
+              {/* 提交错误 */}
               {submitError && (
                 <Alert variant="destructive">
                   <X className="h-4 w-4" />
@@ -207,7 +202,7 @@ export default function CreateProjectPage() {
                 </Alert>
               )}
 
-              {/* Actions */}
+              {/* 操作按钮 */}
               <div className="flex gap-4 pt-4">
                 <Button
                   type="button"
@@ -216,7 +211,7 @@ export default function CreateProjectPage() {
                   disabled={isSubmitting}
                   className="flex-1"
                 >
-                  Cancel
+                  取消
                 </Button>
                 <Button
                   type="submit"
@@ -226,10 +221,10 @@ export default function CreateProjectPage() {
                   {isSubmitting ? (
                     <>
                       <LoadingSpinner size="sm" className="mr-2" />
-                      Creating Project...
+                      正在创建项目...
                     </>
                   ) : (
-                    'Create Project'
+                    '创建项目'
                   )}
                 </Button>
               </div>
@@ -237,10 +232,10 @@ export default function CreateProjectPage() {
           </CardContent>
         </Card>
 
-        {/* Help Card */}
+        {/* 帮助卡片 */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Getting Started</CardTitle>
+            <CardTitle className="text-lg">入门指南</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-start gap-3">
@@ -248,9 +243,9 @@ export default function CreateProjectPage() {
                 1
               </div>
               <div>
-                <p className="font-medium">Give your project a name</p>
+                <p className="font-medium">为项目命名</p>
                 <p className="text-sm text-muted-foreground">
-                  Choose a descriptive name that helps you identify the project&apos;s purpose
+                  选择一个有助于识别项目目的的描述性名称
                 </p>
               </div>
             </div>
@@ -260,10 +255,8 @@ export default function CreateProjectPage() {
                 2
               </div>
               <div>
-                <p className="font-medium">Add a description (optional)</p>
-                <p className="text-sm text-muted-foreground">
-                  Provide context about what this project will accomplish
-                </p>
+                <p className="font-medium">添加描述（可选）</p>
+                <p className="text-sm text-muted-foreground">提供有关此项目将完成什么的背景信息</p>
               </div>
             </div>
 
@@ -272,9 +265,9 @@ export default function CreateProjectPage() {
                 3
               </div>
               <div>
-                <p className="font-medium">Start building</p>
+                <p className="font-medium">开始构建</p>
                 <p className="text-sm text-muted-foreground">
-                  Once created, you can start designing your low-code application
+                  创建完成后，您就可以开始设计您的低代码应用程序了
                 </p>
               </div>
             </div>

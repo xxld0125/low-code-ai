@@ -1,6 +1,6 @@
 /**
- * ProjectActivityLog Component
- * Displays a chronological log of project activities
+ * 项目活动日志组件
+ * 显示项目活动的按时间顺序的日志
  */
 
 'use client'
@@ -53,7 +53,7 @@ export function ProjectActivityLog({
     hasMore: false,
   })
 
-  // Fetch activities for the project
+  // 获取项目活动
   const fetchActivities = useCallback(
     async (reset = false) => {
       try {
@@ -98,7 +98,7 @@ export function ProjectActivityLog({
     [projectId, maxItems, pagination.offset]
   )
 
-  // Load more activities
+  // 加载更多活动
   const loadMore = () => {
     if (pagination.hasMore) {
       setPagination(prev => ({ ...prev, offset: prev.offset + prev.limit }))
@@ -106,14 +106,14 @@ export function ProjectActivityLog({
     }
   }
 
-  // Initial fetch
+  // 初始获取
   useEffect(() => {
     if (projectId) {
       fetchActivities(true)
     }
   }, [projectId, fetchActivities])
 
-  // Get user initials for avatar fallback
+  // 获取用户头像首字母
   const getUserInitials = (user?: { name?: string | null; email?: string }) => {
     if (user?.name) {
       return user.name
@@ -129,7 +129,7 @@ export function ProjectActivityLog({
     return 'U'
   }
 
-  // Get action color for badge
+  // 获取徽章操作颜色
   const getActionColor = (action: string) => {
     switch (action) {
       case 'created':
@@ -161,9 +161,9 @@ export function ProjectActivityLog({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>📊</span>
-            Activity Log
+            活动日志
           </CardTitle>
-          <CardDescription>Recent project activities</CardDescription>
+          <CardDescription>最近的项目活动</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -180,16 +180,16 @@ export function ProjectActivityLog({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>📊</span>
-            Activity Log
+            活动日志
           </CardTitle>
-          <CardDescription>Recent project activities</CardDescription>
+          <CardDescription>最近的项目活动</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="py-8 text-center">
-            <p className="mb-2 text-red-600">Error loading activities</p>
+            <p className="mb-2 text-red-600">加载活动出错</p>
             <p className="mb-4 text-sm text-muted-foreground">{error}</p>
             <Button variant="outline" onClick={() => fetchActivities(true)}>
-              Try Again
+              重试
             </Button>
           </div>
         </CardContent>
@@ -203,15 +203,15 @@ export function ProjectActivityLog({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>📊</span>
-            Activity Log
+            活动日志
           </CardTitle>
-          <CardDescription>Recent project activities</CardDescription>
+          <CardDescription>最近的项目活动</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">No activities recorded yet</p>
+            <p className="text-muted-foreground">尚未记录任何活动</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Activities will appear here as team members interact with the project
+              当团队成员与项目交互时，活动将显示在这里
             </p>
           </div>
         </CardContent>
@@ -226,7 +226,7 @@ export function ProjectActivityLog({
           <span>📊</span>
           Activity Log
         </CardTitle>
-        <CardDescription>Recent project activities ({pagination.total} total)</CardDescription>
+        <CardDescription>最近的项目活动（共 {pagination.total} 条）</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full overflow-y-auto rounded-md border">
@@ -281,17 +281,17 @@ export function ProjectActivityLog({
           </div>
         </div>
 
-        {/* Load More Button */}
+        {/* 加载更多按钮 */}
         {showLoadMore && pagination.hasMore && (
           <div className="mt-4 text-center">
             <Button variant="outline" onClick={loadMore} disabled={loading} className="w-full">
               {loading ? (
                 <>
                   <LoadingSpinner size="sm" className="mr-2" />
-                  Loading...
+                  加载中...
                 </>
               ) : (
-                'Load More Activities'
+                '加载更多活动'
               )}
             </Button>
           </div>
