@@ -166,7 +166,7 @@ export async function getProjectDetails(
     .single()
 
   return {
-    ...(project as DbProject),
+    ...(project?.[0] as unknown as DbProject), // 取第一个元素
     owner_name: (project as DbProject)?.owner?.name || (project as DbProject)?.owner?.email,
     owner_email: (project as DbProject)?.owner?.email,
     collaborators_count: collaboratorsCount || 0,
@@ -412,16 +412,24 @@ export async function getProjectActivityLog(
 export async function checkProjectAccess(projectId: string, userId: string): Promise<boolean> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.rpc('user_has_project_access', {
-    p_project_id: projectId,
-    p_user_id: userId,
-  })
+  try {
+    // First, try to get the project using the database function that bypasses RLS
+    const { data: projectData, error: projectError } = await supabase.rpc('get_project_by_id', {
+      p_project_id: projectId,
+      p_user_id: userId,
+    })
 
-  if (error) {
+    if (projectError) {
+      console.warn('Error checking project access:', projectError)
+      return false
+    }
+
+    // If we can get project data, access is granted
+    return projectData && projectData.length > 0
+  } catch (error) {
+    console.error('Unexpected error checking project access:', error)
     return false
   }
-
-  return data || false
 }
 
 /**
