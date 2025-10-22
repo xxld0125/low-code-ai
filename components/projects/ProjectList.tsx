@@ -45,8 +45,17 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
   const deleteProject = useDeleteProject()
   const updateProject = useUpdateProject()
 
+  // Remove duplicate projects by ID, keeping the first occurrence
+  const uniqueProjects = projects.filter(
+    (project: ProjectWithUserRole, index: number, self: ProjectWithUserRole[]) => {
+      // Skip projects without valid IDs
+      if (!project.id) return false
+      return index === self.findIndex((p: ProjectWithUserRole) => p.id === project.id)
+    }
+  )
+
   // Filter projects based on search and status
-  const filteredProjects = projects.filter((project: ProjectWithUserRole) => {
+  const filteredProjects = uniqueProjects.filter((project: ProjectWithUserRole) => {
     const matchesSearch =
       searchQuery === '' ||
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -66,6 +75,8 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
     try {
       await createProject(data)
       setIsCreateModalOpen(false)
+
+      await fetchProjects({ limit: pagination.limit, offset: 0 })
     } catch (error) {
       console.error('Failed to create project:', error)
     }
@@ -188,9 +199,9 @@ export function ProjectList({ className = '', showCreateButton = true }: Project
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredProjects.map((project: ProjectWithUserRole) => (
+          {filteredProjects.map((project: ProjectWithUserRole, index: number) => (
             <ProjectCard
-              key={project.id}
+              key={project.id || `project-${index}`}
               project={project}
               onDelete={handleDeleteProject}
               onUpdate={handleUpdateProject}

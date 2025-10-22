@@ -102,12 +102,10 @@ export async function getUserProjects(
 export async function getProjectById(projectId: string, userId: string): Promise<Project | null> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .eq('is_deleted', false)
-    .single()
+  const { data, error } = await supabase.rpc('get_project_by_id', {
+    p_project_id: projectId,
+    p_user_id: userId,
+  })
 
   if (error) {
     if (error.code === 'PGRST116') {
@@ -147,33 +145,22 @@ export async function getProjectDetails(
     throw new Error('Access denied to this project')
   }
 
-  // Get project with owner information
-  const { data: project, error: projectError } = await supabase
-    .from('projects')
-    .select(
-      `
-      *,
-      owner:auth.users(
-        id,
-        email,
-        raw_user_meta_data->>'name' as name
-      )
-    `
-    )
-    .eq('id', projectId)
-    .eq('is_deleted', false)
-    .single()
+  // Get project with owner information using the new function
+  const { data: project, error: projectError } = await supabase.rpc('get_project_by_id', {
+    p_project_id: projectId,
+    p_user_id: userId,
+  })
 
   if (projectError) {
     throw new Error(`Failed to fetch project details: ${projectError.message}`)
   }
 
-  // Get collaborators count
-  const { count: collaboratorsCount } = await supabase
-    .from('project_collaborators')
-    .select('*', { count: 'exact', head: true })
-    .eq('project_id', projectId)
-    .eq('joined_at', null)
+  // Get collaborators count using new function to avoid RLS issues
+  const { data: collaborators } = await supabase.rpc('get_project_collaborators', {
+    p_project_id: projectId,
+    p_user_id: userId,
+  })
+  const collaboratorsCount = collaborators?.length || 0
 
   // Get latest activity
   const { data: latestActivity } = await supabase
@@ -422,18 +409,16 @@ export async function getProjectActivityLog(
 export async function checkProjectAccess(projectId: string, userId: string): Promise<boolean> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.rpc('get_user_projects', {
+  const { data, error } = await supabase.rpc('user_has_project_access', {
+    p_project_id: projectId,
     p_user_id: userId,
-    p_include_archived: false,
-    p_limit: 1,
-    p_offset: 0,
   })
 
-  if (error || !data) {
+  if (error) {
     return false
   }
 
-  return data.some((project: ProjectWithUserRole) => project.id === projectId)
+  return data || false
 }
 
 /**

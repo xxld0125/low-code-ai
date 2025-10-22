@@ -48,12 +48,11 @@ export async function createProject(data: CreateProjectData, userId: string): Pr
     throw new Error(`Failed to create project: ${error.message}`)
   }
 
-  // Fetch the created project to return full details
-  const { data: project, error: fetchError } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .single()
+  // Fetch the created project using the new function to avoid RLS recursion
+  const { data: project, error: fetchError } = await supabase.rpc('get_project_by_id', {
+    p_project_id: projectId,
+    p_user_id: userId,
+  })
 
   if (fetchError) {
     throw new Error(`Failed to fetch created project: ${fetchError.message}`)
@@ -116,12 +115,11 @@ export async function updateProject(
     throw new Error(`Failed to update project: ${error.message}`)
   }
 
-  // Fetch the updated project
-  const { data: project, error: fetchError } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .single()
+  // Fetch the updated project using the new function to avoid RLS recursion
+  const { data: project, error: fetchError } = await supabase.rpc('get_project_by_id', {
+    p_project_id: projectId,
+    p_user_id: userId,
+  })
 
   if (fetchError) {
     throw new Error(`Failed to fetch updated project: ${fetchError.message}`)
@@ -341,12 +339,11 @@ export async function updateCollaboratorRole(
     throw new Error('Invalid role')
   }
 
-  // Check if user is project owner
-  const { data: project } = await supabase
-    .from('projects')
-    .select('owner_id')
-    .eq('id', projectId)
-    .single()
+  // Check if user is project owner using the new function
+  const { data: project } = await supabase.rpc('get_project_by_id', {
+    p_project_id: projectId,
+    p_user_id: userId,
+  })
 
   if (!project || project.owner_id !== userId) {
     throw new Error('Only project owners can update collaborator roles')
@@ -399,12 +396,11 @@ export async function cancelInvitation(invitationId: string, userId: string): Pr
     throw new Error('Invitation not found')
   }
 
-  // Check if user is project owner or the inviter
-  const { data: project } = await supabase
-    .from('projects')
-    .select('owner_id')
-    .eq('id', invitation.project_id)
-    .single()
+  // Check if user is project owner or the inviter using the new function
+  const { data: project } = await supabase.rpc('get_project_by_id', {
+    p_project_id: invitation.project_id,
+    p_user_id: userId,
+  })
 
   if (!project || (project.owner_id !== userId && invitation.invited_by !== userId)) {
     throw new Error('Only project owners or the inviter can cancel invitations')
@@ -434,12 +430,11 @@ export async function resendInvitation(invitationId: string, userId: string): Pr
     throw new Error('Invitation not found')
   }
 
-  // Check if user is project owner or the inviter
-  const { data: project } = await supabase
-    .from('projects')
-    .select('owner_id')
-    .eq('id', invitation.project_id)
-    .single()
+  // Check if user is project owner or the inviter using the new function
+  const { data: project } = await supabase.rpc('get_project_by_id', {
+    p_project_id: invitation.project_id,
+    p_user_id: userId,
+  })
 
   if (!project || (project.owner_id !== userId && invitation.invited_by !== userId)) {
     throw new Error('Only project owners or the inviter can resend invitations')
