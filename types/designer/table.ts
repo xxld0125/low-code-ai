@@ -51,6 +51,16 @@ export interface TableDeploymentResponse {
   database_table_name: string
 }
 
+// Table status constants
+export const TABLE_STATUS = {
+  DRAFT: 'draft',
+  ACTIVE: 'active',
+  DEPRECATED: 'deprecated',
+  DELETED: 'deleted',
+} as const
+
+export type TableStatusType = (typeof TABLE_STATUS)[keyof typeof TABLE_STATUS]
+
 // Re-export from field types to maintain compatibility
 import type { DataField, CreateDataFieldRequest } from './field'
 import type { TableRelationship } from './relationship'

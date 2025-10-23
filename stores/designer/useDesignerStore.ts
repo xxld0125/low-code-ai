@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import api from '@/lib/designer/api'
 import type {
   DataTable,
   DataField,
@@ -59,10 +60,10 @@ export interface DesignerState {
   setProjectId: (projectId: string | null) => void
 
   // Table operations
-  createTable: (data: CreateTableRequest) => Promise<DataTable>
+  createTable: (projectId: string, data: CreateTableRequest) => Promise<DataTable>
   updateTable: (tableId: string, data: UpdateDataTableRequest) => Promise<void>
-  deleteTable: (tableId: string) => Promise<void>
-  deployTable: (tableId: string) => Promise<void>
+  deleteTable: (projectId: string, tableId: string) => Promise<void>
+  deployTable: (projectId: string, tableId: string) => Promise<void>
 
   // Field operations
   createField: (tableId: string, data: CreateDataFieldRequest) => Promise<DataField>
@@ -159,19 +160,29 @@ export const useDesignerStore = create<DesignerState>()(
       loadProjectData: async projectId => {
         set({ isLoading: true, error: null })
         try {
-          // TODO: Implement actual data loading
-          // const tables = await api.tables.list({ projectId })
-          // const fields = await api.fields.listAll({ projectId })
-          // const relationships = await api.relationships.list({ projectId })
-          // const locks = await api.locks.listActive({ projectId })
+          const tablesResponse = await api.tables.list({ projectId })
+          const tables = tablesResponse.data
 
-          // For now, set empty data
+          // Load fields for all tables
+          const fieldsByTable = await Promise.all(
+            tables.map(async table => {
+              const fieldsResponse = await api.fields.list({ projectId, tableId: table.id })
+              return { tableId: table.id, fields: fieldsResponse.data }
+            })
+          )
+
+          const fields = fieldsByTable.flatMap(({ fields }) => fields)
+
+          // Load relationships
+          const relationshipsResponse = await api.relationships.list({ projectId })
+          const relationships = relationshipsResponse.data
+
           set({
             projectId,
-            tables: [],
-            fields: [],
-            relationships: [],
-            activeLocks: [],
+            tables,
+            fields,
+            relationships,
+            activeLocks: [], // TODO: Load locks when API is available
             isLoading: false,
           })
         } catch (error) {
@@ -183,25 +194,11 @@ export const useDesignerStore = create<DesignerState>()(
       },
 
       // Table operations
-      createTable: async data => {
+      createTable: async (projectId: string, data: CreateTableRequest) => {
         set({ isLoading: true, error: null })
         try {
-          // TODO: Implement actual table creation
-          // const newTable = await api.tables.create(get().projectId!, data)
-
-          // For now, create a mock table
-          const newTable: DataTable = {
-            id: `table_${Date.now()}`,
-            project_id: get().projectId!,
-            name: data.name,
-            description: data.description || '',
-            table_name: data.table_name,
-            schema_definition: {},
-            status: 'draft',
-            created_by: 'current_user', // TODO: Get actual user
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }
+          const response = await api.tables.create(projectId, data)
+          const newTable = response.data
 
           set(state => ({
             tables: [...state.tables, newTable],
@@ -245,11 +242,10 @@ export const useDesignerStore = create<DesignerState>()(
         }
       },
 
-      deleteTable: async tableId => {
+      deleteTable: async (projectId: string, tableId: string) => {
         set({ isLoading: true, error: null })
         try {
-          // TODO: Implement actual table deletion
-          // await api.tables.delete(get().projectId!, tableId)
+          await api.tables.delete(projectId, tableId)
 
           set(state => ({
             tables: state.tables.filter(table => table.id !== tableId),
@@ -262,7 +258,9 @@ export const useDesignerStore = create<DesignerState>()(
           }))
 
           // Remove table position
-          delete get().tablePositions[tableId]
+          const newTablePositions = { ...get().tablePositions }
+          delete newTablePositions[tableId]
+          set({ tablePositions: newTablePositions })
         } catch (error) {
           set({
             error: error instanceof Error ? error.message : 'Failed to delete table',
@@ -272,11 +270,10 @@ export const useDesignerStore = create<DesignerState>()(
         }
       },
 
-      deployTable: async tableId => {
+      deployTable: async (projectId: string, tableId: string) => {
         set({ isLoading: true, error: null })
         try {
-          // TODO: Implement actual table deployment
-          // const deployment = await api.tables.deploy(get().projectId!, tableId)
+          const deployment = await api.tables.deploy({ projectId, tableId })
 
           set(state => ({
             tables: state.tables.map(table =>
@@ -286,6 +283,8 @@ export const useDesignerStore = create<DesignerState>()(
             ),
             isLoading: false,
           }))
+
+          return deployment
         } catch (error) {
           set({
             error: error instanceof Error ? error.message : 'Failed to deploy table',

@@ -15,6 +15,30 @@ export const FIELD_TYPES = {
 
 export type FieldType = (typeof FIELD_TYPES)[keyof typeof FIELD_TYPES]
 
+// Supported field types for UI components
+export const SUPPORTED_FIELD_TYPES = [
+  {
+    value: FIELD_TYPES.TEXT,
+    label: 'Text',
+    description: 'Text, numbers, and characters',
+  },
+  {
+    value: FIELD_TYPES.NUMBER,
+    label: 'Number',
+    description: 'Numeric values with optional precision',
+  },
+  {
+    value: FIELD_TYPES.DATE,
+    label: 'Date',
+    description: 'Date and timestamp values',
+  },
+  {
+    value: FIELD_TYPES.BOOLEAN,
+    label: 'Boolean',
+    description: 'True/false values',
+  },
+] as const
+
 // Field type display information
 export const FIELD_TYPE_INFO = {
   [FIELD_TYPES.TEXT]: {

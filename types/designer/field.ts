@@ -1,6 +1,6 @@
 export type DataFieldType = 'text' | 'number' | 'date' | 'boolean'
 
-export interface FieldConfig {
+export interface FieldConfig extends Record<string, unknown> {
   // Text field configuration
   max_length?: number
   min_length?: number

@@ -74,17 +74,17 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Implementation Tasks
 
-- [ ] T020 [US1] CreateTableModal component for table creation dialog in `components/designer/modals/CreateTableModal.tsx`
-- [ ] T021 [US1] ComponentPanel component for table list sidebar in `components/designer/ComponentPanel.tsx`
-- [ ] T022 [US1] Table creation API function in `lib/designer/api.ts`
-- [ ] ] T023 [US1] Table validation logic in `lib/designer/validation.ts`
-- [ ] T024 [US1] Database migration helpers in `lib/designer/migrations.ts`
-- [ ] T025 [US1] DesignerLayout component with three-column structure in `components/designer/DesignerLayout.tsx`
-- [ ] T026 [US1] Table listing functionality in ComponentPanel
-- [ ] T027 [US1] Basic Canvas component for visual table display in `components/designer/Canvas.tsx`
-- [ ] T028 [US1] Table creation workflow integration in designer store
-- [ ] T029 [US1] Error handling for table creation failures
-- [ ] T030 [US1] Basic table deployment to database functionality
+- [x] T020 [US1] CreateTableModal component for table creation dialog in `components/designer/modals/CreateTableModal.tsx`
+- [x] T021 [US1] ComponentPanel component for table list sidebar in `components/designer/ComponentPanel.tsx`
+- [x] T022 [US1] Table creation API function in `lib/designer/api.ts`
+- [x] ] T023 [US1] Table validation logic in `lib/designer/validation.ts`
+- [x] T024 [US1] Database migration helpers in `lib/designer/migrations.ts`
+- [x] T025 [US1] DesignerLayout component with three-column structure in `components/designer/DesignerLayout.tsx`
+- [x] T026 [US1] Table listing functionality in ComponentPanel
+- [x] T027 [US1] Basic Canvas component for visual table display in `components/designer/Canvas.tsx`
+- [x] T028 [US1] Table creation workflow integration in designer store
+- [x] T029 [US1] Error handling for table creation failures
+- [x] T030 [US1] Basic table deployment to database functionality
 
 ### Tests
 
