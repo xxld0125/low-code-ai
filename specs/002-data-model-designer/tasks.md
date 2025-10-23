@@ -88,10 +88,10 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Tests
 
-- [ ] T031 [US1] Unit test for CreateTableModal component
-- [ ] T032 [US1] Unit test for table validation logic
-- [ ] T033 [US1] Integration test for complete table creation workflow
-- [ ] T034 [US1] API integration test for table CRUD operations
+- [x] T031 [US1] Unit test for CreateTableModal component
+- [x] T032 [US1] Unit test for table validation logic
+- [x] T033 [US1] Integration test for complete table creation workflow
+- [x] T034 [US1] API integration test for table CRUD operations
 
 ---
 

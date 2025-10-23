@@ -1,3 +1,6 @@
+import type { DataField, CreateDataFieldRequest } from './field'
+import type { TableRelationship } from './relationship'
+
 export interface DataTable {
   id: string
   project_id: string
@@ -62,5 +65,3 @@ export const TABLE_STATUS = {
 export type TableStatusType = (typeof TABLE_STATUS)[keyof typeof TABLE_STATUS]
 
 // Re-export from field types to maintain compatibility
-import type { DataField, CreateDataFieldRequest } from './field'
-import type { TableRelationship } from './relationship'
