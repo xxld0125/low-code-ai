@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { DataFieldType } from '@/types/designer'
+import type { DataFieldType, DataField } from '@/types/designer'
 
 // Type definitions for refine callbacks
 interface CreateDataFieldRequestType {
@@ -478,6 +478,347 @@ export const getFieldValidationError = (
   }
 
   return errors
+}
+
+// Enhanced field validation functions
+
+export const validateTextFieldConfig = (
+  config: Record<string, unknown>
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+  const { max_length, min_length, pattern } = config
+
+  if (max_length != null) {
+    if (typeof max_length !== 'number' || max_length < 1 || max_length > 65535) {
+      errors.push('Max length must be a number between 1 and 65535')
+    }
+  }
+
+  if (min_length != null) {
+    if (typeof min_length !== 'number' || min_length < 0) {
+      errors.push('Min length must be a non-negative number')
+    }
+  }
+
+  if (max_length != null && min_length != null) {
+    if (min_length > max_length) {
+      errors.push('Min length cannot be greater than max length')
+    }
+  }
+
+  if (pattern !== undefined) {
+    if (typeof pattern !== 'string') {
+      errors.push('Pattern must be a string')
+    } else {
+      try {
+        new RegExp(pattern)
+      } catch {
+        errors.push('Pattern must be a valid regular expression')
+      }
+    }
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+export const validateNumberFieldConfig = (
+  config: Record<string, unknown>
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+  const { precision, scale, min_value, max_value } = config
+
+  if (precision != null) {
+    if (typeof precision !== 'number' || precision < 1 || precision > 65) {
+      errors.push('Precision must be a number between 1 and 65')
+    }
+  }
+
+  if (scale != null) {
+    if (typeof scale !== 'number' || scale < 0 || scale > 30) {
+      errors.push('Scale must be a number between 0 and 30')
+    }
+  }
+
+  if (precision != null && scale != null) {
+    if (scale > precision) {
+      errors.push('Scale cannot be greater than precision')
+    }
+  }
+
+  if (min_value != null) {
+    if (typeof min_value !== 'number') {
+      errors.push('Min value must be a number')
+    }
+  }
+
+  if (max_value != null) {
+    if (typeof max_value !== 'number') {
+      errors.push('Max value must be a number')
+    }
+  }
+
+  if (min_value != null && max_value != null) {
+    if (min_value > max_value) {
+      errors.push('Min value cannot be greater than max value')
+    }
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+export const validateDateFieldConfig = (
+  config: Record<string, unknown>
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+  const { format, default_now } = config
+
+  if (format != null) {
+    if (typeof format !== 'string') {
+      errors.push('Format must be a string')
+    } else {
+      const validFormats = ['YYYY-MM-DD', 'YYYY-MM-DD HH:mm:ss', 'HH:mm:ss']
+      if (!validFormats.includes(format)) {
+        errors.push('Format must be one of: YYYY-MM-DD, YYYY-MM-DD HH:mm:ss, HH:mm:ss')
+      }
+    }
+  }
+
+  if (default_now != null && typeof default_now !== 'boolean') {
+    errors.push('Default now must be a boolean')
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+export const validateFieldConstraints = (
+  data_type: DataFieldType,
+  field_config: Record<string, unknown>,
+  default_value?: string
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  // Validate field configuration based on type
+  switch (data_type) {
+    case 'text': {
+      const textValidation = validateTextFieldConfig(field_config)
+      if (!textValidation.isValid) {
+        errors.push(...textValidation.errors)
+      }
+      break
+    }
+    case 'number': {
+      const numberValidation = validateNumberFieldConfig(field_config)
+      if (!numberValidation.isValid) {
+        errors.push(...numberValidation.errors)
+      }
+      break
+    }
+    case 'date': {
+      const dateValidation = validateDateFieldConfig(field_config)
+      if (!dateValidation.isValid) {
+        errors.push(...dateValidation.errors)
+      }
+      break
+    }
+    case 'boolean':
+      // Boolean fields have no additional configuration
+      break
+    default:
+      errors.push(`Unsupported field type: ${data_type}`)
+  }
+
+  // Validate default value if provided
+  if (default_value && default_value.trim()) {
+    const defaultValidation = validateDefaultValue(data_type, default_value.trim(), field_config)
+    if (!defaultValidation.isValid) {
+      errors.push(...defaultValidation.errors)
+    }
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+export const validateDefaultValue = (
+  data_type: DataFieldType,
+  default_value: string,
+  field_config: Record<string, unknown>
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  switch (data_type) {
+    case 'text': {
+      const max_length = field_config.max_length as number
+      const min_length = field_config.min_length as number
+      const pattern = field_config.pattern as string
+
+      if (max_length != null && default_value.length > max_length) {
+        errors.push(`Default value exceeds maximum length of ${max_length}`)
+      }
+
+      if (min_length != null && default_value.length < min_length) {
+        errors.push(`Default value is shorter than minimum length of ${min_length}`)
+      }
+
+      if (pattern) {
+        try {
+          const regex = new RegExp(pattern)
+          if (!regex.test(default_value)) {
+            errors.push('Default value does not match the specified pattern')
+          }
+        } catch {
+          errors.push('Invalid pattern specified for field configuration')
+        }
+      }
+      break
+    }
+    case 'number': {
+      if (isNaN(Number(default_value))) {
+        errors.push('Default value must be a valid number')
+      } else {
+        const numValue = Number(default_value)
+        const min_value = field_config.min_value as number
+        const max_value = field_config.max_value as number
+
+        if (min_value != null && numValue < min_value) {
+          errors.push(`Default value is less than minimum value of ${min_value}`)
+        }
+
+        if (max_value != null && numValue > max_value) {
+          errors.push(`Default value is greater than maximum value of ${max_value}`)
+        }
+      }
+      break
+    }
+    case 'date': {
+      const validDateDefaults = ['CURRENT_TIMESTAMP', 'NOW()', 'CURRENT_DATE', 'CURRENT_TIME']
+      const lowerDefault = default_value.toLowerCase()
+
+      if (
+        !validDateDefaults.includes(default_value) &&
+        !validDateDefaults.some(v => v.toLowerCase() === lowerDefault)
+      ) {
+        errors.push(
+          'Date default value must be a valid date function (e.g., CURRENT_TIMESTAMP, NOW())'
+        )
+      }
+      break
+    }
+    case 'boolean': {
+      const validDefaults = ['true', 'false', 'TRUE', 'FALSE', '1', '0']
+      if (!validDefaults.includes(default_value)) {
+        errors.push('Boolean default value must be true, false, 1, or 0')
+      }
+      break
+    }
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+export const validateFieldNaming = (
+  name: string,
+  field_name: string
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  // Validate display name
+  if (!name || !name.trim()) {
+    errors.push('Display name is required')
+  } else if (name.length > 100) {
+    errors.push('Display name cannot exceed 100 characters')
+  }
+
+  // Validate field name
+  if (!field_name || !field_name.trim()) {
+    errors.push('Field name is required')
+  } else if (!/^[a-z][a-z0-9_]*$/.test(field_name)) {
+    errors.push(
+      'Field name must start with a letter and contain only lowercase letters, numbers, and underscores'
+    )
+  } else if (field_name.length > 63) {
+    errors.push('Field name cannot exceed 63 characters')
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+export const validateFieldCompatibilityForRelationship = (
+  sourceType: DataFieldType,
+  targetType: DataFieldType
+): { isCompatible: boolean; warnings: string[] } => {
+  const warnings: string[] = []
+
+  // Exact matches are always compatible
+  if (sourceType === targetType) {
+    return { isCompatible: true, warnings: [] }
+  }
+
+  // Text to Text compatibility
+  if (sourceType === 'text' && targetType === 'text') {
+    return { isCompatible: true, warnings: [] }
+  }
+
+  // Number to Number compatibility (with warnings about precision)
+  if (sourceType === 'number' && targetType === 'number') {
+    warnings.push('Ensure the precision and scale of both fields are compatible')
+    return { isCompatible: true, warnings }
+  }
+
+  // Date to Date compatibility
+  if (sourceType === 'date' && targetType === 'date') {
+    warnings.push('Ensure both fields use the same date format')
+    return { isCompatible: true, warnings }
+  }
+
+  // Boolean to Boolean compatibility
+  if (sourceType === 'boolean' && targetType === 'boolean') {
+    return { isCompatible: true, warnings: [] }
+  }
+
+  return {
+    isCompatible: false,
+    warnings: [`Field types ${sourceType} and ${targetType} are not compatible for relationships`],
+  }
+}
+
+export const validateFieldForMigration = (
+  oldField: DataField,
+  newField: Partial<DataField>
+): { canMigrate: boolean; warnings: string[]; errors: string[] } => {
+  const warnings: string[] = []
+  const errors: string[] = []
+
+  // Check if data type is changing
+  if (newField.data_type && newField.data_type !== oldField.data_type) {
+    const compatibility = validateFieldCompatibilityForRelationship(
+      oldField.data_type,
+      newField.data_type
+    )
+
+    if (!compatibility.isCompatible) {
+      errors.push(`Cannot change field type from ${oldField.data_type} to ${newField.data_type}`)
+    } else {
+      warnings.push(...compatibility.warnings)
+      warnings.push('Changing field type may result in data loss')
+    }
+  }
+
+  // Check if required status is changing from false to true
+  if (newField.is_required && !oldField.is_required) {
+    warnings.push('Making field required may fail if existing records have null values')
+  }
+
+  // Check if max length is being reduced
+  if (newField.field_config?.max_length && oldField.field_config?.max_length) {
+    const newMaxLength = newField.field_config.max_length as number
+    const oldMaxLength = oldField.field_config.max_length as number
+
+    if (newMaxLength < oldMaxLength) {
+      warnings.push('Reducing max length may truncate existing data')
+    }
+  }
+
+  return { canMigrate: errors.length === 0, warnings, errors }
 }
 
 export default schemas

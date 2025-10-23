@@ -6,7 +6,7 @@ import { Canvas } from './Canvas'
 import { PropertiesPanel } from './PropertiesPanel'
 import { ErrorDisplay } from './ErrorDisplay'
 import { useDesignerStore } from '@/stores/designer/useDesignerStore'
-import { DataTable } from '@/types/designer/table'
+import { DataTableWithFields } from '@/types/designer/table'
 import { cn } from '@/lib/utils'
 
 interface DesignerLayoutProps {
@@ -14,7 +14,7 @@ interface DesignerLayoutProps {
 }
 
 export function DesignerLayout({ projectId }: DesignerLayoutProps) {
-  const [selectedTable, setSelectedTable] = useState<DataTable | null>(null)
+  const [selectedTable, setSelectedTable] = useState<DataTableWithFields | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState({
     left: false,
     right: false,
@@ -22,7 +22,7 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
 
   const { error, clearError } = useDesignerStore()
 
-  const handleTableSelect = (table: DataTable) => {
+  const handleTableSelect = (table: DataTableWithFields) => {
     setSelectedTable(table)
   }
 
@@ -140,7 +140,13 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
         </button>
 
         <div className={cn('h-full overflow-hidden', !sidebarCollapsed.right && 'px-4')}>
-          <PropertiesPanel />
+          <PropertiesPanel
+            projectId={projectId}
+            selectedTable={selectedTable}
+            onFieldUpdate={() => {}}
+            onFieldDelete={() => {}}
+            onAddField={() => {}}
+          />
         </div>
       </div>
     </div>

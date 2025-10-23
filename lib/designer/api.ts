@@ -25,7 +25,9 @@ import type {
   UpdateTableRelationshipRequest,
   AcquireLockRequest,
   RelationshipValidationResult,
+  DataFieldType,
 } from '@/types/designer'
+import { getDefaultFieldConfig } from '@/lib/designer/constants'
 
 // Supabase client
 const supabase = createClient()
@@ -869,6 +871,308 @@ async function checkCircularDependency(
 
   // Start from target table and see if we can reach source table
   return await hasCycle(targetTableId)
+}
+
+// Enhanced field CRUD operations
+
+// Batch field operations
+export const createFields = async (
+  projectId: string,
+  tableId: string,
+  fields: CreateDataFieldRequest[]
+): Promise<CreateFieldResponse[]> => {
+  try {
+    const results: CreateFieldResponse[] = []
+
+    for (const field of fields) {
+      const result = await api.fields.create(projectId, tableId, field)
+      results.push(result)
+    }
+
+    return results
+  } catch (error) {
+    console.error('Failed to create fields:', error)
+    throw error
+  }
+}
+
+export const updateFields = async (
+  projectId: string,
+  tableId: string,
+  updates: Array<{ fieldId: string; data: UpdateDataFieldRequest }>
+): Promise<UpdateFieldResponse[]> => {
+  try {
+    const results: UpdateFieldResponse[] = []
+
+    for (const update of updates) {
+      const result = await api.fields.update(projectId, tableId, update.fieldId, update.data)
+      results.push(result)
+    }
+
+    return results
+  } catch (error) {
+    console.error('Failed to update fields:', error)
+    throw error
+  }
+}
+
+export const reorderFields = async (
+  projectId: string,
+  tableId: string,
+  fieldOrders: Array<{ fieldId: string; sort_order: number }>
+): Promise<UpdateFieldResponse[]> => {
+  try {
+    const updates = fieldOrders.map(({ fieldId, sort_order }) => ({
+      fieldId,
+      data: { sort_order } as UpdateDataFieldRequest,
+    }))
+
+    return await updateFields(projectId, tableId, updates)
+  } catch (error) {
+    console.error('Failed to reorder fields:', error)
+    throw error
+  }
+}
+
+// Field validation operations
+export const validateFieldConfiguration = async (
+  projectId: string,
+  tableId: string,
+  fieldData: CreateDataFieldRequest | UpdateDataFieldRequest
+): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> => {
+  try {
+    const errors: string[] = []
+    const warnings: string[] = []
+
+    // Check if field name already exists in table (for updates)
+    if ('field_name' in fieldData && fieldData.field_name) {
+      const { data: existingFields } = await supabase
+        .from('data_fields')
+        .select('id, field_name')
+        .eq('table_id', tableId)
+
+      if (existingFields) {
+        const duplicateField = existingFields.find(
+          f =>
+            f.field_name === fieldData.field_name &&
+            ('fieldId' in fieldData ? f.id !== fieldData.fieldId : true)
+        )
+
+        if (duplicateField) {
+          errors.push('Field name already exists in this table')
+        }
+      }
+    }
+
+    // Check for SQL reserved keywords
+    const reservedKeywords = [
+      'SELECT',
+      'FROM',
+      'WHERE',
+      'INSERT',
+      'UPDATE',
+      'DELETE',
+      'CREATE',
+      'ALTER',
+      'DROP',
+      'TABLE',
+      'INDEX',
+      'PRIMARY',
+      'FOREIGN',
+      'KEY',
+      'REFERENCES',
+      'UNIQUE',
+      'NOT',
+      'NULL',
+      'DEFAULT',
+      'CHECK',
+      'CONSTRAINT',
+    ]
+
+    if ('field_name' in fieldData && fieldData.field_name) {
+      const upperFieldName = fieldData.field_name.toUpperCase()
+      if (reservedKeywords.includes(upperFieldName)) {
+        errors.push(
+          `"${fieldData.field_name}" is a reserved SQL keyword and cannot be used as a field name`
+        )
+      }
+    }
+
+    return { isValid: errors.length === 0, errors, warnings }
+  } catch (error) {
+    console.error('Failed to validate field configuration:', error)
+    return {
+      isValid: false,
+      errors: [error instanceof Error ? error.message : 'Validation failed'],
+      warnings: [],
+    }
+  }
+}
+
+// Field dependency checking
+export const checkFieldDependencies = async (
+  projectId: string,
+  tableId: string,
+  fieldId: string
+): Promise<{
+  hasDependencies: boolean
+  dependencies: Array<{ type: string; description: string }>
+}> => {
+  try {
+    const dependencies: Array<{ type: string; description: string }> = []
+
+    // Check if field is used in relationships
+    const { data: relationships } = await supabase
+      .from('table_relationships')
+      .select('*')
+      .or(`source_field_id.eq.${fieldId},target_field_id.eq.${fieldId}`)
+
+    if (relationships && relationships.length > 0) {
+      for (const rel of relationships) {
+        const direction = rel.source_field_id === fieldId ? 'source' : 'target'
+        dependencies.push({
+          type: 'relationship',
+          description: `Field is used as ${direction} field in relationship "${rel.relationship_name}"`,
+        })
+      }
+    }
+
+    // TODO: Check for other dependencies like indexes, constraints, etc.
+    // For MVP, we only check relationships
+
+    return {
+      hasDependencies: dependencies.length > 0,
+      dependencies,
+    }
+  } catch (error) {
+    console.error('Failed to check field dependencies:', error)
+    return {
+      hasDependencies: false,
+      dependencies: [],
+    }
+  }
+}
+
+// Field type conversion operations
+export const convertFieldType = async (
+  projectId: string,
+  tableId: string,
+  fieldId: string,
+  newType: DataFieldType,
+  newConfig?: Record<string, unknown>
+): Promise<UpdateFieldResponse> => {
+  try {
+    // Get current field data
+    const { data: currentField } = await supabase
+      .from('data_fields')
+      .select('*')
+      .eq('id', fieldId)
+      .eq('table_id', tableId)
+      .single()
+
+    if (!currentField) {
+      throw new Error('Field not found')
+    }
+
+    // Validate type conversion
+    const updateData: UpdateDataFieldRequest = {
+      data_type: newType,
+      field_config: newConfig || getDefaultFieldConfig(newType),
+    }
+
+    // If table is already deployed, we would need to generate migration SQL
+    // For now, just update the field definition
+    const result = await api.fields.update(projectId, tableId, fieldId, updateData)
+
+    // TODO: Generate and execute migration if table is deployed
+    // This would involve creating ALTER TABLE statements
+
+    return result
+  } catch (error) {
+    console.error('Failed to convert field type:', error)
+    throw error
+  }
+}
+
+// Field template operations
+export const createFieldFromTemplate = async (
+  projectId: string,
+  tableId: string,
+  templateName: string
+): Promise<CreateFieldResponse> => {
+  try {
+    const templates: Record<string, CreateDataFieldRequest> = {
+      id: {
+        name: 'ID',
+        field_name: 'id',
+        data_type: 'text',
+        is_required: true,
+        field_config: { max_length: 255 },
+      },
+      created_at: {
+        name: 'Created At',
+        field_name: 'created_at',
+        data_type: 'date',
+        is_required: true,
+        default_value: 'CURRENT_TIMESTAMP',
+        field_config: { format: 'YYYY-MM-DD HH:mm:ss', default_now: true },
+      },
+      updated_at: {
+        name: 'Updated At',
+        field_name: 'updated_at',
+        data_type: 'date',
+        is_required: true,
+        default_value: 'CURRENT_TIMESTAMP',
+        field_config: { format: 'YYYY-MM-DD HH:mm:ss', default_now: true },
+      },
+      email: {
+        name: 'Email',
+        field_name: 'email',
+        data_type: 'text',
+        is_required: false,
+        field_config: { max_length: 255, pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$' },
+      },
+      name: {
+        name: 'Name',
+        field_name: 'name',
+        data_type: 'text',
+        is_required: true,
+        field_config: { max_length: 255 },
+      },
+      status: {
+        name: 'Status',
+        field_name: 'status',
+        data_type: 'text',
+        is_required: true,
+        default_value: 'active',
+        field_config: { max_length: 50 },
+      },
+      price: {
+        name: 'Price',
+        field_name: 'price',
+        data_type: 'number',
+        is_required: false,
+        field_config: { precision: 10, scale: 2, min_value: 0 },
+      },
+      is_active: {
+        name: 'Is Active',
+        field_name: 'is_active',
+        data_type: 'boolean',
+        is_required: true,
+        default_value: 'true',
+      },
+    }
+
+    const template = templates[templateName]
+    if (!template) {
+      throw new Error(`Unknown field template: ${templateName}`)
+    }
+
+    return await api.fields.create(projectId, tableId, template)
+  } catch (error) {
+    console.error('Failed to create field from template:', error)
+    throw error
+  }
 }
 
 export default api

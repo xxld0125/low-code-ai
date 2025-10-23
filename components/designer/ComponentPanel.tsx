@@ -15,12 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CreateTableModal } from './modals/CreateTableModal'
 import { useDesignerStore } from '@/stores/designer/useDesignerStore'
-import { DataTable } from '@/types/designer/table'
+import { DataTable, DataTableWithFields } from '@/types/designer/table'
 import { TABLE_STATUS_INFO } from '@/lib/designer/constants'
 
 interface ComponentPanelProps {
   projectId: string
-  onTableSelect?: (table: DataTable) => void
+  onTableSelect?: (table: DataTableWithFields) => void
   selectedTableId?: string
 }
 
@@ -36,7 +36,7 @@ export function ComponentPanel({ projectId, onTableSelect, selectedTableId }: Co
   )
 
   const handleTableClick = (table: DataTable) => {
-    onTableSelect?.(table)
+    onTableSelect?.(table as DataTableWithFields)
   }
 
   const handleDeployTable = async (table: DataTable) => {

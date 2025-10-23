@@ -11,7 +11,7 @@ import { CANVAS_CONFIG } from '@/lib/designer/constants'
 import { cn } from '@/lib/utils'
 
 interface CanvasProps {
-  onTableSelect?: (table: DataTable) => void
+  onTableSelect?: (table: DataTableWithFields) => void
 }
 
 interface TablePosition {
@@ -132,7 +132,7 @@ export function Canvas({ onTableSelect }: CanvasProps) {
 
   // Handle table selection
   const handleTableClick = (table: DataTable) => {
-    onTableSelect?.(table)
+    onTableSelect?.(table as DataTableWithFields)
   }
 
   // Handle table dragging (simplified version)

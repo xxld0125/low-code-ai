@@ -1,4 +1,4 @@
-import type { CreateDataFieldRequest } from '@/types/designer/field'
+import type { CreateDataFieldRequest, DataFieldType } from '@/types/designer/field'
 import { FIELD_TYPES, getPostgresType } from './constants'
 
 // Migration types
@@ -620,6 +620,396 @@ export function validateMigrationPlan(plan: MigrationPlan): string[] {
   return errors
 }
 
+// Enhanced field constraint application functions
+
+export function generateFieldConstraintSQL(
+  fieldName: string,
+  dataType: string,
+  fieldConfig: Record<string, unknown>,
+  isRequired: boolean,
+  defaultValue?: string
+): string {
+  const constraints: string[] = []
+
+  // Data type with configuration
+  const baseType = getPostgresType(dataType as DataFieldType, fieldConfig)
+
+  // NOT NULL constraint
+  if (isRequired) {
+    constraints.push('NOT NULL')
+  }
+
+  // DEFAULT value
+  if (defaultValue && defaultValue.trim()) {
+    constraints.push(`DEFAULT ${defaultValue}`)
+  }
+
+  // Additional constraints based on type
+  switch (dataType) {
+    case 'text':
+      const maxLength = fieldConfig.max_length as number
+      const minLength = fieldConfig.min_length as number
+      const pattern = fieldConfig.pattern as string
+
+      if (maxLength) {
+        constraints.push(`CHECK (length(${fieldName}) <= ${maxLength})`)
+      }
+
+      if (minLength) {
+        constraints.push(`CHECK (length(${fieldName}) >= ${minLength})`)
+      }
+
+      if (pattern) {
+        constraints.push(`CHECK (${fieldName} ~ '${pattern}')`)
+      }
+      break
+
+    case 'number':
+      const precision = fieldConfig.precision as number // eslint-disable-line @typescript-eslint/no-unused-vars
+      const scale = fieldConfig.scale as number // eslint-disable-line @typescript-eslint/no-unused-vars
+      const minValue = fieldConfig.min_value as number
+      const maxValue = fieldConfig.max_value as number
+
+      if (minValue !== undefined) {
+        constraints.push(`CHECK (${fieldName} >= ${minValue})`)
+      }
+
+      if (maxValue !== undefined) {
+        constraints.push(`CHECK (${fieldName} <= ${maxValue})`)
+      }
+      break
+
+    case 'date':
+      // Date fields typically don't need additional constraints
+      // The data type and default value are usually sufficient
+      break
+
+    case 'boolean':
+      // Boolean fields are inherently constrained
+      break
+  }
+
+  return `${fieldName} ${baseType}${constraints.length > 0 ? ' ' + constraints.join(' ') : ''}`
+}
+
+export function generateEnhancedCreateTableMigration(
+  tableName: string,
+  fields: CreateDataFieldRequest[]
+): { migration: CreateTableMigration; constraints: string[] } {
+  const migration = generateCreateTableMigration(tableName, fields)
+  const additionalConstraints: string[] = []
+
+  // Generate field-level constraints
+  const enhancedFields = fields.map(field => {
+    const constraintSQL = generateFieldConstraintSQL(
+      field.field_name,
+      field.data_type,
+      field.field_config || {},
+      field.is_required || false,
+      field.default_value
+    )
+
+    // Extract CHECK constraints from the field definition
+    const checkConstraints = constraintSQL.match(/CHECK \([^)]+\)/g) || []
+    additionalConstraints.push(...checkConstraints)
+
+    return {
+      name: field.field_name,
+      type: getPostgresType(field.data_type, field.field_config),
+      nullable: !field.is_required,
+      default: field.default_value
+        ? getDefaultSqlValue(field.data_type, field.default_value)
+        : undefined,
+      is_primary_key: field.field_name === 'id',
+    }
+  })
+
+  // Update migration with enhanced fields
+  migration.fields = enhancedFields
+
+  return { migration, constraints: additionalConstraints }
+}
+
+export function generateFieldIndexes(
+  tableName: string,
+  fields: CreateDataFieldRequest[]
+): CreateIndexMigration[] {
+  const indexes: CreateIndexMigration[] = []
+
+  fields.forEach(field => {
+    const fieldName = field.field_name
+
+    // Index for foreign key fields (usually end with _id)
+    if (fieldName.endsWith('_id')) {
+      indexes.push({
+        type: 'create_index',
+        index_name: `idx_${tableName}_${fieldName}`,
+        table_name: tableName,
+        columns: [fieldName],
+        unique: false,
+      })
+    }
+
+    // Index for common search fields
+    if (fieldName.includes('email') && field.data_type === 'text') {
+      indexes.push({
+        type: 'create_index',
+        index_name: `idx_${tableName}_${fieldName}`,
+        table_name: tableName,
+        columns: [fieldName],
+        unique: true, // Email should be unique
+      })
+    }
+
+    if (fieldName.includes('name') && field.data_type === 'text') {
+      indexes.push({
+        type: 'create_index',
+        index_name: `idx_${tableName}_${fieldName}`,
+        table_name: tableName,
+        columns: [fieldName],
+        unique: false,
+      })
+    }
+
+    // Index for status fields
+    if (fieldName.includes('status') && field.data_type === 'text') {
+      indexes.push({
+        type: 'create_index',
+        index_name: `idx_${tableName}_${fieldName}`,
+        table_name: tableName,
+        columns: [fieldName],
+        unique: false,
+      })
+    }
+
+    // Index for date fields (created_at, updated_at)
+    if (
+      (fieldName.includes('created_at') || fieldName.includes('updated_at')) &&
+      field.data_type === 'date'
+    ) {
+      indexes.push({
+        type: 'create_index',
+        index_name: `idx_${tableName}_${fieldName}`,
+        table_name: tableName,
+        columns: [fieldName],
+        unique: false,
+      })
+    }
+
+    // Composite indexes for common query patterns
+    if (fieldName.includes('user_id') && fields.some(f => f.field_name.includes('created_at'))) {
+      indexes.push({
+        type: 'create_index',
+        index_name: `idx_${tableName}_user_created`,
+        table_name: tableName,
+        columns: [fieldName, 'created_at'],
+        unique: false,
+      })
+    }
+  })
+
+  return indexes
+}
+
+export function validateFieldConstraints(fields: CreateDataFieldRequest[]): {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+} {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  fields.forEach(field => {
+    // Validate field configuration based on type
+    switch (field.data_type) {
+      case 'text':
+        const maxLength = field.field_config?.max_length as number
+        const minLength = field.field_config?.min_length as number
+        const pattern = field.field_config?.pattern as string
+
+        if (maxLength !== undefined) {
+          if (typeof maxLength !== 'number' || maxLength < 1 || maxLength > 65535) {
+            errors.push(`Field "${field.field_name}": max_length must be between 1 and 65535`)
+          }
+        }
+
+        if (minLength !== undefined) {
+          if (typeof minLength !== 'number' || minLength < 0) {
+            errors.push(`Field "${field.field_name}": min_length must be a non-negative number`)
+          }
+        }
+
+        if (maxLength !== undefined && minLength !== undefined && minLength > maxLength) {
+          errors.push(`Field "${field.field_name}": min_length cannot be greater than max_length`)
+        }
+
+        if (pattern) {
+          try {
+            new RegExp(pattern)
+          } catch {
+            errors.push(`Field "${field.field_name}": pattern must be a valid regular expression`)
+          }
+        }
+        break
+
+      case 'number':
+        const precision = field.field_config?.precision as number
+        const scale = field.field_config?.scale as number
+        const minValue = field.field_config?.min_value as number
+        const maxValue = field.field_config?.max_value as number
+
+        if (precision !== undefined) {
+          if (typeof precision !== 'number' || precision < 1 || precision > 65) {
+            errors.push(`Field "${field.field_name}": precision must be between 1 and 65`)
+          }
+        }
+
+        if (scale !== undefined) {
+          if (typeof scale !== 'number' || scale < 0 || scale > 30) {
+            errors.push(`Field "${field.field_name}": scale must be between 0 and 30`)
+          }
+        }
+
+        if (precision !== undefined && scale !== undefined && scale > precision) {
+          errors.push(`Field "${field.field_name}": scale cannot be greater than precision`)
+        }
+
+        if (minValue !== undefined && maxValue !== undefined && minValue > maxValue) {
+          errors.push(`Field "${field.field_name}": min_value cannot be greater than max_value`)
+        }
+        break
+
+      case 'date':
+        const format = field.field_config?.format as string
+        const validFormats = ['YYYY-MM-DD', 'YYYY-MM-DD HH:mm:ss', 'HH:mm:ss']
+
+        if (format && !validFormats.includes(format)) {
+          errors.push(
+            `Field "${field.field_name}": format must be one of ${validFormats.join(', ')}`
+          )
+        }
+        break
+    }
+
+    // Validate default value
+    if (field.default_value) {
+      const defaultValidation = validateDefaultValueForType(
+        field.data_type,
+        field.default_value,
+        field.field_config
+      )
+      if (!defaultValidation.isValid) {
+        errors.push(`Field "${field.field_name}": ${defaultValidation.error}`)
+      }
+    }
+
+    // Warnings for potential issues
+    if (field.is_required && !field.default_value && field.field_name !== 'id') {
+      warnings.push(`Field "${field.field_name}" is required but has no default value`)
+    }
+
+    if (field.data_type === 'text' && field.field_name.toLowerCase().includes('password')) {
+      warnings.push(
+        `Field "${field.field_name}" appears to store password data - consider proper encryption`
+      )
+    }
+  })
+
+  // Check for duplicate field names
+  const fieldNames = fields.map(f => f.field_name)
+  const uniqueFieldNames = new Set(fieldNames)
+  if (fieldNames.length !== uniqueFieldNames.size) {
+    errors.push('Field names must be unique within a table')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  }
+}
+
+function validateDefaultValueForType(
+  dataType: string,
+  defaultValue: string,
+  _fieldConfig?: Record<string, unknown> // eslint-disable-line @typescript-eslint/no-unused-vars
+): { isValid: boolean; error?: string } {
+  switch (dataType) {
+    case 'text':
+      // Allow string literals, functions, or NULL
+      if (defaultValue.startsWith("'") && defaultValue.endsWith("'")) {
+        return { isValid: true }
+      }
+      if (isKnownFunction(defaultValue) || isKnownConstant(defaultValue)) {
+        return { isValid: true }
+      }
+      return { isValid: false, error: 'Text default should be in quotes or be a known function' }
+
+    case 'number':
+      if (
+        isNumeric(defaultValue) ||
+        isKnownFunction(defaultValue) ||
+        isKnownConstant(defaultValue)
+      ) {
+        return { isValid: true }
+      }
+      return { isValid: false, error: 'Number default must be numeric or a known function' }
+
+    case 'date':
+      if (
+        isKnownFunction(defaultValue) ||
+        isKnownConstant(defaultValue) ||
+        isDateLiteral(defaultValue)
+      ) {
+        return { isValid: true }
+      }
+      return {
+        isValid: false,
+        error: 'Date default should use functions or be a valid date literal',
+      }
+
+    case 'boolean':
+      const booleanValues = ['true', 'false', '1', '0', 'TRUE', 'FALSE']
+      if (booleanValues.includes(defaultValue) || isKnownConstant(defaultValue)) {
+        return { isValid: true }
+      }
+      return { isValid: false, error: 'Boolean default must be true, false, 1, 0, or NULL' }
+
+    default:
+      return { isValid: false, error: `Unsupported data type: ${dataType}` }
+  }
+}
+
+function isKnownFunction(value: string): boolean {
+  const functions = [
+    'CURRENT_TIMESTAMP',
+    'NOW()',
+    'CURRENT_DATE',
+    'CURRENT_TIME',
+    'gen_random_uuid()',
+    'current_user',
+    'nextval(',
+  ]
+  return functions.some(func => value.toUpperCase().includes(func.toUpperCase()))
+}
+
+function isKnownConstant(value: string): boolean {
+  const constants = ['NULL', 'TRUE', 'FALSE']
+  return constants.includes(value.toUpperCase())
+}
+
+function isNumeric(value: string): boolean {
+  return !isNaN(Number(value)) && value.trim() !== ''
+}
+
+function isDateLiteral(value: string): boolean {
+  return (
+    value.startsWith("'") &&
+    value.endsWith("'") &&
+    (/^\d{4}-\d{2}-\d{2}/.test(value) || /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(value))
+  )
+}
+
 const migrations = {
   generateCreateTableMigration,
   generateAddColumnMigration,
@@ -631,6 +1021,11 @@ const migrations = {
   generateMigrationPlan,
   validateMigrationOperation,
   validateMigrationPlan,
+  // Enhanced field constraint functions
+  generateFieldConstraintSQL,
+  generateEnhancedCreateTableMigration,
+  generateFieldIndexes,
+  validateFieldConstraints,
 }
 
 export default migrations
