@@ -17,17 +17,17 @@ export default async function ProtectedPage() {
       <div className="w-full">
         <div className="flex items-center gap-3 rounded-md bg-accent p-3 px-5 text-sm text-foreground">
           <InfoIcon size="16" strokeWidth={2} />
-          This is a protected page that you can only see as an authenticated user
+          这是一个受保护的页面，只有认证用户才能访问
         </div>
       </div>
       <div className="flex flex-col items-start gap-2">
-        <h2 className="mb-4 text-2xl font-bold">Your user details</h2>
+        <h2 className="mb-4 text-2xl font-bold">您的用户详情</h2>
         <pre className="max-h-32 overflow-auto rounded border p-3 font-mono text-xs">
           {JSON.stringify(data.claims, null, 2)}
         </pre>
       </div>
       <div>
-        <h2 className="mb-4 text-2xl font-bold">Next steps</h2>
+        <h2 className="mb-4 text-2xl font-bold">下一步</h2>
         <FetchDataSteps />
       </div>
     </div>

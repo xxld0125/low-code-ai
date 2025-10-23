@@ -4,7 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Next.js 15 + Supabase Starter Kit** using the App Router. It's a full-stack application template with authentication, styling, and development tooling pre-configured.
+This is **全栈低代码开发平台** built on Next.js 15 + Supabase. It's a full-stack low-code development platform that provides complete development capabilities from data model design to frontend page building.
+
+### Product Positioning
+
+- **Technical Positioning**: Open-source modern full-stack low-code development platform
+- **Target Users**: Developers with technical background, development teams, IT departments
+- **Value Proposition**: Complete development chain from data model design to frontend page building
+
+### Core Features
+
+1. **Full-stack Capabilities**: Complete development pipeline from data modeling to frontend page building
+2. **Open Source & Controllable**: Based on mature open-source technology stack, supporting private deployment
+3. **Developer-friendly**: Lowers development barriers without sacrificing flexibility
+4. **Advanced Features**: Permission management, multi-tenancy, API integration, and other enterprise-level features
 
 ## Development Commands
 
@@ -24,26 +37,58 @@ pnpm lint
 
 ## Tech Stack & Dependencies
 
-- **Framework**: Next.js 15 with App Router
-- **Runtime**: React 19
-- **Backend**: Supabase (database + auth)
-- **Styling**: Tailwind CSS + shadcn/ui components
+### Core Technology Stack
+
+| Layer                    | Technology                                | Selection Rationale                                                                 |
+| ------------------------ | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Frontend Framework**   | Next.js 15 + React 19 + TypeScript        | Latest tech stack, SSR support, type safety, mature ecosystem                       |
+| **UI Component Library** | shadcn/ui + Tailwind CSS                  | Modern design, highly customizable, Radix UI foundation, excellent performance      |
+| **State Management**     | Zustand                                   | Lightweight, TypeScript-friendly, simple API                                        |
+| **Build Tools**          | Next.js built-in build system + Turbopack | Excellent development experience, fast hot reload, comprehensive optimization       |
+| **Backend Services**     | Supabase (PostgreSQL + Auth)              | BaaS solution, rapid development, real-time features, enterprise-level capabilities |
+| **Database**             | Supabase PostgreSQL                       | Managed service, powerful features, automatic backup, RESTful API                   |
+| **Authentication**       | Supabase Auth + @supabase/ssr             | Complete authentication solution, secure and reliable, easy integration             |
+| **Caching**              | Supabase Edge Functions + CDN             | Globally distributed cache, automatic optimization, deep platform integration       |
+| **File Storage**         | Supabase Storage                          | S3-compatible, secure storage, automatic CDN distribution                           |
+
+### Additional Development Tools
+
 - **Language**: TypeScript with strict mode
 - **Package Manager**: pnpm (lockfile present)
+- **Styling**: Tailwind CSS + shadcn/ui components
 - **Auth**: Supabase Auth with cookie-based sessions via `@supabase/ssr`
+- **Real-time**: Supabase Realtime Engine for live collaboration
 
 ## Architecture & Key Patterns
 
 ### Directory Structure
 
 ```
-/app/          # Next.js App Router pages
-  /auth/       # Authentication pages (login, sign-up, forgot-password)
-  /protected/  # Pages requiring authentication
-/components/   # Reusable React components
-  /ui/        # shadcn/ui components
-/lib/          # Utility libraries
-  /supabase/  # Supabase client configurations
+/app/                          # Next.js App Router pages
+  /auth/                       # Authentication pages (login, sign-up, forgot-password)
+  /protected/                  # Pages requiring authentication
+    /designer/                 # Low-code designer interface
+  /api/                        # API routes
+    /designer/                 # Designer-related APIs
+    /components/               # Component-related APIs
+/components/                   # React components
+  /designer/                   # Designer components
+    ├── DesignerLayout.tsx     # Three-column layout
+    ├── ComponentPanel.tsx     # Left component panel
+    ├── Canvas.tsx             # Middle canvas
+    └── PropertiesPanel.tsx    # Right properties panel
+  /ui/                         # shadcn/ui components
+  /lowcode/                    # Low-code component library
+    ├── basic/                  # Basic components (Button, Input, etc.)
+    ├── layout/                 # Layout components (Container, Grid, etc.)
+    └── business/               # Business components (UserSelector, etc.)
+/lib/                          # Utility libraries
+  /designer/                   # Designer core logic
+  /supabase/                   # Supabase client configurations
+  /utils/                      # Common utility functions
+/hooks/                        # Custom React Hooks
+/stores/                       # Zustand state management
+/types/                        # TypeScript type definitions
 ```
 
 ### Authentication Architecture

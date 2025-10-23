@@ -12,7 +12,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         <nav className="flex h-16 w-full justify-center border-b border-b-foreground/10">
           <div className="flex w-full max-w-5xl items-center justify-between p-3 px-5 text-sm">
             <div className="flex items-center gap-5 font-semibold">
-              <Link href={'/'}>Next.js Supabase Starter</Link>
+              <Link href={'/'}>Next.js Supabase 启动器</Link>
               <div className="flex items-center gap-2">
                 <DeployButton />
               </div>
@@ -24,7 +24,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
         <footer className="mx-auto flex w-full items-center justify-center gap-8 border-t py-16 text-center text-xs">
           <p>
-            Powered by{' '}
+            由{' '}
             <a
               href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
               target="_blank"
@@ -32,7 +32,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               rel="noreferrer"
             >
               Supabase
-            </a>
+            </a>{' '}
+            驱动
           </p>
           <ThemeSwitcher />
         </footer>
