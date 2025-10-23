@@ -26,15 +26,13 @@ interface FieldTypeSelectorProps {
 }
 
 interface FieldTypeCardProps {
-  type: DataFieldType
   info: (typeof FIELD_TYPE_INFO)[DataFieldType]
   isSelected: boolean
   onClick: () => void
   disabled?: boolean
 }
 
-function FieldTypeCard({ type, info, isSelected, onClick }: FieldTypeCardProps) {
-  // eslint-disable-line @typescript-eslint/no-unused-vars
+function FieldTypeCard({ info, isSelected, onClick }: FieldTypeCardProps) {
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case 'Type':
@@ -158,8 +156,6 @@ export function FieldTypeSelector({
   variant = 'select',
   showDescription = true,
 }: FieldTypeSelectorProps) {
-  const [expandedCard, setExpandedCard] = useState<DataFieldType | null>(null) // eslint-disable-line @typescript-eslint/no-unused-vars
-
   if (variant === 'cards') {
     return (
       <div className="space-y-4">
@@ -171,7 +167,6 @@ export function FieldTypeSelector({
           {SUPPORTED_FIELD_TYPES.map(typeInfo => (
             <FieldTypeCard
               key={typeInfo.value}
-              type={typeInfo.value}
               info={FIELD_TYPE_INFO[typeInfo.value]}
               isSelected={value === typeInfo.value}
               onClick={() => onValueChange(typeInfo.value)}
