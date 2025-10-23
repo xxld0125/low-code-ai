@@ -120,10 +120,10 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Tests
 
-- [ ] T043 [US2] Unit test for FieldConfigModal component
-- [ ] T044 [US2] Unit test for field validation rules
-- [ ] T045 [US2] Integration test for field configuration workflow
-- [ ] T046 [US2] Database constraint verification tests
+- [x] T043 [US2] Unit test for FieldConfigModal component
+- [x] T044 [US2] Unit test for field validation rules
+- [x] T045 [US2] Integration test for field configuration workflow
+- [x] T046 [US2] Database constraint verification tests
 
 ---
 
