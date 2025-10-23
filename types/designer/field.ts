@@ -1,5 +1,26 @@
 export type DataFieldType = 'text' | 'number' | 'date' | 'boolean'
 
+export interface FieldConfig {
+  // Text field configuration
+  max_length?: number
+  min_length?: number
+  pattern?: string
+
+  // Number field configuration
+  precision?: number
+  scale?: number
+  min_value?: number
+  max_value?: number
+
+  // Date field configuration
+  format?: string
+  default_now?: boolean
+
+  // Common configuration
+  validation?: string
+  description?: string
+}
+
 export interface DataField {
   id: string
   table_id: string
@@ -8,30 +29,52 @@ export interface DataField {
   data_type: DataFieldType
   is_required: boolean
   default_value?: string
-  field_config: Record<string, unknown>
+  field_config: FieldConfig
   sort_order: number
   created_at: string
   updated_at: string
 }
 
-export interface CreateFieldRequest {
-  tableId: string
+export interface CreateDataFieldRequest {
   name: string
-  fieldName: string
-  dataType: DataFieldType
-  isRequired?: boolean
-  defaultValue?: string
-  sortOrder?: number
-  fieldConfig?: Record<string, unknown>
+  field_name: string
+  data_type: DataFieldType
+  is_required?: boolean
+  default_value?: string
+  field_config?: FieldConfig
+  sort_order?: number
 }
 
-export interface UpdateFieldRequest {
-  id: string
+export interface UpdateDataFieldRequest {
   name?: string
-  fieldName?: string
-  dataType?: DataFieldType
-  isRequired?: boolean
-  defaultValue?: string
-  sortOrder?: number
-  fieldConfig?: Record<string, unknown>
+  field_name?: string
+  data_type?: DataFieldType
+  is_required?: boolean
+  default_value?: string
+  field_config?: FieldConfig
+  sort_order?: number
+}
+
+export interface DataFieldListRequest {
+  projectId: string
+  tableId: string
+}
+
+// Utility types for field validation
+export type TextValidation = {
+  max_length?: number
+  min_length?: number
+  pattern?: string
+}
+
+export type NumberValidation = {
+  precision?: number
+  scale?: number
+  min_value?: number
+  max_value?: number
+}
+
+export type DateValidation = {
+  format?: string
+  default_now?: boolean
 }

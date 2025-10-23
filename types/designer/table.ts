@@ -11,17 +11,46 @@ export interface DataTable {
   updated_at: string
 }
 
-export interface CreateTableRequest {
-  projectId: string
-  name: string
-  description?: string
-  tableName: string
+export interface DataTableWithFields extends DataTable {
+  fields: DataField[]
+  relationships: {
+    outgoing: TableRelationship[]
+    incoming: TableRelationship[]
+  }
 }
 
-export interface UpdateTableRequest {
-  id: string
+export interface CreateTableRequest {
+  name: string
+  description?: string
+  table_name: string
+  fields?: CreateDataFieldRequest[]
+}
+
+export interface UpdateDataTableRequest {
   name?: string
   description?: string
-  status?: DataTable['status']
-  schemaDefinition?: Record<string, unknown>
+  table_name?: string
 }
+
+export interface DataTableListRequest {
+  projectId: string
+  page?: number
+  limit?: number
+  status?: DataTable['status']
+}
+
+export interface TableDeploymentRequest {
+  projectId: string
+  tableId: string
+}
+
+export interface TableDeploymentResponse {
+  deployment_id: string
+  status: 'success' | 'pending' | 'failed'
+  sql_statements: string[]
+  database_table_name: string
+}
+
+// Re-export from field types to maintain compatibility
+import type { DataField, CreateDataFieldRequest } from './field'
+import type { TableRelationship } from './relationship'

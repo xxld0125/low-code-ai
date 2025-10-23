@@ -48,15 +48,15 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Implementation Tasks
 
-- [ ] T011 [P] Create DataTable type definitions in `types/designer/table.ts`
-- [ ] T012 [P] Create DataField type definitions in `types/designer/field.ts`
-- [ ] T013 [P] Create TableRelationship type definitions in `types/designer/relationship.ts`
-- [ ] T014 [P] Create API request/response types in `types/designer/api.ts`
-- [ ] T015 Create Zustand store structure in `stores/designer/useDesignerStore.ts`
-- [ ] T016 Create Supabase API client functions in `lib/designer/api.ts`
-- [ ] T017 Create validation schemas with Zod in `lib/designer/validation.ts`
-- [ ] T018 Create basic error handling utilities in `lib/designer/errors.ts`
-- [ ] T019 Create constants and configuration in `lib/designer/constants.ts`
+- [x] T011 [P] Create DataTable type definitions in `types/designer/table.ts`
+- [x] T012 [P] Create DataField type definitions in `types/designer/field.ts`
+- [x] T013 [P] Create TableRelationship type definitions in `types/designer/relationship.ts`
+- [x] T014 [P] Create API request/response types in `types/designer/api.ts`
+- [x] T015 Create Zustand store structure in `stores/designer/useDesignerStore.ts`
+- [x] T016 Create Supabase API client functions in `lib/designer/api.ts`
+- [x] T017 Create validation schemas with Zod in `lib/designer/validation.ts`
+- [x] T018 Create basic error handling utilities in `lib/designer/errors.ts`
+- [x] T019 Create constants and configuration in `lib/designer/constants.ts`
 
 ---
 
