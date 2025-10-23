@@ -1,6 +1,36 @@
 import { z } from 'zod'
 import type { DataFieldType } from '@/types/designer'
 
+// Type definitions for refine callbacks
+interface CreateDataFieldRequestType {
+  name: string
+  field_name: string
+  data_type: 'text' | 'number' | 'date' | 'boolean'
+  is_required?: boolean
+  default_value?: string
+  field_config: Record<string, unknown>
+  sort_order?: number
+}
+
+interface TableRelationshipType {
+  source_table_id: string
+  target_table_id: string
+  source_field_id: string
+  target_field_id: string
+}
+
+interface CreateTableRequestType {
+  name: string
+  description?: string
+  table_name: string
+  fields?: CreateDataFieldRequestType[]
+}
+
+interface TableLockType {
+  locked_at: string
+  expires_at: string
+}
+
 // Regex patterns for validation
 const TABLE_NAME_REGEX = /^[a-z][a-z0-9_]*$/
 const FIELD_NAME_REGEX = /^[a-z][a-z0-9_]*$/
@@ -92,7 +122,7 @@ const createDataFieldRequestSchema = z
     sort_order: z.number().int().min(0).optional(),
   })
   .refine(
-    data => {
+    (data: CreateDataFieldRequestType) => {
       // Data type specific validation
       switch (data.data_type) {
         case 'text':
@@ -178,10 +208,10 @@ const tableRelationshipSchema = z
     created_at: z.string(),
     updated_at: z.string(),
   })
-  .refine(data => data.source_table_id !== data.target_table_id, {
+  .refine((data: TableRelationshipType) => data.source_table_id !== data.target_table_id, {
     message: 'Source and target tables must be different',
   })
-  .refine(data => data.source_field_id !== data.target_field_id, {
+  .refine((data: TableRelationshipType) => data.source_field_id !== data.target_field_id, {
     message: 'Source and target fields must be different',
   })
 
@@ -198,10 +228,10 @@ const createTableRelationshipRequestSchema = z
       on_update: 'cascade',
     }),
   })
-  .refine(data => data.source_table_id !== data.target_table_id, {
+  .refine((data: TableRelationshipType) => data.source_table_id !== data.target_table_id, {
     message: 'Source and target tables must be different',
   })
-  .refine(data => data.source_field_id !== data.target_field_id, {
+  .refine((data: TableRelationshipType) => data.source_field_id !== data.target_field_id, {
     message: 'Source and target fields must be different',
   })
 
@@ -218,7 +248,7 @@ const dataTableSchema = z.object({
   name: displayNameSchema,
   description: descriptionSchema,
   table_name: tableNameSchema,
-  schema_definition: z.record(z.unknown()),
+  schema_definition: z.record(z.string(), z.unknown()),
   status: z.enum(['draft', 'active', 'deprecated', 'deleted']),
   created_by: uuidSchema,
   created_at: z.string(),
@@ -232,13 +262,13 @@ const createTableRequestSchema = z
     table_name: tableNameSchema,
     fields: z.array(createDataFieldRequestSchema).optional().default([]),
   })
-  .refine(data => data.fields!.length > 0, {
+  .refine((data: CreateTableRequestType) => data.fields!.length > 0, {
     message: 'Table must have at least one field',
   })
   .refine(
-    data => {
+    (data: CreateTableRequestType) => {
       // Check for duplicate field names
-      const fieldNames = data.fields!.map(f => f.field_name)
+      const fieldNames = data.fields!.map((f: CreateDataFieldRequestType) => f.field_name)
       const uniqueFieldNames = new Set(fieldNames)
       return fieldNames.length === uniqueFieldNames.size
     },
@@ -265,7 +295,7 @@ const tableLockSchema = z
     expires_at: z.string(),
     reason: z.string().min(1).max(200),
   })
-  .refine(data => new Date(data.expires_at) > new Date(data.locked_at), {
+  .refine((data: TableLockType) => new Date(data.expires_at) > new Date(data.locked_at), {
     message: 'Expiration time must be after lock time',
   })
 
@@ -413,7 +443,7 @@ export const validateCircularDependency = async (): Promise<boolean> => {
 
 // Error message helpers
 export const getValidationErrorMessage = (error: z.ZodError): string => {
-  return error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+  return error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
 }
 
 export const getFieldValidationError = (
@@ -444,7 +474,7 @@ export const getFieldValidationError = (
 
   const result = configSchema.safeParse(config)
   if (!result.success) {
-    errors.push(...result.error.errors.map(e => `${field}: ${e.message}`))
+    errors.push(...result.error.issues.map(e => `${field}: ${e.message}`))
   }
 
   return errors
