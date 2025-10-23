@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ProjectActivityLog } from '@/components/projects/ProjectActivityLog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -277,14 +276,6 @@ export function ProjectOverviewClient({ project, userRole }: ProjectOverviewClie
           </div>
         </CardContent>
       </Card>
-
-      {/* 活动日志 */}
-      <ProjectActivityLog
-        projectId={project.id}
-        className="w-full"
-        maxItems={10}
-        showLoadMore={true}
-      />
     </div>
   )
 }

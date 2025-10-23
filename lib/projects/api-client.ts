@@ -121,18 +121,6 @@ export const projectAPI = {
       body: JSON.stringify({ status: 'archived' }),
     })
   },
-
-  /**
-   * Get project activity log
-   */
-  async getActivities(projectId: string, params?: { limit?: number; offset?: number }) {
-    const searchParams = new URLSearchParams()
-    searchParams.set('project_id', projectId)
-    if (params?.limit) searchParams.set('limit', params.limit.toString())
-    if (params?.offset) searchParams.set('offset', params.offset.toString())
-
-    return apiRequest(`/api/projects/${projectId}/activities?${searchParams.toString()}`)
-  },
 }
 
 /**

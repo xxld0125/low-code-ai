@@ -16,7 +16,6 @@ erDiagram
     Project ||--o{ SchemaVersion : tracks
     DataTable ||--o{ TableLock : locked
     User ||--o{ TableLock : holds
-    Project ||--o{ ProjectActivity : logs
 
     Project {
         string id PK
@@ -95,16 +94,6 @@ erDiagram
         string reason
     }
 
-    ProjectActivity {
-        string id PK
-        string project_id FK
-        string user_id FK
-        string activity_type
-        string entity_type
-        string entity_id
-        json activity_data
-        timestamp created_at
-    }
 ```
 
 ## Entity Definitions
@@ -222,33 +211,6 @@ Manages concurrent access to prevent conflicting modifications.
 - `lock_token` must be valid UUID
 - Required fields: `table_id`, `user_id`, `lock_token`, `lock_type`
 
-### ProjectActivity
-
-Audit trail for all schema-related activities.
-
-**Purpose**: Provides comprehensive activity logging for debugging and analytics.
-
-**Activity Types**:
-
-- `create_table`, `update_table`, `delete_table`
-- `create_field`, `update_field`, `delete_field`
-- `create_relationship`, `update_relationship`, `delete_relationship`
-- `acquire_lock`, `release_lock`
-- `create_version`
-
-**Key Fields**:
-
-- `activity_data`: JSON with detailed change information
-- `entity_type`: Table, Field, Relationship, Version
-- `entity_id`: Reference to modified entity
-
-**Validation Rules**:
-
-- All activity fields must be valid
-- `activity_data` must be valid JSON
-- `entity_id` must reference existing entity (except for delete events)
-- Required fields: `project_id`, `user_id`, `activity_type`, `entity_type`
-
 ## State Transitions
 
 ### DataTable Lifecycle
@@ -297,7 +259,6 @@ Available → Locked → Expired/Released
 - `TableRelationship.project_id` → `Project.id` (CASCADE DELETE)
 - `SchemaVersion.project_id` → `Project.id` (CASCADE DELETE)
 - `TableLock.table_id` → `DataTable.id` (CASCADE DELETE)
-- `ProjectActivity.project_id` → `Project.id` (CASCADE DELETE)
 
 ### Unique Constraints
 
@@ -328,7 +289,6 @@ Available → Locked → Expired/Released
 
 - `DataTable.name`, `DataTable.table_name` (for table lookup)
 - `DataField.name`, `DataField.field_name` (for field search)
-- `ProjectActivity.created_at` (for activity timeline)
 
 ### Composite Indexes
 
@@ -342,7 +302,6 @@ Available → Locked → Expired/Released
 
 - All tables scoped to project_id for multi-tenancy
 - User permissions enforced through existing collaboration framework
-- Activity logging for audit trails
 
 ### Data Validation
 

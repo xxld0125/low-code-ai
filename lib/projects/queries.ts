@@ -60,20 +60,6 @@ interface DbInvitation {
   }
 }
 
-interface ActivityLogEntry {
-  id: string
-  project_id: string
-  user_id: string
-  action: string
-  details: Record<string, unknown>
-  created_at: string
-  user?: {
-    id: string
-    email: string
-    name?: string | null
-  }
-}
-
 /**
  * Get projects for a user with their role in each project
  */
@@ -351,59 +337,6 @@ export async function getUserInvitations(
           : undefined,
       } as Invitation
     })
-}
-
-/**
- * Get activity log for a project
- */
-export async function getProjectActivityLog(
-  projectId: string,
-  userId: string,
-  params: PaginationParams = {}
-): Promise<
-  Array<{
-    id: string
-    project_id: string
-    user_id: string
-    action: string
-    details: Record<string, unknown>
-    created_at: string
-    user?: {
-      id: string
-      email: string
-      name?: string | null
-    }
-  }>
-> {
-  const supabase = await createClient()
-
-  // Check access first
-  const hasAccess = await checkProjectAccess(projectId, userId)
-  if (!hasAccess) {
-    throw new Error('Access denied to this project')
-  }
-
-  const { data, error } = await supabase
-    .from('project_activity_log')
-    .select(
-      `
-      *,
-      user:auth.users(
-        id,
-        email,
-        raw_user_meta_data->>'name' as name
-      )
-    `
-    )
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false })
-    .range(params.offset || 0, (params.offset || 0) + (params.limit || 50) - 1)
-
-  if (error) {
-    throw new Error(`Failed to fetch activity log: ${error.message}`)
-  }
-
-  return data as unknown as ActivityLogEntry[]
 }
 
 /**

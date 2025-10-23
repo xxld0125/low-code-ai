@@ -168,7 +168,6 @@ Response: { message: string }
 ├── ProjectCard.tsx              # Individual project card
 ├── CreateProjectModal.tsx       # Project creation modal
 ├── ProjectSettings.tsx          # Project settings panel
-├── ProjectActivityLog.tsx       # Activity history display (NEW)
 ├── ProjectActionButtons.tsx     # Shared action buttons (NEW)
 ├── ProjectsLoadingSkeleton.tsx  # Loading state component
 └── (Future components)

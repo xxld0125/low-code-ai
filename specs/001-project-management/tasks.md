@@ -159,7 +159,7 @@ description: 'Task list for Project Management feature implementation'
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [x] T068 [P] Create ProjectActivityLog component in components/projects/ProjectActivityLog.tsx
+- ~~T068 [P] Create ProjectActivityLog component in components/projects/ProjectActivityLog.tsx~~ (REMOVED)
 - [x] T069 [P] Add project overview page in app/protected/projects/[projectId]/page.tsx
 - [x] T070 Code cleanup and refactoring across all project components
 - [x] T071 Security hardening for all project operations
