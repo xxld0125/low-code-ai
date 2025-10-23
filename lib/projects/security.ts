@@ -74,8 +74,7 @@ export async function authenticateRequest(_request: NextRequest): Promise<{
         name: user.user_metadata?.name || user.user_metadata?.full_name,
       },
     }
-  } catch (_error) {
-    // eslint-disable-line @typescript-eslint/no-unused-vars
+  } catch {
     return {
       user: null,
       error: {
@@ -364,8 +363,7 @@ export async function checkProjectPermission(
     }
 
     return { allowed: true, userRole: collaborator.role }
-  } catch (_error) {
-    // eslint-disable-line @typescript-eslint/no-unused-vars
+  } catch {
     return { allowed: false, error: 'Permission check failed' }
   }
 }
