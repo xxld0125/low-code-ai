@@ -458,6 +458,7 @@ export function getDefaultValueSuggestions(data_type: DataFieldType): string[] {
   const suggestions: Record<DataFieldType, string[]> = {
     text: ["''", 'CURRENT_USER', 'gen_random_uuid()', 'NULL'],
     number: ['0', '1', '-1', '0.0', "nextval('sequence_name')", 'NULL'],
+    integer: ['0', '1', '-1', "nextval('sequence_name')", 'NULL'],
     date: ['CURRENT_TIMESTAMP', 'NOW()', 'CURRENT_DATE', 'CURRENT_TIME', 'NULL'],
     boolean: ['true', 'false', '1', '0', 'NULL'],
   }

@@ -24,7 +24,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Settings, Save, X } from 'lucide-react'
-import type { DataField, UpdateDataFieldRequest, FieldConfig } from '@/types/designer/field'
+import type {
+  DataField,
+  UpdateDataFieldRequest,
+  FieldConfig,
+  DataFieldType,
+} from '@/types/designer/field'
 import { SUPPORTED_FIELD_TYPES, FIELD_TYPE_INFO } from '@/lib/designer/constants'
 import { api } from '@/lib/designer/api'
 import { validateDataField } from '@/lib/designer/validation'
@@ -50,7 +55,7 @@ export function FieldConfigModal({
   const [formData, setFormData] = useState({
     name: '',
     field_name: '',
-    data_type: 'text' as 'text' | 'number' | 'date' | 'boolean',
+    data_type: 'text' as DataFieldType,
     is_required: false,
     default_value: '',
     field_config: {} as FieldConfig,

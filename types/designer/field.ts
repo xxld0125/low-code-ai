@@ -1,4 +1,4 @@
-export type DataFieldType = 'text' | 'number' | 'date' | 'boolean'
+export type DataFieldType = 'text' | 'number' | 'integer' | 'date' | 'boolean'
 
 export interface FieldConfig extends Record<string, unknown> {
   // Text field configuration
@@ -28,9 +28,11 @@ export interface DataField {
   field_name: string
   data_type: DataFieldType
   is_required: boolean
+  is_primary_key?: boolean
   default_value?: string
   field_config: FieldConfig
   sort_order: number
+  order?: number // Alternative to sort_order for some use cases
   created_at: string
   updated_at: string
 }

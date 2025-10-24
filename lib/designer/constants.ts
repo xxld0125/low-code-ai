@@ -9,6 +9,7 @@ export const APP_DESCRIPTION = 'Visual data model designer for low-code developm
 export const FIELD_TYPES = {
   TEXT: 'text',
   NUMBER: 'number',
+  INTEGER: 'integer',
   DATE: 'date',
   BOOLEAN: 'boolean',
 } as const
@@ -26,6 +27,11 @@ export const SUPPORTED_FIELD_TYPES = [
     value: FIELD_TYPES.NUMBER,
     label: 'Number',
     description: 'Numeric values with optional precision',
+  },
+  {
+    value: FIELD_TYPES.INTEGER,
+    label: 'Integer',
+    description: 'Whole numbers without decimal places',
   },
   {
     value: FIELD_TYPES.DATE,
@@ -59,6 +65,13 @@ export const FIELD_TYPE_INFO = {
       precision: 10,
       scale: 2,
     },
+  },
+  [FIELD_TYPES.INTEGER]: {
+    label: 'Integer',
+    description: 'Whole numbers without decimal places',
+    icon: 'Hash',
+    color: 'green',
+    defaultConfig: {},
   },
   [FIELD_TYPES.DATE]: {
     label: 'Date',
@@ -273,6 +286,9 @@ export const DATABASE_CONFIG = {
       defaultScale: 2,
       maxPrecision: 65,
       maxScale: 30,
+    },
+    [FIELD_TYPES.INTEGER]: {
+      type: 'INTEGER',
     },
     [FIELD_TYPES.DATE]: {
       type: 'TIMESTAMP',
@@ -522,6 +538,9 @@ export const getPostgresType = (fieldType: FieldType, config?: Record<string, un
       const precision = (config?.precision as number) || 10
       const scale = (config?.scale as number) || 2
       return `DECIMAL(${precision},${scale})`
+
+    case FIELD_TYPES.INTEGER:
+      return 'INTEGER'
 
     case FIELD_TYPES.DATE:
       return 'TIMESTAMP'
