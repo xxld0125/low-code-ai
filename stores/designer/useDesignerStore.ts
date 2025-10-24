@@ -27,6 +27,7 @@ export interface DesignerState {
   selectedTableId: string | null
   selectedFieldId: string | null
   selectedRelationshipId: string | null
+  user: { id: string; email: string; user_metadata: Record<string, unknown> } | null
 
   // Data
   tables: DataTable[]
@@ -110,6 +111,7 @@ export interface DesignerState {
   // Utility operations
   reset: () => void
   refreshData: () => Promise<void>
+  setUser: (user: { id: string; email: string; user_metadata: Record<string, unknown> } | null) => void
 }
 
 // Initial state
@@ -119,6 +121,7 @@ const initialState = {
   selectedTableId: null,
   selectedFieldId: null,
   selectedRelationshipId: null,
+  user: null,
 
   // Data
   tables: [],
@@ -486,6 +489,7 @@ export const useDesignerStore = create<DesignerState>()(
             id: `lock_${Date.now()}`,
             table_id: tableId,
             user_id: 'current_user', // TODO: Get actual user
+            user: get().user, // Add user property
             lock_token: `token_${Date.now()}`,
             lock_type: request.lock_type,
             locked_at: new Date().toISOString(),
@@ -575,6 +579,7 @@ export const useDesignerStore = create<DesignerState>()(
           await get().loadProjectData(projectId)
         }
       },
+      setUser: (user) => set({ user }),
     }),
     {
       name: 'designer-store',

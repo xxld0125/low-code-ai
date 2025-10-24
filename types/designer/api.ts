@@ -49,11 +49,20 @@ import type {
   RelationshipValidationResult,
 } from './relationship'
 
+// Re-export domain types for convenience
+export type {
+  DataTable,
+  DataTableWithFields,
+  DataField,
+  TableRelationship,
+}
+
 // Table lock types for basic collaboration
 export interface TableLock {
   id: string
   table_id: string
   user_id: string
+  user: { id: string; email: string; user_metadata: Record<string, unknown> } | null
   lock_token: string
   lock_type: 'optimistic' | 'pessimistic' | 'critical'
   locked_at: string

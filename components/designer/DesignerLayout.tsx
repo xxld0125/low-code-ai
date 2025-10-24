@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ComponentPanel } from './ComponentPanel'
 import { Canvas } from './Canvas'
 import { PropertiesPanel } from './PropertiesPanel'
 import { ErrorDisplay } from './ErrorDisplay'
+import { ErrorBoundary } from './ErrorBoundary'
+import { LoadingOverlay, useLoadingStates } from './LoadingStates'
 import { useDesignerStore } from '@/stores/designer/useDesignerStore'
 import { DataTableWithFields } from '@/types/designer/table'
 import { cn } from '@/lib/utils'
+import { AlertTriangle } from 'lucide-react'
 
 interface DesignerLayoutProps {
   projectId: string
@@ -20,7 +23,29 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
     right: false,
   })
 
-  const { error, clearError } = useDesignerStore()
+  const { error, clearError, isLoading: storeLoading, loadProjectData } = useDesignerStore()
+  const { setLoading, isLoading } = useLoadingStates()
+
+  // Load project data on mount
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setLoading('initial-load', {
+        type: 'data_loading',
+        message: 'Loading project data...',
+        showProgress: false,
+      })
+
+      try {
+        await loadProjectData(projectId)
+      } catch (error) {
+        console.error('Failed to load project data:', error)
+      } finally {
+        setLoading('initial-load', false)
+      }
+    }
+
+    loadInitialData()
+  }, [projectId, loadProjectData, setLoading])
 
   const handleTableSelect = (table: DataTableWithFields) => {
     setSelectedTable(table)
@@ -37,14 +62,26 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
   const rightPanelWidth = sidebarCollapsed.right ? 'w-12' : 'w-96'
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Left Panel - Component List */}
-      <div
-        className={cn(
-          'relative border-r border-border bg-card transition-all duration-300 ease-in-out',
-          leftPanelWidth
-        )}
+    <ErrorBoundary
+      component="DesignerLayout"
+      severity="high"
+      showRetry={true}
+      enableReporting={true}
+    >
+      <LoadingOverlay
+        isLoading={isLoading('initial-load') || storeLoading}
+        type="data_loading"
+        message="Loading designer..."
+        className="h-full"
       >
+        <div className="flex h-screen bg-background">
+        {/* Left Panel - Component List */}
+        <div
+          className={cn(
+            'relative border-r border-border bg-card transition-all duration-300 ease-in-out',
+            leftPanelWidth
+          )}
+        >
         {/* Toggle Button */}
         <button
           onClick={() => toggleSidebar('left')}
@@ -70,11 +107,23 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
         </button>
 
         <div className={cn('h-full overflow-hidden', !sidebarCollapsed.left && 'px-4')}>
-          <ComponentPanel
-            projectId={projectId}
-            onTableSelect={handleTableSelect}
-            selectedTableId={selectedTable?.id}
-          />
+          <ErrorBoundary
+            component="ComponentPanel"
+            severity="medium"
+            showRetry={true}
+            enableReporting={true}
+            fallback={
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Component panel unavailable
+              </div>
+            }
+          >
+            <ComponentPanel
+              projectId={projectId}
+              onTableSelect={handleTableSelect}
+              selectedTableId={selectedTable?.id}
+            />
+          </ErrorBoundary>
         </div>
       </div>
 
@@ -108,7 +157,22 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
           </div>
 
           <div className="flex-1">
-            <Canvas onTableSelect={handleTableSelect} />
+            <ErrorBoundary
+              component="Canvas"
+              severity="high"
+              showRetry={true}
+              enableReporting={true}
+              fallback={
+                <div className="flex h-full items-center justify-center text-center">
+                  <div className="space-y-2">
+                    <AlertTriangle className="mx-auto h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Canvas unavailable</p>
+                  </div>
+                </div>
+              }
+            >
+              <Canvas onTableSelect={handleTableSelect} />
+            </ErrorBoundary>
           </div>
         </div>
       </div>
@@ -140,15 +204,29 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
         </button>
 
         <div className={cn('h-full overflow-hidden', !sidebarCollapsed.right && 'px-4')}>
-          <PropertiesPanel
-            projectId={projectId}
-            selectedTable={selectedTable}
-            onFieldUpdate={() => {}}
-            onFieldDelete={() => {}}
-            onAddField={() => {}}
-          />
+          <ErrorBoundary
+            component="PropertiesPanel"
+            severity="medium"
+            showRetry={true}
+            enableReporting={true}
+            fallback={
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Properties panel unavailable
+              </div>
+            }
+          >
+            <PropertiesPanel
+              projectId={projectId}
+              selectedTable={selectedTable}
+              onFieldUpdate={() => {}}
+              onFieldDelete={() => {}}
+              onAddField={() => {}}
+            />
+          </ErrorBoundary>
         </div>
       </div>
-    </div>
+      </div>
+    </LoadingOverlay>
+    </ErrorBoundary>
   )
 }

@@ -198,16 +198,16 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Implementation Tasks
 
-- [ ] T071 Basic table locking mechanism in `lib/designer/locking.ts`
-- [ ] T072 useTableLock hook for lock management in `hooks/designer/useTableLock.ts`
-- [ ] T073 Conflict detection and user notifications
-- [ ] T074 PropertiesPanel component for selected elements in `components/designer/PropertiesPanel.tsx`
-- [ ] T075 Loading states and progress indicators
-- [ ] T076 Error boundary implementation for designer components
-- [ ] T077 Responsive design improvements
-- [ ] T078 Accessibility improvements (WCAG 2.1 AA compliance)
-- [ ] T079 Performance optimizations for large schemas
-- [ ] T080 Feature flag integration for controlled rollout
+- [x] T071 Basic table locking mechanism in `lib/designer/locking.ts`
+- [x] T072 useTableLock hook for lock management in `hooks/designer/useTableLock.ts`
+- [x] T073 Conflict detection and user notifications
+- [x] T074 PropertiesPanel component for selected elements in `components/designer/PropertiesPanel.tsx`
+- [x] T075 Loading states and progress indicators
+- [x] T076 Error boundary implementation for designer components
+- [x] T077 Responsive design improvements
+- [x] T078 Accessibility improvements (WCAG 2.1 AA compliance)
+- [x] T079 Performance optimizations for large schemas
+- [x] T080 Feature flag integration for controlled rollout
 
 ### Tests
 
