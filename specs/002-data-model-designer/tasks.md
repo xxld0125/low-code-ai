@@ -109,14 +109,14 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Implementation Tasks
 
-- [ ] T035 [US2] FieldConfigModal component for field configuration in `components/designer/modals/FieldConfigModal.tsx`
-- [ ] T036 [US2] Field type selection component with 4 basic types
-- [ ] T037 [US2] Field validation rules in validation.ts
-- [ ] T038 [US2] Field CRUD API functions in api.ts
-- [ ] T039 [US2] Field configuration UI in PropertiesPanel
-- [ ] T040 [US2] Field sorting and ordering functionality
-- [ ] T041 [US2] Default value handling for different field types
-- [ ] T042 [US2] Field constraint application in database migrations
+- [x] T035 [US2] FieldConfigModal component for field configuration in `components/designer/modals/FieldConfigModal.tsx`
+- [x] T036 [US2] Field type selection component with 4 basic types
+- [x] T037 [US2] Field validation rules in validation.ts
+- [x] T038 [US2] Field CRUD API functions in api.ts
+- [x] T039 [US2] Field configuration UI in PropertiesPanel
+- [x] T040 [US2] Field sorting and ordering functionality
+- [x] T041 [US2] Default value handling for different field types
+- [x] T042 [US2] Field constraint application in database migrations
 
 ### Tests
 
@@ -141,15 +141,15 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Implementation Tasks
 
-- [ ] T047 [US3] DraggableTable component with drag handles in `components/designer/DraggableTable.tsx`
-- [ ] T048 [US3] RelationshipLine SVG component for visual connections in `components/designer/RelationshipLine.tsx`
-- [ ] T049 [US3] RelationshipModal for relationship configuration in `components/designer/modals/RelationshipModal.tsx`
-- [ ] T050 [US3] Drag-and-drop functionality with @dnd-kit integration
-- [ ] T051 [US3] Relationship validation logic in validation.ts
-- [ ] T052 [US3] Relationship CRUD API functions in api.ts
-- [ ] T053 [US3] Foreign key constraint generation in migrations.ts
-- [ ] T054 [US3] Visual relationship rendering on Canvas
-- [ ] T055 [US3] Circular dependency detection and prevention
+- [x] T047 [US3] DraggableTable component with drag handles in `components/designer/DraggableTable.tsx`
+- [x] T048 [US3] RelationshipLine SVG component for visual connections in `components/designer/RelationshipLine.tsx`
+- [x] T049 [US3] RelationshipModal for relationship configuration in `components/designer/modals/RelationshipModal.tsx`
+- [x] T050 [US3] Drag-and-drop functionality with @dnd-kit integration
+- [x] T051 [US3] Relationship validation logic in validation.ts
+- [x] T052 [US3] Relationship CRUD API functions in api.ts
+- [x] T053 [US3] Foreign key constraint generation in migrations.ts
+- [x] T054 [US3] Visual relationship rendering on Canvas
+- [x] T055 [US3] Circular dependency detection and prevention
 
 ### Tests
 

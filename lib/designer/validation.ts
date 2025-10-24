@@ -441,6 +441,259 @@ export const validateCircularDependency = async (): Promise<boolean> => {
   }
 }
 
+// Enhanced relationship validation functions
+export const validateRelationshipCreation = async (
+  projectId: string,
+  sourceTableId: string,
+  targetTableId: string,
+  sourceFieldId: string,
+  targetFieldId: string,
+  existingRelationships: Array<{ source_table_id: string; target_table_id: string }>
+): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> => {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  // Basic validation
+  if (!projectId || !sourceTableId || !targetTableId || !sourceFieldId || !targetFieldId) {
+    errors.push('All relationship fields are required')
+  }
+
+  // Self-relationship check
+  if (sourceTableId === targetTableId) {
+    errors.push('Cannot create a relationship between a table and itself')
+  }
+
+  // Duplicate relationship check
+  const existingRelationship = existingRelationships.find(
+    r => r.source_table_id === sourceTableId && r.target_table_id === targetTableId
+  )
+  if (existingRelationship) {
+    errors.push('A relationship already exists between these tables')
+  }
+
+  // Reverse relationship check (potential circular dependency)
+  const reverseRelationship = existingRelationships.find(
+    r => r.source_table_id === targetTableId && r.target_table_id === sourceTableId
+  )
+  if (reverseRelationship) {
+    warnings.push(
+      'A reverse relationship exists between these tables. This may create a circular dependency.'
+    )
+  }
+
+  // Check for circular dependency using graph traversal
+  const hasCircularDependency = await checkCircularDependency(
+    projectId,
+    sourceTableId,
+    targetTableId,
+    existingRelationships
+  )
+  if (hasCircularDependency) {
+    errors.push('This relationship would create a circular dependency')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  }
+}
+
+export const checkCircularDependency = async (
+  projectId: string,
+  sourceTableId: string,
+  targetTableId: string,
+  existingRelationships: Array<{ source_table_id: string; target_table_id: string }>
+): Promise<boolean> => {
+  // Build adjacency list for the relationship graph
+  const graph = new Map<string, string[]>()
+
+  // Add existing relationships
+  existingRelationships.forEach(rel => {
+    if (!graph.has(rel.source_table_id)) {
+      graph.set(rel.source_table_id, [])
+    }
+    graph.get(rel.source_table_id)!.push(rel.target_table_id)
+  })
+
+  // Add the new relationship we're checking
+  if (!graph.has(sourceTableId)) {
+    graph.set(sourceTableId, [])
+  }
+  graph.get(sourceTableId)!.push(targetTableId)
+
+  // Use DFS to detect cycles
+  const visited = new Set<string>()
+  const recursionStack = new Set<string>()
+
+  const hasCycle = (node: string): boolean => {
+    if (recursionStack.has(node)) {
+      return true // Cycle detected
+    }
+    if (visited.has(node)) {
+      return false
+    }
+
+    visited.add(node)
+    recursionStack.add(node)
+
+    const neighbors = graph.get(node) || []
+    for (const neighbor of neighbors) {
+      if (hasCycle(neighbor)) {
+        return true
+      }
+    }
+
+    recursionStack.delete(node)
+    return false
+  }
+
+  // Check for cycles starting from the source table
+  return hasCycle(sourceTableId)
+}
+
+export const validateRelationshipUpdate = async (
+  relationshipId: string,
+  updates: Partial<{
+    relationship_name: string
+    cascade_config: { on_delete: string; on_update: string }
+    status: string
+  }>,
+  existingRelationships: Array<{ id: string; relationship_name: string }>
+): Promise<{ isValid: boolean; errors: string[] }> => {
+  const errors: string[] = []
+
+  // Validate relationship name uniqueness if it's being updated
+  if (updates.relationship_name) {
+    const duplicate = existingRelationships.find(
+      r => r.id !== relationshipId && r.relationship_name === updates.relationship_name
+    )
+    if (duplicate) {
+      errors.push('Relationship name must be unique within the project')
+    }
+  }
+
+  // Validate cascade configuration
+  if (updates.cascade_config) {
+    const validOnDelete = ['cascade', 'restrict', 'set_null']
+    const validOnUpdate = ['cascade', 'restrict']
+
+    if (!validOnDelete.includes(updates.cascade_config.on_delete)) {
+      errors.push('Invalid cascade delete configuration')
+    }
+
+    if (!validOnUpdate.includes(updates.cascade_config.on_update)) {
+      errors.push('Invalid cascade update configuration')
+    }
+  }
+
+  // Validate status
+  if (updates.status && !['active', 'inactive'].includes(updates.status)) {
+    errors.push('Invalid relationship status')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  }
+}
+
+export const validateRelationshipDeletion = async (
+  relationshipId: string,
+  existingRelationships: Array<{ id: string; source_table_id: string; target_table_id: string }>
+): Promise<{ canDelete: boolean; warnings: string[] }> => {
+  const warnings: string[] = []
+
+  const relationship = existingRelationships.find(r => r.id === relationshipId)
+  if (!relationship) {
+    return { canDelete: false, warnings: ['Relationship not found'] }
+  }
+
+  // Check if this relationship is part of a chain
+  const dependentRelationships = existingRelationships.filter(
+    r => r.source_table_id === relationship.target_table_id
+  )
+
+  if (dependentRelationships.length > 0) {
+    warnings.push(
+      `Deleting this relationship may affect ${dependentRelationships.length} other relationship(s) that depend on the target table`
+    )
+  }
+
+  return { canDelete: true, warnings }
+}
+
+export const validateFieldForRelationship = (
+  field: DataField,
+  isSourceField: boolean
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  // All relationship fields should have valid names
+  if (!field.field_name || !/^[a-z][a-z0-9_]*$/.test(field.field_name)) {
+    errors.push('Field name is invalid for relationship')
+  }
+
+  // Source fields should typically be primary keys or unique identifiers
+  if (isSourceField) {
+    if (!field.is_required) {
+      errors.push('Source field for relationship should be required')
+    }
+
+    // Check if field name suggests it's a primary key
+    const isPrimaryKey = field.field_name === 'id' || field.field_name.endsWith('_id')
+    if (!isPrimaryKey) {
+      errors.push('Source field should be a primary key or unique identifier')
+    }
+  }
+
+  // Target fields should typically be foreign key fields
+  if (!isSourceField) {
+    const isForeignKey = field.field_name.endsWith('_id')
+    if (!isForeignKey) {
+      errors.push("Target field name should end with _id to indicate it's a foreign key")
+    }
+  }
+
+  // Validate data type compatibility
+  const validRelationshipTypes = ['number', 'text']
+  if (!validRelationshipTypes.includes(field.data_type)) {
+    errors.push(
+      `Field type ${field.data_type} is not suitable for relationships. Use number or text.`
+    )
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  }
+}
+
+export const getRelationshipValidationSummary = (validationResult: {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+}): { type: 'success' | 'warning' | 'error'; message: string } => {
+  if (!validationResult.isValid) {
+    return {
+      type: 'error',
+      message: `Validation failed: ${validationResult.errors.join(', ')}`,
+    }
+  }
+
+  if (validationResult.warnings.length > 0) {
+    return {
+      type: 'warning',
+      message: `Warning: ${validationResult.warnings.join(', ')}`,
+    }
+  }
+
+  return {
+    type: 'success',
+    message: 'Relationship validation passed',
+  }
+}
+
 // Error message helpers
 export const getValidationErrorMessage = (error: z.ZodError): string => {
   return error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')

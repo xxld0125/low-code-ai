@@ -1,17 +1,34 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+} from '@dnd-kit/core'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Database, Maximize2, ZoomIn, ZoomOut, RotateCcw, Grid3X3 } from 'lucide-react'
 import { DataTable, DataTableWithFields } from '@/types/designer/table'
+import { DataField } from '@/types/designer/field'
 import { useDesignerStore } from '@/stores/designer/useDesignerStore'
 import { CANVAS_CONFIG } from '@/lib/designer/constants'
 import { cn } from '@/lib/utils'
+import { DraggableTable } from './DraggableTable'
+import { RelationshipLines } from './RelationshipLine'
 
 interface CanvasProps {
   onTableSelect?: (table: DataTableWithFields) => void
+  onRelationshipCreate?: (sourceTable: DataTableWithFields, sourceField: DataField) => void
+  onTableEdit?: (table: DataTableWithFields) => void
+  onTableDelete?: (table: DataTableWithFields) => void
+  onAddField?: (table: DataTableWithFields) => void
+  onDeployTable?: (table: DataTableWithFields) => void
 }
 
 interface TablePosition {
@@ -40,14 +57,48 @@ interface TableWithFields extends DataTable {
   }
 }
 
-export function Canvas({ onTableSelect }: CanvasProps) {
-  const { tables } = useDesignerStore()
+export function Canvas({
+  onTableSelect,
+  onRelationshipCreate,
+  onTableEdit,
+  onTableDelete,
+  onAddField,
+  onDeployTable,
+}: CanvasProps) {
+  const { tables, relationships, updateTablePosition } = useDesignerStore()
   const [zoom, setZoom] = useState<number>(CANVAS_CONFIG.DEFAULT_ZOOM)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isPanning, setIsPanning] = useState(false)
   const [panStart, setPanStart] = useState({ x: 0, y: 0 })
   const [showGrid, setShowGrid] = useState(true)
   const [tablePositions, setTablePositions] = useState<Record<string, TablePosition>>({})
+
+  // Drag and drop state
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
+  const [highlightedRelationshipId, setHighlightedRelationshipId] = useState<string | null>(null)
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: (event, { context }) => {
+        // Handle keyboard drag (optional enhancement)
+        if (context?.active) {
+          return {
+            x: 0,
+            y: 0,
+          }
+        }
+        return undefined
+      },
+    })
+  )
 
   // Generate visual tables with positions
   const visualTables = useMemo(() => {
@@ -130,38 +181,98 @@ export function Canvas({ onTableSelect }: CanvasProps) {
     setPan({ x: 0, y: 0 })
   }
 
-  // Handle table selection
-  const handleTableClick = (table: DataTable) => {
-    onTableSelect?.(table as DataTableWithFields)
+  // Drag and drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const tableId = event.active.id as string
+    setActiveId(tableId)
   }
 
-  // Handle table dragging (simplified version)
-  const handleTableDragStart = (e: React.MouseEvent, tableId: string) => {
-    e.preventDefault()
-    const startPosition = tablePositions[tableId] || { x: 0, y: 0 }
-    const dragStart = { x: e.clientX, y: e.clientY }
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, delta } = event
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - dragStart.x
-      const deltaY = e.clientY - dragStart.y
+    if (delta.x === 0 && delta.y === 0) {
+      setActiveId(null)
+      return
+    }
+
+    if (active) {
+      const tableId = active.id as string
+      const currentPosition = tablePositions[tableId] || { x: 0, y: 0 }
+
+      // Calculate new position
+      const newPosition = {
+        x: Math.max(0, currentPosition.x + delta.x / zoom),
+        y: Math.max(0, currentPosition.y + delta.y / zoom),
+      }
+
+      // Grid snapping (20px grid)
+      const snappedPosition = {
+        x: Math.round(newPosition.x / CANVAS_CONFIG.GRID_SIZE) * CANVAS_CONFIG.GRID_SIZE,
+        y: Math.round(newPosition.y / CANVAS_CONFIG.GRID_SIZE) * CANVAS_CONFIG.GRID_SIZE,
+      }
 
       setTablePositions(prev => ({
         ...prev,
-        [tableId]: {
-          x: startPosition.x + deltaX / zoom,
-          y: startPosition.y + deltaY / zoom,
-        },
+        [tableId]: snappedPosition,
       }))
+
+      // Update store with new position
+      updateTablePosition(tableId, snappedPosition)
     }
 
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+    setActiveId(null)
   }
+
+  // Handle table selection
+  const handleTableSelect = (table: DataTableWithFields) => {
+    setSelectedTableId(table.id)
+    setSelectedFieldId(null)
+    onTableSelect?.(table)
+  }
+
+  // Handle field selection
+  const handleFieldSelect = (field: DataField) => {
+    setSelectedFieldId(field.id)
+  }
+
+  // Handle relationship creation
+  const handleRelationshipCreate = (sourceTable: DataTableWithFields, sourceField: DataField) => {
+    onRelationshipCreate?.(sourceTable, sourceField)
+  }
+
+  // Prepare relationship data for rendering
+  const relationshipData = useMemo(() => {
+    if (!relationships || relationships.length === 0) {
+      return []
+    }
+
+    return relationships
+      .map(relationship => {
+        const sourceTable = tables.find(
+          t => t.id === relationship.source_table_id
+        ) as DataTableWithFields
+        const targetTable = tables.find(
+          t => t.id === relationship.target_table_id
+        ) as DataTableWithFields
+        const sourceField = sourceTable?.fields?.find(f => f.id === relationship.source_field_id)
+        const targetField = targetTable?.fields?.find(f => f.id === relationship.target_field_id)
+
+        if (!sourceTable || !targetTable || !sourceField || !targetField) {
+          return null
+        }
+
+        return {
+          relationship,
+          sourceTable,
+          targetTable,
+          sourceField,
+          targetField,
+          sourceTablePosition: tablePositions[sourceTable.id] || { x: 0, y: 0 },
+          targetTablePosition: tablePositions[targetTable.id] || { x: 0, y: 0 },
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+  }, [relationships, tables, tablePositions])
 
   // Initialize table positions when tables load
   const tablePositionKeys = Object.keys(tablePositions)
@@ -247,103 +358,92 @@ export function Canvas({ onTableSelect }: CanvasProps) {
           />
         )}
 
-        {/* Canvas Content */}
-        <div
-          className="absolute inset-0"
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-          }}
-        >
-          {visualTables.length === 0 ? (
-            <div className="flex h-full items-center justify-center">
-              <Card className="max-w-md">
-                <CardHeader className="text-center">
-                  <Database className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                  <CardTitle>Welcome to Data Model Designer</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-center">
-                  <p className="text-muted-foreground">
-                    Create database tables visually by defining fields, relationships, and
-                    constraints.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Use the left panel to create your first table.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            visualTables.map(table => (
-              <div
-                key={table.id}
-                className={cn(
-                  'absolute cursor-move rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md'
-                )}
-                style={{
-                  left: `${table.position.x}px`,
-                  top: `${table.position.y}px`,
-                  width: `${table.size.width}px`,
-                  height: `${table.size.height}px`,
-                }}
-                onClick={() => handleTableClick(table)}
-                onMouseDown={e => handleTableDragStart(e, table.id)}
-              >
-                {/* Table Header */}
-                <div className="rounded-t-lg border-b border-border bg-muted px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="truncate text-sm font-medium">{table.name}</h3>
-                    <Badge
-                      variant={table.status === 'active' ? 'default' : 'secondary'}
-                      className="ml-2 text-xs"
-                    >
-                      {table.status}
-                    </Badge>
-                  </div>
-                  <p className="truncate font-mono text-xs text-muted-foreground">
-                    {table.table_name}
-                  </p>
-                </div>
+        {/* Canvas Content with DnD */}
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div
+            className="absolute inset-0"
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              transformOrigin: '0 0',
+            }}
+          >
+            {/* Relationship Lines Layer */}
+            <RelationshipLines
+              relationships={relationshipData}
+              selectedRelationshipId={highlightedRelationshipId || undefined}
+              highlightedRelationshipId={highlightedRelationshipId || undefined}
+              onRelationshipSelect={relationship => {
+                setHighlightedRelationshipId(relationship.id)
+              }}
+              onRelationshipHover={relationship => {
+                setHighlightedRelationshipId(relationship?.id || null)
+              }}
+              className="pointer-events-none absolute inset-0"
+            />
 
-                {/* Table Fields */}
-                <div className="overflow-hidden p-2">
-                  <div className="space-y-1">
-                    {(table as TableWithFields).fields?.map(field => (
-                      <div
-                        key={field.id}
-                        className="flex items-center justify-between rounded p-1.5 text-xs hover:bg-accent/50"
-                      >
-                        <div className="flex min-w-0 items-center gap-2">
-                          <div
-                            className={cn(
-                              'h-2 w-2 flex-shrink-0 rounded-full',
-                              field.is_required ? 'bg-orange-400' : 'bg-blue-400'
-                            )}
-                          />
-                          <span className="truncate">{field.name}</span>
-                        </div>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {field.data_type}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Table Footer */}
-                <div className="rounded-b-lg border-t border-border px-3 py-1.5">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{(table as TableWithFields).fields?.length || 0} fields</span>
-                    <span>
-                      {(table as TableWithFields).relationships?.outgoing?.length || 0}{' '}
-                      relationships
-                    </span>
-                  </div>
-                </div>
+            {/* Tables Layer */}
+            {visualTables.length === 0 ? (
+              <div className="flex h-full items-center justify-center">
+                <Card className="max-w-md">
+                  <CardHeader className="text-center">
+                    <Database className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <CardTitle>Welcome to Data Model Designer</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-center">
+                    <p className="text-muted-foreground">
+                      Create database tables visually by defining fields, relationships, and
+                      constraints.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Use the left panel to create your first table.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-            ))
-          )}
-        </div>
+            ) : (
+              visualTables.map(table => (
+                <DraggableTable
+                  key={table.id}
+                  table={table}
+                  position={table.position}
+                  isSelected={selectedTableId === table.id}
+                  isDragging={activeId === `table-${table.id}`}
+                  onPositionChange={(tableId: string, newPosition: { x: number; y: number }) => {
+                    setTablePositions((prev: Record<string, TablePosition>) => ({
+                      ...prev,
+                      [tableId]: newPosition,
+                    }))
+                    updateTablePosition(tableId, newPosition)
+                  }}
+                  onSelect={handleTableSelect}
+                  onFieldSelect={handleFieldSelect}
+                  onEditTable={onTableEdit}
+                  onDeleteTable={onTableDelete}
+                  onAddField={onAddField}
+                  onDeployTable={onDeployTable}
+                  onRelationshipCreate={handleRelationshipCreate}
+                  selectedFieldId={selectedFieldId || undefined}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Drag Overlay */}
+          <DragOverlay>
+            {activeId && visualTables.find(t => `table-${t.id}` === activeId) ? (
+              <div className="opacity-75">
+                <DraggableTable
+                  table={visualTables.find(t => `table-${t.id}` === activeId)!}
+                  position={tablePositions[activeId.replace('table-', '')] || { x: 0, y: 0 }}
+                  isSelected={false}
+                  isDragging={true}
+                  onPositionChange={() => {}}
+                  onSelect={() => {}}
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
     </div>
   )

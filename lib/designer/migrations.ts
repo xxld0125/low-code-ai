@@ -1,4 +1,5 @@
 import type { CreateDataFieldRequest, DataFieldType } from '@/types/designer/field'
+import type { TableRelationship, DataTableWithFields, DataField } from '@/types/designer'
 import { FIELD_TYPES, getPostgresType } from './constants'
 
 // Migration types
@@ -1010,6 +1011,327 @@ function isDateLiteral(value: string): boolean {
   )
 }
 
+// Enhanced relationship migration functions
+
+export function generateRelationshipMigration(
+  sourceTableName: string,
+  targetTableName: string,
+  sourceFieldName: string,
+  targetFieldName: string,
+  relationshipName: string,
+  cascadeConfig?: {
+    on_delete?: 'cascade' | 'restrict' | 'set_null'
+    on_update?: 'cascade' | 'restrict'
+  }
+): AddForeignKeyMigration {
+  const constraintName = `fk_${relationshipName}_${sourceTableName}_${targetTableName}`
+
+  return generateAddForeignKeyMigration(
+    targetTableName, // Foreign key goes on the "many" side (target table)
+    sourceFieldName, // The field in the target table that references the source
+    sourceTableName, // The table being referenced
+    targetFieldName, // The field being referenced in the source table
+    {
+      on_delete: cascadeConfig?.on_delete || 'restrict',
+      on_update: cascadeConfig?.on_update || 'cascade',
+      constraint_name: constraintName,
+    }
+  )
+}
+
+export function generateRelationshipConstraintSQL(
+  sourceTableName: string,
+  targetTableName: string,
+  sourceFieldName: string,
+  targetFieldName: string,
+  relationshipName: string,
+  cascadeConfig?: {
+    on_delete?: 'cascade' | 'restrict' | 'set_null'
+    on_update?: 'cascade' | 'restrict'
+  }
+): string[] {
+  const constraintName = `fk_${relationshipName}_${sourceTableName}_${targetTableName}`
+  const sqlStatements: string[] = []
+
+  // Add the foreign key constraint
+  let constraintSQL = `ALTER TABLE ${targetTableName} ADD CONSTRAINT ${constraintName} `
+  constraintSQL += `FOREIGN KEY (${sourceFieldName}) REFERENCES ${sourceTableName}(${targetFieldName})`
+
+  if (cascadeConfig?.on_delete) {
+    constraintSQL += ` ON DELETE ${cascadeConfig.on_delete.toUpperCase()}`
+  }
+
+  if (cascadeConfig?.on_update) {
+    constraintSQL += ` ON UPDATE ${cascadeConfig.on_update.toUpperCase()}`
+  }
+
+  constraintSQL += ';'
+  sqlStatements.push(constraintSQL)
+
+  // Add index on foreign key column for performance
+  const indexName = `idx_${targetTableName}_${sourceFieldName}`
+  sqlStatements.push(`CREATE INDEX ${indexName} ON ${targetTableName}(${sourceFieldName});`)
+
+  return sqlStatements
+}
+
+export function generateRelationshipDeletionSQL(
+  sourceTableName: string,
+  targetTableName: string,
+  relationshipName: string
+): string[] {
+  const constraintName = `fk_${relationshipName}_${sourceTableName}_${targetTableName}`
+  const indexName = `idx_${targetTableName}_${sourceTableName}_id`
+
+  const sqlStatements: string[] = []
+
+  // Drop the foreign key constraint
+  sqlStatements.push(`ALTER TABLE ${targetTableName} DROP CONSTRAINT ${constraintName};`)
+
+  // Drop the index (might not exist, but DROP INDEX IF EXISTS would be better)
+  sqlStatements.push(`DROP INDEX IF EXISTS ${indexName};`)
+
+  return sqlStatements
+}
+
+export function generateRelationshipMigrationPlan(
+  relationships: Array<{
+    relationship: TableRelationship
+    sourceTable: DataTableWithFields
+    targetTable: DataTableWithFields
+    sourceField: DataField
+    targetField: DataField
+  }>
+): {
+  createOperations: MigrationOperation[]
+  dropOperations: MigrationOperation[]
+  indexOperations: MigrationOperation[]
+} {
+  const createOperations: MigrationOperation[] = []
+  const dropOperations: MigrationOperation[] = []
+  const indexOperations: MigrationOperation[] = []
+
+  relationships.forEach(({ relationship, sourceTable, targetTable, sourceField, targetField }) => {
+    // Generate foreign key constraint
+    const fkMigration = generateRelationshipMigration(
+      sourceTable.table_name,
+      targetTable.table_name,
+      targetField.field_name, // Foreign key field in target table
+      sourceField.field_name, // Referenced field in source table
+      relationship.relationship_name,
+      relationship.cascade_config
+    )
+
+    createOperations.push(fkMigration)
+    dropOperations.push({
+      type: 'drop_index',
+      index_name:
+        fkMigration.constraint_name ||
+        `fk_${relationship.relationship_name}_${sourceTable.table_name}_${targetTable.table_name}`,
+    })
+
+    // Generate index for foreign key field
+    const indexMigration: CreateIndexMigration = {
+      type: 'create_index',
+      index_name: `idx_${targetTable.table_name}_${targetField.field_name}`,
+      table_name: targetTable.table_name,
+      columns: [targetField.field_name],
+      unique: false,
+    }
+
+    indexOperations.push(indexMigration)
+  })
+
+  return {
+    createOperations,
+    dropOperations,
+    indexOperations,
+  }
+}
+
+export function validateRelationshipMigration(
+  sourceTable: string,
+  targetTable: string,
+  sourceField: string,
+  targetField: string,
+  cascadeConfig?: {
+    on_delete?: 'cascade' | 'restrict' | 'set_null'
+    on_update?: 'cascade' | 'restrict'
+  }
+): { isValid: boolean; errors: string[]; warnings: string[] } {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  // Basic validation
+  if (!sourceTable || !targetTable || !sourceField || !targetField) {
+    errors.push('All table and field names are required')
+  }
+
+  if (sourceTable === targetTable) {
+    errors.push('Cannot create foreign key relationship within the same table')
+  }
+
+  if (sourceField === targetField) {
+    errors.push('Source and target fields must be different')
+  }
+
+  // Validate table names
+  if (!/^[a-z][a-z0-9_]*$/.test(sourceTable)) {
+    errors.push('Invalid source table name')
+  }
+
+  if (!/^[a-z][a-z0-9_]*$/.test(targetTable)) {
+    errors.push('Invalid target table name')
+  }
+
+  // Validate field names
+  if (!/^[a-z][a-z0-9_]*$/.test(sourceField)) {
+    errors.push('Invalid source field name')
+  }
+
+  if (!/^[a-z][a-z0-9_]*$/.test(targetField)) {
+    errors.push('Invalid target field name')
+  }
+
+  // Validate cascade configuration
+  if (cascadeConfig) {
+    const validOnDelete = ['cascade', 'restrict', 'set_null']
+    const validOnUpdate = ['cascade', 'restrict']
+
+    if (cascadeConfig.on_delete && !validOnDelete.includes(cascadeConfig.on_delete)) {
+      errors.push('Invalid ON DELETE cascade configuration')
+    }
+
+    if (cascadeConfig.on_update && !validOnUpdate.includes(cascadeConfig.on_update)) {
+      errors.push('Invalid ON UPDATE cascade configuration')
+    }
+
+    // Warning about CASCADE DELETE
+    if (cascadeConfig.on_delete === 'cascade') {
+      warnings.push(
+        'CASCADE DELETE will automatically delete related records. Ensure this is intended.'
+      )
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  }
+}
+
+export function generateRelationshipValidationSQL(
+  sourceTable: string,
+  targetTable: string,
+  sourceField: string,
+  targetField: string
+): string[] {
+  const sqlStatements: string[] = []
+
+  // Add check to ensure referential integrity can be maintained
+  sqlStatements.push(`-- Check if source table exists`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(
+    `  IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '${sourceTable}') THEN`
+  )
+  sqlStatements.push(`    RAISE EXCEPTION 'Source table ${sourceTable} does not exist';`)
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  sqlStatements.push(`-- Check if target table exists`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(
+    `  IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '${targetTable}') THEN`
+  )
+  sqlStatements.push(`    RAISE EXCEPTION 'Target table ${targetTable} does not exist';`)
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  // Check if source field exists
+  sqlStatements.push(`-- Check if source field exists`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(
+    `  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = '${sourceTable}' AND column_name = '${sourceField}') THEN`
+  )
+  sqlStatements.push(
+    `    RAISE EXCEPTION 'Source field ${sourceField} does not exist in table ${sourceTable}';`
+  )
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  // Check if target field exists
+  sqlStatements.push(`-- Check if target field exists`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(
+    `  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = '${targetTable}' AND column_name = '${targetField}') THEN`
+  )
+  sqlStatements.push(
+    `    RAISE EXCEPTION 'Target field ${targetField} does not exist in table ${targetTable}';`
+  )
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  // Check data type compatibility
+  sqlStatements.push(`-- Check data type compatibility`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`DECLARE`)
+  sqlStatements.push(`  source_type TEXT;`)
+  sqlStatements.push(`  target_type TEXT;`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(
+    `  SELECT data_type INTO source_type FROM information_schema.columns WHERE table_name = '${sourceTable}' AND column_name = '${sourceField}';`
+  )
+  sqlStatements.push(
+    `  SELECT data_type INTO target_type FROM information_schema.columns WHERE table_name = '${targetTable}' AND column_name = '${targetField}';`
+  )
+  sqlStatements.push(`  IF source_type != target_type THEN`)
+  sqlStatements.push(
+    `    RAISE EXCEPTION 'Data type mismatch between ${sourceTable}.${sourceField} (%) and ${targetTable}.${targetField} (%)', source_type, target_type;`
+  )
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  return sqlStatements
+}
+
+export function generateRelationshipRollbackSQL(
+  sourceTableName: string,
+  targetTableName: string,
+  relationshipName: string
+): string[] {
+  const constraintName = `fk_${relationshipName}_${sourceTableName}_${targetTableName}`
+  const indexName = `idx_${targetTableName}_${sourceTableName}_id` // Typical naming pattern
+
+  const sqlStatements: string[] = []
+
+  // Check if constraint exists before dropping
+  sqlStatements.push(`-- Check if foreign key constraint exists`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(
+    `  IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = '${constraintName}') THEN`
+  )
+  sqlStatements.push(`    ALTER TABLE ${targetTableName} DROP CONSTRAINT ${constraintName};`)
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  // Check if index exists before dropping
+  sqlStatements.push(`-- Check if index exists`)
+  sqlStatements.push(`DO $$`)
+  sqlStatements.push(`BEGIN`)
+  sqlStatements.push(`  IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = '${indexName}') THEN`)
+  sqlStatements.push(`    DROP INDEX ${indexName};`)
+  sqlStatements.push(`  END IF;`)
+  sqlStatements.push(`END $$;`)
+
+  return sqlStatements
+}
+
 const migrations = {
   generateCreateTableMigration,
   generateAddColumnMigration,
@@ -1026,6 +1348,14 @@ const migrations = {
   generateEnhancedCreateTableMigration,
   generateFieldIndexes,
   validateFieldConstraints,
+  // Enhanced relationship migration functions
+  generateRelationshipMigration,
+  generateRelationshipConstraintSQL,
+  generateRelationshipDeletionSQL,
+  generateRelationshipMigrationPlan,
+  validateRelationshipMigration,
+  generateRelationshipValidationSQL,
+  generateRelationshipRollbackSQL,
 }
 
 export default migrations

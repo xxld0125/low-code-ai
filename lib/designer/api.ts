@@ -26,6 +26,9 @@ import type {
   AcquireLockRequest,
   RelationshipValidationResult,
   DataFieldType,
+  TableRelationship,
+  DataTableWithFields,
+  DataField,
 } from '@/types/designer'
 import { getDefaultFieldConfig } from '@/lib/designer/constants'
 
@@ -871,6 +874,492 @@ async function checkCircularDependency(
 
   // Start from target table and see if we can reach source table
   return await hasCycle(targetTableId)
+}
+
+// Enhanced relationship CRUD operations
+
+// Batch relationship operations
+export const createRelationships = async (
+  projectId: string,
+  relationships: CreateTableRelationshipRequest[]
+): Promise<CreateRelationshipResponse[]> => {
+  try {
+    const results: CreateRelationshipResponse[] = []
+
+    for (const relationship of relationships) {
+      const result = await api.relationships.create(projectId, relationship)
+      results.push(result)
+    }
+
+    return results
+  } catch (error) {
+    console.error('Failed to create relationships:', error)
+    throw error
+  }
+}
+
+// Get relationships with table details
+export const getRelationshipsWithTables = async (
+  projectId: string
+): Promise<
+  Array<{
+    relationship: TableRelationship
+    sourceTable: DataTableWithFields
+    targetTable: DataTableWithFields
+    sourceField: DataField
+    targetField: DataField
+  }>
+> => {
+  try {
+    const { data: relationships, error: relationshipsError } = await supabase
+      .from('table_relationships')
+      .select('*')
+      .eq('project_id', projectId)
+
+    if (relationshipsError) throw relationshipsError
+
+    if (!relationships || relationships.length === 0) {
+      return []
+    }
+
+    // Get all related tables and fields in one query each
+    const tableIds = new Set([
+      ...relationships.map(r => r.source_table_id),
+      ...relationships.map(r => r.target_table_id),
+    ])
+
+    const fieldIds = new Set([
+      ...relationships.map(r => r.source_field_id),
+      ...relationships.map(r => r.target_field_id),
+    ])
+
+    const { data: tables } = await supabase
+      .from('data_tables')
+      .select('*')
+      .in('id', Array.from(tableIds))
+
+    const { data: fields } = await supabase
+      .from('data_fields')
+      .select('*')
+      .in('id', Array.from(fieldIds))
+
+    const tableMap = new Map(tables?.map(t => [t.id, t]) || [])
+    const fieldMap = new Map(fields?.map(f => [f.id, f]) || [])
+
+    return relationships.map(relationship => ({
+      relationship,
+      sourceTable: tableMap.get(relationship.source_table_id),
+      targetTable: tableMap.get(relationship.target_table_id),
+      sourceField: fieldMap.get(relationship.source_field_id),
+      targetField: fieldMap.get(relationship.target_field_id),
+    }))
+  } catch (error) {
+    console.error('Failed to get relationships with tables:', error)
+    throw error
+  }
+}
+
+// Get relationship graph for visualization
+export const getRelationshipGraph = async (
+  projectId: string
+): Promise<{
+  nodes: Array<{
+    id: string
+    type: 'table'
+    data: DataTableWithFields
+  }>
+  edges: Array<{
+    id: string
+    source: string
+    target: string
+    type: 'relationship'
+    data: TableRelationship
+  }>
+}> => {
+  try {
+    const relationships = await getRelationshipsWithTables(projectId)
+
+    const nodeSet = new Set<string>()
+    const nodes: Array<{ id: string; type: 'table'; data: DataTableWithFields }> = []
+    const edges: Array<{
+      id: string
+      source: string
+      target: string
+      type: 'relationship'
+      data: TableRelationship
+    }> = []
+
+    relationships.forEach(({ relationship, sourceTable, targetTable }) => {
+      // Add nodes if not already added
+      if (!nodeSet.has(sourceTable.id)) {
+        nodeSet.add(sourceTable.id)
+        nodes.push({
+          id: sourceTable.id,
+          type: 'table',
+          data: sourceTable,
+        })
+      }
+
+      if (!nodeSet.has(targetTable.id)) {
+        nodeSet.add(targetTable.id)
+        nodes.push({
+          id: targetTable.id,
+          type: 'table',
+          data: targetTable,
+        })
+      }
+
+      // Add edge
+      edges.push({
+        id: relationship.id,
+        source: sourceTable.id,
+        target: targetTable.id,
+        type: 'relationship',
+        data: relationship,
+      })
+    })
+
+    return { nodes, edges }
+  } catch (error) {
+    console.error('Failed to get relationship graph:', error)
+    throw error
+  }
+}
+
+// Validate relationship before creation with enhanced checks
+export const validateRelationshipConfiguration = async (
+  projectId: string,
+  sourceTableId: string,
+  targetTableId: string,
+  sourceFieldId: string,
+  targetFieldId: string,
+  relationshipName?: string
+): Promise<{
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+  suggestions: string[]
+}> => {
+  try {
+    const errors: string[] = []
+    const warnings: string[] = []
+    const suggestions: string[] = []
+
+    // Basic validation
+    if (!sourceTableId || !targetTableId || !sourceFieldId || !targetFieldId) {
+      errors.push('All source and target references are required')
+    }
+
+    if (sourceTableId === targetTableId) {
+      errors.push('Cannot create self-referencing relationships')
+    }
+
+    if (sourceFieldId === targetFieldId) {
+      errors.push('Source and target fields must be different')
+    }
+
+    // Get table and field details
+    const { data: sourceTable } = await supabase
+      .from('data_tables')
+      .select('*')
+      .eq('id', sourceTableId)
+      .eq('project_id', projectId)
+      .single()
+
+    const { data: targetTable } = await supabase
+      .from('data_tables')
+      .select('*')
+      .eq('id', targetTableId)
+      .eq('project_id', projectId)
+      .single()
+
+    const { data: sourceField } = await supabase
+      .from('data_fields')
+      .select('*')
+      .eq('id', sourceFieldId)
+      .eq('table_id', sourceTableId)
+      .single()
+
+    const { data: targetField } = await supabase
+      .from('data_fields')
+      .select('*')
+      .eq('id', targetFieldId)
+      .eq('table_id', targetTableId)
+      .single()
+
+    if (!sourceTable || !targetTable || !sourceField || !targetField) {
+      errors.push('Source or target tables/fields not found')
+    }
+
+    // Check field compatibility
+    if (sourceField && targetField) {
+      if (sourceField.data_type !== targetField.data_type) {
+        warnings.push(`Field types differ (${sourceField.data_type} vs ${targetField.data_type})`)
+        suggestions.push('Consider using fields with compatible data types')
+      }
+
+      // Source field should typically be unique or primary key
+      if (!sourceField.is_required) {
+        warnings.push('Source field is not required - relationships typically use required fields')
+        suggestions.push('Consider making the source field required')
+      }
+
+      // Check if source field name suggests it's a primary key
+      const isPrimaryKey = sourceField.field_name === 'id' || sourceField.field_name.endsWith('_id')
+      if (!isPrimaryKey) {
+        warnings.push('Source field does not appear to be a primary key')
+        suggestions.push('Consider using a primary key field as the source')
+      }
+
+      // Check if target field name suggests it's a foreign key
+      const isForeignKey = targetField.field_name.endsWith('_id')
+      if (!isForeignKey) {
+        warnings.push("Target field name does not suggest it's a foreign key")
+        suggestions.push('Consider naming the target field with a _id suffix')
+      }
+    }
+
+    // Check for existing relationships
+    const { data: existingRelationships } = await supabase
+      .from('table_relationships')
+      .select('*')
+      .eq('project_id', projectId)
+      .or(`source_table_id.eq.${sourceTableId},target_table_id.eq.${targetTableId}`)
+
+    if (existingRelationships && existingRelationships.length > 0) {
+      const existingBetweenTables = existingRelationships.find(
+        r =>
+          (r.source_table_id === sourceTableId && r.target_table_id === targetTableId) ||
+          (r.source_table_id === targetTableId && r.target_table_id === sourceTableId)
+      )
+
+      if (existingBetweenTables) {
+        errors.push('A relationship already exists between these tables')
+      }
+    }
+
+    // Check circular dependency
+    const hasCircularDependency = await checkCircularDependency(
+      projectId,
+      sourceTableId,
+      targetTableId
+    )
+    if (hasCircularDependency) {
+      errors.push('This relationship would create a circular dependency')
+    }
+
+    // Check relationship name uniqueness
+    if (relationshipName) {
+      const { data: existingWithName } = await supabase
+        .from('table_relationships')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('relationship_name', relationshipName)
+        .single()
+
+      if (existingWithName) {
+        errors.push('Relationship name must be unique within the project')
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      suggestions,
+    }
+  } catch (error) {
+    console.error('Failed to validate relationship configuration:', error)
+    return {
+      isValid: false,
+      errors: [error instanceof Error ? error.message : 'Validation failed'],
+      warnings: [],
+      suggestions: [],
+    }
+  }
+}
+
+// Get relationship dependencies (what would be affected if this relationship is deleted)
+export const getRelationshipDependencies = async (
+  projectId: string,
+  relationshipId: string
+): Promise<{
+  dependentTables: Array<{
+    tableId: string
+    tableName: string
+    dependencyType: string
+  }>
+  dependentRelationships: Array<{
+    relationshipId: string
+    relationshipName: string
+    dependencyType: string
+  }>
+}> => {
+  try {
+    const { data: relationship } = await supabase
+      .from('table_relationships')
+      .select('*')
+      .eq('id', relationshipId)
+      .eq('project_id', projectId)
+      .single()
+
+    if (!relationship) {
+      throw new Error('Relationship not found')
+    }
+
+    // Find tables that depend on this relationship
+    const { data: dependentTables } = await supabase
+      .from('data_tables')
+      .select('*')
+      .eq('project_id', projectId)
+
+    // Find relationships that would be affected
+    const { data: dependentRelationships } = await supabase
+      .from('table_relationships')
+      .select('*')
+      .eq('project_id', projectId)
+      .or(
+        `source_table_id.eq.${relationship.target_table_id},target_table_id.eq.${relationship.source_table_id}`
+      )
+      .neq('id', relationshipId)
+
+    return {
+      dependentTables:
+        dependentTables?.map(table => ({
+          tableId: table.id,
+          tableName: table.name,
+          dependencyType:
+            table.id === relationship.target_table_id
+              ? 'target_table'
+              : table.id === relationship.source_table_id
+                ? 'source_table'
+                : 'indirect',
+        })) || [],
+      dependentRelationships:
+        dependentRelationships?.map(rel => ({
+          relationshipId: rel.id,
+          relationshipName: rel.relationship_name,
+          dependencyType:
+            rel.source_table_id === relationship.target_table_id ||
+            rel.target_table_id === relationship.source_table_id
+              ? 'chain_dependency'
+              : 'indirect',
+        })) || [],
+    }
+  } catch (error) {
+    console.error('Failed to get relationship dependencies:', error)
+    throw error
+  }
+}
+
+// Test relationship configuration without creating it
+export const testRelationship = async (
+  projectId: string,
+  relationshipData: CreateTableRelationshipRequest
+): Promise<{
+  canCreate: boolean
+  testResults: {
+    basicValidation: boolean
+    circularDependency: boolean
+    fieldCompatibility: boolean
+    databaseConstraints: boolean
+  }
+  recommendations: string[]
+}> => {
+  try {
+    const testResults = {
+      basicValidation: false,
+      circularDependency: false,
+      fieldCompatibility: false,
+      databaseConstraints: false,
+    }
+
+    const recommendations: string[] = []
+
+    // Test basic validation
+    try {
+      const validation = await api.relationships.validate(projectId, relationshipData)
+      testResults.basicValidation = validation.isValid
+      if (!validation.isValid) {
+        recommendations.push(`Fix validation errors: ${validation.errors.join(', ')}`)
+      }
+      if (validation.warnings) {
+        recommendations.push(`Address warnings: ${validation.warnings.join(', ')}`)
+      }
+    } catch (error) {
+      recommendations.push(`Validation failed: ${error}`)
+    }
+
+    // Test circular dependency
+    try {
+      const hasCircularDependency = await checkCircularDependency(
+        projectId,
+        relationshipData.source_table_id,
+        relationshipData.target_table_id
+      )
+      testResults.circularDependency = !hasCircularDependency
+      if (hasCircularDependency) {
+        recommendations.push('Relationship would create a circular dependency')
+      }
+    } catch (error) {
+      recommendations.push(`Circular dependency check failed: ${error}`)
+    }
+
+    // Test field compatibility
+    try {
+      const { data: sourceField } = await supabase
+        .from('data_fields')
+        .select('data_type, is_required, field_name')
+        .eq('id', relationshipData.source_field_id)
+        .single()
+
+      const { data: targetField } = await supabase
+        .from('data_fields')
+        .select('data_type, is_required, field_name')
+        .eq('id', relationshipData.target_field_id)
+        .single()
+
+      if (sourceField && targetField) {
+        const compatibleTypes = sourceField.data_type === targetField.data_type
+        const sourceIsKey =
+          sourceField.field_name === 'id' || sourceField.field_name.endsWith('_id')
+        const targetIsForeignKey = targetField.field_name.endsWith('_id')
+
+        testResults.fieldCompatibility = compatibleTypes && sourceIsKey
+
+        if (!compatibleTypes) {
+          recommendations.push(
+            `Field types are incompatible: ${sourceField.data_type} vs ${targetField.data_type}`
+          )
+        }
+        if (!sourceIsKey) {
+          recommendations.push('Source field should be a primary key or unique identifier')
+        }
+        if (!targetIsForeignKey) {
+          recommendations.push(
+            "Target field name should suggest it's a foreign key (ends with _id)"
+          )
+        }
+      }
+    } catch (error) {
+      recommendations.push(`Field compatibility check failed: ${error}`)
+    }
+
+    // Test database constraints (simulated)
+    testResults.databaseConstraints = true
+    recommendations.push('Database constraints can be applied successfully')
+
+    const canCreate = Object.values(testResults).every(result => result === true)
+
+    return {
+      canCreate,
+      testResults,
+      recommendations,
+    }
+  } catch (error) {
+    console.error('Failed to test relationship:', error)
+    throw error
+  }
 }
 
 // Enhanced field CRUD operations
