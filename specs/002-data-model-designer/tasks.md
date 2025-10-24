@@ -153,10 +153,10 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Tests
 
-- [ ] T056 [US3] Unit test for drag-and-drop table functionality
-- [ ] T057 [US3] Unit test for relationship validation logic
-- [ ] T058 [US3] Integration test for relationship creation workflow
-- [ ] T059 [US3] Foreign key constraint verification tests
+- [x] T056 [US3] Unit test for drag-and-drop table functionality
+- [x] T057 [US3] Unit test for relationship validation logic
+- [x] T058 [US3] Integration test for relationship creation workflow
+- [x] T059 [US3] Foreign key constraint verification tests
 
 ---
 
@@ -174,14 +174,14 @@ This task list implements a visual data model designer that allows users to crea
 
 ### Implementation Tasks
 
-- [ ] T060 [US4] API endpoint generation logic in `lib/designer/api-generator.ts`
-- [ ] T061 [US4] CRUD route handlers for dynamic tables in `app/api/designer/`
-- [ ] T062 [US4] API response formatting utilities
-- [ ] T063 [US4] API endpoint registration system
-- [ ] T064 [US4] Request validation for dynamic endpoints
-- [ ] T065 [US4] Error handling for API operations
-- [ ] T066 [US4] API documentation generation
-- [ ] T067 [US4] API testing utilities
+- [x] T060 [US4] API endpoint generation logic in `lib/designer/api-generator.ts`
+- [x] T061 [US4] CRUD route handlers for dynamic tables in `app/api/designer/`
+- [x] T062 [US4] API response formatting utilities
+- [x] T063 [US4] API endpoint registration system
+- [x] T064 [US4] Request validation for dynamic endpoints
+- [x] T065 [US4] Error handling for API operations
+- [x] T066 [US4] API documentation generation
+- [x] T067 [US4] API testing utilities
 
 ### Tests
 
