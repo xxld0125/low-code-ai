@@ -1,5 +1,7 @@
 import { NextLogo } from './next-logo'
 import { SupabaseLogo } from './supabase-logo'
+import { Button } from './ui/button'
+import Link from 'next/link'
 
 export function Hero() {
   return (
@@ -39,6 +41,14 @@ export function Hero() {
         </a>
       </p>
       <div className="my-8 w-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent p-[1px]" />
+
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-muted-foreground">Ready to design your data models?</p>
+        <Button asChild size="lg">
+          <Link href="/protected/designer">Launch Data Model Designer</Link>
+        </Button>
+        <p className="text-sm text-muted-foreground">Sign in required to access the designer</p>
+      </div>
     </div>
   )
 }

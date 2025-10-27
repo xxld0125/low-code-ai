@@ -19,6 +19,39 @@ This is **全栈低代码开发平台** built on Next.js 15 + Supabase. It's a f
 3. **Developer-friendly**: Lowers development barriers without sacrificing flexibility
 4. **Advanced Features**: Permission management, multi-tenancy, API integration, and other enterprise-level features
 
+## Development Language & Communication
+
+### Language Preference
+
+**🌏 Primary Language: Chinese (中文)**
+
+- **Project Language**: This project uses Chinese as the primary language for development
+- **Documentation**: All project documentation, comments, and commit messages should be written in Chinese
+- **Communication**: Use Chinese for all project-related communication, discussions, and explanations
+- **Code Comments**: Write code comments in Chinese to ensure team understanding
+- **Error Messages**: User-facing error messages should be in Chinese
+- **UI Text**: All user interface text should be in Chinese
+
+### Code & Documentation Standards
+
+```typescript
+// ✅ 推荐：使用中文注释
+// 用户数据表 - 存储系统用户的基本信息
+export interface User {
+  id: string // 用户唯一标识
+  name: string // 用户姓名
+  email: string // 用户邮箱
+  created_at: string // 创建时间
+}
+
+// ❌ 避免：英文注释
+// User table - stores basic user information
+export interface User {
+  id: string // Unique user identifier
+  // ...
+}
+```
+
 ## Development Commands
 
 ```bash

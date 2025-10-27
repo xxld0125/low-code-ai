@@ -1,0 +1,1153 @@
+openapi: 3.0.3
+info:
+  title: Data Model Designer API
+  description: RESTful API for the Data Model Designer feature in the Low-Code AI platform
+  version: 1.0.0
+  contact:
+    name: Low-Code AI Team
+    email: support@lowcode-ai.com
+servers:
+  - url: https://api.lowcode-ai.com/v1
+    description: Production server
+  - url: https://dev-api.lowcode-ai.com/v1
+    description: Development server
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+paths:
+  # DataTable Endpoints
+  /projects/{projectId}/tables:
+    get:
+      summary: List all data tables in a project
+      description: Retrieve a paginated list of data tables for a specific project
+      tags:
+        - DataTables
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          description: Filter by table status
+          schema:
+            type: string
+            enum: [draft, active, deprecated, deleted]
+      responses:
+        '200':
+          description: List of data tables
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DataTable'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Create a new data table
+      description: Create a new data table with specified fields and configuration
+      tags:
+        - DataTables
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDataTableRequest'
+      responses:
+        '201':
+          description: Data table created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTable'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Table name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{projectId}/tables/{tableId}:
+    get:
+      summary: Get a specific data table
+      description: Retrieve detailed information about a specific data table including fields
+      tags:
+        - DataTables
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Data table details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTableWithFields'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update a data table
+      description: Update table configuration and metadata
+      tags:
+        - DataTables
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDataTableRequest'
+      responses:
+        '200':
+          description: Data table updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTable'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Table name conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a data table
+      description: Soft delete a data table (mark as deleted)
+      tags:
+        - DataTables
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Data table deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Cannot delete table with existing relationships
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # DataField Endpoints
+  /projects/{projectId}/tables/{tableId}/fields:
+    get:
+      summary: List fields in a data table
+      description: Retrieve all fields for a specific data table
+      tags:
+        - DataFields
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of data fields
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataField'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Add a field to a data table
+      description: Create a new field in the specified data table
+      tags:
+        - DataFields
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDataFieldRequest'
+      responses:
+        '201':
+          description: Data field created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataField'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Field name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{projectId}/tables/{tableId}/fields/{fieldId}:
+    put:
+      summary: Update a data field
+      description: Update field configuration and properties
+      tags:
+        - DataFields
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+        - name: fieldId
+          in: path
+          required: true
+          description: Field ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDataFieldRequest'
+      responses:
+        '200':
+          description: Data field updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataField'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a data field
+      description: Remove a field from the data table
+      tags:
+        - DataFields
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+        - name: fieldId
+          in: path
+          required: true
+          description: Field ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Data field deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Cannot delete field used in relationships
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # TableRelationship Endpoints
+  /projects/{projectId}/relationships:
+    get:
+      summary: List table relationships
+      description: Retrieve all relationships between tables in a project
+      tags:
+        - TableRelationships
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: sourceTableId
+          in: query
+          description: Filter by source table
+          schema:
+            type: string
+            format: uuid
+        - name: targetTableId
+          in: query
+          description: Filter by target table
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of table relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TableRelationship'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Create a table relationship
+      description: Establish a one-to-many relationship between tables
+      tags:
+        - TableRelationships
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTableRelationshipRequest'
+      responses:
+        '201':
+          description: Table relationship created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableRelationship'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Relationship would create circular dependency
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{projectId}/relationships/{relationshipId}:
+    delete:
+      summary: Delete a table relationship
+      description: Remove a relationship between tables
+      tags:
+        - TableRelationships
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: relationshipId
+          in: path
+          required: true
+          description: Relationship ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Table relationship deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Schema Deployment Endpoints
+  /projects/{projectId}/tables/{tableId}/deploy:
+    post:
+      summary: Deploy table schema to database
+      description: Generate and deploy the actual database table structure
+      tags:
+        - SchemaDeployment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Schema deployed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deployment_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [success, pending, failed]
+                  sql_statements:
+                    type: array
+                    items:
+                      type: string
+                  database_table_name:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Schema validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Basic Collaboration Endpoints (MVP)
+  /projects/{projectId}/tables/{tableId}/lock:
+    post:
+      summary: Acquire table lock
+      description: Basic table locking to prevent concurrent modifications
+      tags:
+        - Collaboration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcquireLockRequest'
+      responses:
+        '200':
+          description: Lock acquired successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableLock'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Table is already locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Release table lock
+      description: Release a previously acquired table lock
+      tags:
+        - Collaboration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: Project ID
+          schema:
+            type: string
+            format: uuid
+        - name: tableId
+          in: path
+          required: true
+          description: Table ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Lock released successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    # Core Schemas
+    DataTable:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the data table
+        project_id:
+          type: string
+          format: uuid
+          description: Project this table belongs to
+        name:
+          type: string
+          description: Human-readable table name
+        description:
+          type: string
+          description: Table description
+        table_name:
+          type: string
+          description: Database-friendly table name
+        status:
+          type: string
+          enum: [draft, active, deprecated, deleted]
+          description: Current status of the table
+        created_by:
+          type: string
+          format: uuid
+          description: User who created the table
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - id
+        - project_id
+        - name
+        - table_name
+        - status
+        - created_by
+        - created_at
+        - updated_at
+
+    DataField:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        table_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Human-readable field name
+        field_name:
+          type: string
+          description: Database column name
+        data_type:
+          type: string
+          enum: [text, number, date, boolean]
+          description: Field data type
+        is_required:
+          type: boolean
+          description: Whether field is required (NOT NULL)
+        default_value:
+          type: string
+          description: Default value for the field
+        field_config:
+          type: object
+          description: Additional field configuration
+          properties:
+            max_length:
+              type: integer
+              description: Maximum length for text fields
+            precision:
+              type: integer
+              description: Precision for number fields
+            scale:
+              type: integer
+              description: Scale for decimal fields
+            format:
+              type: string
+              description: Date format for date fields
+        sort_order:
+          type: integer
+          description: Display order of the field
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - table_id
+        - name
+        - field_name
+        - data_type
+        - is_required
+        - sort_order
+        - created_at
+        - updated_at
+
+    TableRelationship:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        source_table_id:
+          type: string
+          format: uuid
+          description: "One" side of the relationship
+        target_table_id:
+          type: string
+          format: uuid
+          description: "Many" side of the relationship
+        source_field_id:
+          type: string
+          format: uuid
+          description: Field in source table (usually primary key)
+        target_field_id:
+          type: string
+          format: uuid
+          description: Foreign key field in target table
+        relationship_name:
+          type: string
+          description: Name of the relationship
+        relationship_type:
+          type: string
+          enum: [one_to_many]
+          description: Type of relationship
+        cascade_config:
+          type: object
+          properties:
+            on_delete:
+              type: string
+              enum: [cascade, restrict, set_null]
+              description: Delete behavior
+            on_update:
+              type: string
+              enum: [cascade, restrict]
+              description: Update behavior
+        status:
+          type: string
+          enum: [active, inactive]
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - project_id
+        - source_table_id
+        - target_table_id
+        - source_field_id
+        - target_field_id
+        - relationship_type
+        - status
+        - created_by
+        - created_at
+        - updated_at
+
+    TableLock:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        table_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        lock_token:
+          type: string
+          format: uuid
+          description: Token for lock verification
+        lock_type:
+          type: string
+          enum: [optimistic, pessimistic, critical]
+        locked_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          description: Reason for acquiring the lock
+      required:
+        - id
+        - table_id
+        - user_id
+        - lock_token
+        - lock_type
+        - locked_at
+        - expires_at
+
+    # Request Schemas
+    CreateDataTableRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Human-readable table name
+        description:
+          type: string
+          description: Table description
+        table_name:
+          type: string
+          description: Database-friendly table name
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateDataFieldRequest'
+          description: Initial fields for the table
+      required:
+        - name
+        - table_name
+        - fields
+
+    UpdateDataTableRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Human-readable table name
+        description:
+          type: string
+          description: Table description
+        table_name:
+          type: string
+          description: Database-friendly table name
+
+    CreateDataFieldRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Human-readable field name
+        field_name:
+          type: string
+          description: Database column name
+        data_type:
+          type: string
+          enum: [text, number, date, boolean]
+        is_required:
+          type: boolean
+          default: false
+        default_value:
+          type: string
+        field_config:
+          type: object
+          properties:
+            max_length:
+              type: integer
+            precision:
+              type: integer
+            scale:
+              type: integer
+            format:
+              type: string
+        sort_order:
+          type: integer
+          default: 0
+      required:
+        - name
+        - field_name
+        - data_type
+
+    UpdateDataFieldRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        field_name:
+          type: string
+        is_required:
+          type: boolean
+        default_value:
+          type: string
+        field_config:
+          type: object
+          properties:
+            max_length:
+              type: integer
+            precision:
+              type: integer
+            scale:
+              type: integer
+            format:
+              type: string
+        sort_order:
+          type: integer
+
+    CreateTableRelationshipRequest:
+      type: object
+      properties:
+        source_table_id:
+          type: string
+          format: uuid
+        target_table_id:
+          type: string
+          format: uuid
+        source_field_id:
+          type: string
+          format: uuid
+        target_field_id:
+          type: string
+          format: uuid
+        relationship_name:
+          type: string
+        relationship_type:
+          type: string
+          enum: [one_to_many]
+        cascade_config:
+          type: object
+          properties:
+            on_delete:
+              type: string
+              enum: [cascade, restrict, set_null]
+              default: restrict
+            on_update:
+              type: string
+              enum: [cascade, restrict]
+              default: cascade
+      required:
+        - source_table_id
+        - target_table_id
+        - source_field_id
+        - target_field_id
+        - relationship_name
+        - relationship_type
+
+    AcquireLockRequest:
+      type: object
+      properties:
+        lock_type:
+          type: string
+          enum: [optimistic, pessimistic, critical]
+        reason:
+          type: string
+        duration_minutes:
+          type: integer
+          description: Lock duration in minutes
+          default: 30
+      required:
+        - lock_type
+        - reason
+
+    # Response Schemas
+    DataTableWithFields:
+      allOf:
+        - $ref: '#/components/schemas/DataTable'
+        - type: object
+          properties:
+            fields:
+              type: array
+              items:
+                $ref: '#/components/schemas/DataField'
+            relationships:
+              type: object
+              properties:
+                outgoing:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TableRelationship'
+                incoming:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TableRelationship'
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        code:
+          type: string
+
+  # Standard Responses
+  responses:
+    BadRequest:
+      description: Bad request - invalid input data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: DataTables
+    description: Data table management operations
+  - name: DataFields
+    description: Data field management operations
+  - name: TableRelationships
+    description: Table relationship management operations
+  - name: SchemaDeployment
+    description: Schema deployment and synchronization operations
+  - name: Collaboration
+    description: Basic collaboration and locking operations
