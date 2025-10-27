@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
+import type {
+  ComponentInstance as TypeComponentInstance,
+  ComponentType,
+} from '@/types/page-designer/component'
 
 // 类型定义
 export interface PageDesign {
@@ -38,30 +42,8 @@ export interface PageDesign {
   tags: string[]
 }
 
-export interface ComponentInstance {
-  id: string
-  page_design_id: string
-  component_type: string
-  parent_id?: string
-  position: {
-    z_index: number
-    order: number
-  }
-  props: Record<string, any>
-  styles: Record<string, any>
-  events: Record<string, any>
-  responsive: Record<string, any>
-  layout_props?: Record<string, any>
-  created_at: string
-  updated_at: string
-  version: number
-  meta: {
-    locked: boolean
-    hidden: boolean
-    custom_name?: string
-    notes?: string
-  }
-}
+// 使用 types 文件中的 ComponentInstance 类型
+export type ComponentInstance = TypeComponentInstance
 
 export interface CanvasState {
   zoom: number
@@ -74,7 +56,7 @@ export interface CanvasState {
 
 export interface DragState {
   isDragging: boolean
-  draggedComponentType: string | null
+  draggedComponentType: ComponentType | null
   draggedComponentId: string | undefined
   dropZoneId: string | undefined
   dragPosition: { x: number; y: number } | null
@@ -151,6 +133,11 @@ export interface DesignerActions {
 
   // 组件操作
   addComponent: (component: ComponentInstance) => void
+  addComponentFromType: (
+    type: ComponentType,
+    parentId?: string,
+    position?: { x: number; y: number }
+  ) => string
   updateComponent: (id: string, updates: Partial<ComponentInstance>) => void
   deleteComponent: (id: string) => void
   moveComponent: (id: string, newParentId: string | null, newPosition: number) => void
@@ -164,7 +151,7 @@ export interface DesignerActions {
   setHoveredComponent: (id: string | null) => void
 
   // 拖拽操作
-  startDrag: (type: string, componentType?: string, componentId?: string) => void
+  startDrag: (type: ComponentType, componentType?: ComponentType, componentId?: string) => void
   updateDrag: (position: { x: number; y: number }, dropZoneId?: string) => void
   endDrag: () => void
 
@@ -378,6 +365,84 @@ export const useDesignerStore = create<DesignerStore>()(
               [component.id]: component,
             },
           })),
+
+        // 新增：从组件类型添加组件（用于拖拽）
+        addComponentFromType: (type, parentId, position) => {
+          const id = `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          const now = new Date().toISOString()
+
+          // 获取默认属性和样式
+          const getDefaultProps = (componentType: ComponentType) => {
+            switch (componentType) {
+              case 'button':
+                return {
+                  button: { text: '按钮', variant: 'primary' as const, size: 'md' as const },
+                }
+              case 'input':
+                return { input: { placeholder: '请输入内容', type: 'text' as const } }
+              case 'text':
+                return { text: { content: '文本内容', variant: 'body' as const } }
+              case 'image':
+                return { image: { src: '/api/placeholder/300/200', alt: '图片' } }
+              default:
+                return {}
+            }
+          }
+
+          const getDefaultStyles = (componentType: ComponentType) => {
+            return {
+              margin: { bottom: 16 },
+            }
+          }
+
+          const newComponent: ComponentInstance = {
+            id,
+            component_type: type,
+            page_design_id: 'current-page', // 临时值
+            parent_id: parentId,
+            position: {
+              z_index: 0,
+              order: 0,
+            },
+            props: getDefaultProps(type),
+            styles: getDefaultStyles(type),
+            events: {},
+            responsive: {},
+            created_at: now,
+            updated_at: now,
+            version: 1,
+            meta: {
+              locked: false,
+              hidden: false,
+            },
+          }
+
+          set(state => {
+            // 检查组件数量限制
+            const componentCount = Object.keys(state.components).length
+            if (componentCount >= 50) {
+              throw new Error('已达到最大组件数量限制（50个）')
+            }
+
+            state.components[id] = newComponent
+
+            // 如果指定了父组件，更新父组件的子组件顺序
+            if (parentId && state.components[parentId]) {
+              const parentChildren = Object.values(state.components)
+                .filter(c => c.parent_id === parentId)
+                .sort((a, b) => a.position.order - b.position.order)
+
+              newComponent.position.order = parentChildren.length
+            }
+
+            // 自动选中新添加的组件
+            state.selectionState.selectedComponentIds = [id]
+
+            return state
+          })
+
+          return id
+        },
 
         updateComponent: (id, updates) =>
           set(state => ({

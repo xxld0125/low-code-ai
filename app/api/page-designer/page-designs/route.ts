@@ -42,9 +42,6 @@ const PageDesignSchema = z.object({
 // 更新页面设计数据验证模式
 const UpdatePageDesignSchema = PageDesignSchema.partial()
 
-// 使用UpdatePageDesignSchema来验证更新请求
-export { UpdatePageDesignSchema }
-
 // GET - 获取页面设计列表
 export async function GET(request: NextRequest) {
   try {

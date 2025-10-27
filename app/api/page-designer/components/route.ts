@@ -64,9 +64,6 @@ const UpdateComponentInstanceSchema = ComponentInstanceSchema.partial().omit({
   version: true,
 })
 
-// 使用UpdateComponentInstanceSchema来验证更新请求
-export { UpdateComponentInstanceSchema }
-
 // GET - 获取组件列表
 export async function GET(request: NextRequest) {
   try {

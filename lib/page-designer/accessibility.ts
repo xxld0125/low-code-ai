@@ -94,7 +94,6 @@ export const ACCESSIBILITY_VALIDATORS = {
   /**
    * 验证颜色对比度
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateColorContrast: (_foreground: string, _background: string): boolean => {
     // 这里应该实现实际的颜色对比度计算
     // 暂时返回true，后续可以集成颜色对比度计算库

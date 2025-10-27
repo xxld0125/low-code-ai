@@ -157,6 +157,7 @@ export interface ComponentProps {
 
 // 间距值类型
 export type SpacingValue =
+  | string
   | number
   | {
       x?: number
@@ -181,6 +182,7 @@ export type BackgroundValue =
 // 边框值类型
 export type BorderValue =
   | boolean
+  | string
   | {
       width?: number
       color?: string
@@ -189,10 +191,21 @@ export type BorderValue =
     }
 
 // 阴影值类型
-export type ShadowValue = boolean | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'inner'
+export type ShadowValue = boolean | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'inner' | string
 
 // 圆角值类型
-export type RoundedValue = boolean | 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full'
+export type RoundedValue =
+  | boolean
+  | 'none'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | '2xl'
+  | '3xl'
+  | 'full'
+  | string
+  | number
 
 // 样式类型定义
 export interface ComponentStyles {
@@ -252,7 +265,7 @@ export interface ComponentStyles {
   fontFamily?: string
   textAlign?: 'left' | 'center' | 'right' | 'justify'
   textDecoration?: string
-  textTransform?: string
+  textTransform?: 'none' | 'capitalize' | 'uppercase' | 'lowercase'
   lineHeight?: string | number
 
   // 透明度
@@ -485,4 +498,70 @@ export interface ComponentRendererProps {
   onUpdate?: (id: string, updates: Partial<ComponentInstance>) => void
   onDelete?: (id: string) => void
   children?: React.ReactNode
+}
+
+// 拖拽数据接口
+export interface DragItem {
+  type: ComponentType
+  id: string
+  isFromPanel: boolean
+  componentData?: Partial<ComponentInstance>
+}
+
+// 拖拽状态接口
+export interface DragState {
+  isDragging: boolean
+  activeId: string | null
+  draggedComponentType: ComponentType | null
+  dropZoneId: string | null
+  position?: { x: number; y: number }
+}
+
+// 拖拽提供者属性
+export interface DragProviderProps {
+  children: React.ReactNode
+  onDragStart?: (dragData: DragItem) => void
+  onDragEnd?: (dragData: DragItem | null, dropData: any) => void
+  onDragOver?: (dragData: DragItem, dropData: any) => void
+}
+
+// 拖拽覆盖层属性
+export interface DragOverlayProps {
+  children?: React.ReactNode
+  style?: React.CSSProperties
+  className?: string
+}
+
+// 画布状态接口
+export interface CanvasState {
+  zoom: number
+  pan: { x: number; y: number }
+  gridSize: number
+  showGrid: boolean
+  width: number
+  height: number
+}
+
+// 页面设计器状态接口
+export interface PageDesignerState {
+  // 页面设计
+  currentPageId: string | null
+  pageDesigns: Record<string, any>
+
+  // 组件管理
+  components: Record<string, ComponentInstance>
+  selectedComponentIds: string[]
+
+  // 画布状态
+  canvas: CanvasState
+
+  // 拖拽状态
+  dragState: DragState
+
+  // 历史记录
+  history: {
+    past: PageDesignerState[]
+    present: PageDesignerState
+    future: PageDesignerState[]
+  }
 }

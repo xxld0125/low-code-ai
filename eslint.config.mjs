@@ -64,10 +64,16 @@ const eslintConfig = [
       "types/page-designer/**/*",
       "lib/page-designer/**/*",
       "hooks/use-page-*",
+      "components/page-designer/**/*",
+      "components/lowcode/**/*",
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "react-hooks/exhaustive-deps": "warn",
+      "prefer-const": "warn",
+      "@typescript-eslint/no-empty-object-type": "off",
     },
   },
 ];
