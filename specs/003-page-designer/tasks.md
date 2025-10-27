@@ -190,14 +190,14 @@ description: 'Task list for 基础页面设计器 implementation'
 
 ### Implementation for User Story 4
 
-- [ ] T056 [P] [US4] 创建页面设计器画布缩放控制在 /components/page-designer/PageToolbar.tsx - 避免与现有组件冲突
-- [ ] T057 [P] [US4] 实现页面设计器缩放状态管理在 /stores/page-designer/zoom-store.ts
-- [ ] T058 [P] [US4] 集成react-zoom-pan-pinch库实现页面设计器缩放功能
-- [ ] T059 [P] [US4] 创建页面设计器对齐辅助线在 /components/page-designer/PageAlignmentGuides.tsx
-- [ ] T060 [P] [US4] 实现页面设计器对齐计算算法在 /lib/page-designer/alignment.ts
-- [ ] T061 [US4] 添加页面设计器网格显示和网格对齐功能
-- [ ] T062 [US4] 实现页面设计器小地图导航在 /components/page-designer/PageMiniMap.tsx
-- [ ] T063 [US4] 集成缩放和对齐功能到页面设计器主画布
+- [x] T056 [P] [US4] 创建页面设计器画布缩放控制在 /components/page-designer/PageToolbar.tsx - 避免与现有组件冲突
+- [x] T057 [P] [US4] 实现页面设计器缩放状态管理在 /stores/page-designer/zoom-store.ts
+- [x] T058 [P] [US4] 集成react-zoom-pan-pinch库实现页面设计器缩放功能
+- [x] T059 [P] [US4] 创建页面设计器对齐辅助线在 /components/page-designer/PageAlignmentGuides.tsx
+- [x] T060 [P] [US4] 实现页面设计器对齐计算算法在 /lib/page-designer/alignment.ts
+- [x] T061 [US4] 添加页面设计器网格显示和网格对齐功能
+- [x] T062 [US4] 实现页面设计器小地图导航在 /components/page-designer/PageMiniMap.tsx
+- [x] T063 [US4] 集成缩放和对齐功能到页面设计器主画布
 
 ---
 

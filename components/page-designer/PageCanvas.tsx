@@ -27,12 +27,8 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-  COMPONENT_TYPES,
-  ComponentInstance,
-  DragState,
-  CanvasState,
-} from '@/types/page-designer/component'
+import { COMPONENT_TYPES, ComponentInstance, DragState } from '@/types/page-designer/component'
+import type { CanvasState } from '@/types/page-designer'
 
 // 导入基础组件
 import { PageButton, PageInput, PageText, PageImage } from '@/components/lowcode/page-basic'

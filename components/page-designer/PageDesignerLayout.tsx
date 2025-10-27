@@ -48,11 +48,8 @@ import {
   useDragOperations,
   useDesignerStats,
 } from '@/stores/page-designer/hooks'
-import type {
-  DragItem,
-  ComponentInstance,
-  CanvasState as PageDesignerCanvasState,
-} from '@/types/page-designer/component'
+import type { DragItem, ComponentInstance } from '@/types/page-designer/component'
+import type { CanvasState as PageDesignerCanvasState } from '@/types/page-designer'
 
 // 工具栏组件
 const DesignerToolbar: React.FC<{
@@ -138,7 +135,7 @@ const DesignerStatusBar: React.FC<{
       <div className="flex items-center space-x-4">
         <span>就绪</span>
         <span>
-          画布: {canvasState.width} × {canvasState.height}
+          画布: {canvasState.canvasWidth} × {canvasState.canvasHeight}
         </span>
         <span>网格: {canvasState.showGrid ? '开启' : '关闭'}</span>
       </div>
@@ -369,11 +366,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
       <div className={cn('flex h-screen flex-col bg-gray-50', className)}>
         {/* 工具栏 */}
         <DesignerToolbar
-          canvasState={{
-            ...canvasState,
-            width: (canvasState as any).canvasWidth || 1200,
-            height: (canvasState as any).canvasHeight || 800,
-          }}
+          canvasState={canvasState}
           stats={stats}
           onUndo={handleUndo}
           onRedo={handleRedo}
@@ -419,11 +412,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
               <PageCanvas
                 components={components as unknown as any[]}
                 selectedComponentIds={selectedComponents.map(c => c.id)}
-                canvasState={{
-                  ...canvasState,
-                  width: (canvasState as any).canvasWidth || 1200,
-                  height: (canvasState as any).canvasHeight || 800,
-                }}
+                canvasState={canvasState}
                 dragState={
                   {
                     isDragging: dragState.isDragging,
@@ -456,14 +445,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
         </div>
 
         {/* 状态栏 */}
-        <DesignerStatusBar
-          canvasState={{
-            ...canvasState,
-            width: (canvasState as any).canvasWidth || 1200,
-            height: (canvasState as any).canvasHeight || 800,
-          }}
-          stats={stats}
-        />
+        <DesignerStatusBar canvasState={canvasState} stats={stats} />
       </div>
 
       {/* 拖拽视觉反馈 */}

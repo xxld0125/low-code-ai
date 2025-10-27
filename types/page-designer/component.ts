@@ -574,37 +574,3 @@ export interface DragOverlayProps {
   style?: React.CSSProperties
   className?: string
 }
-
-// 画布状态接口
-export interface CanvasState {
-  zoom: number
-  pan: { x: number; y: number }
-  gridSize: number
-  showGrid: boolean
-  width: number
-  height: number
-}
-
-// 页面设计器状态接口
-export interface PageDesignerState {
-  // 页面设计
-  currentPageId: string | null
-  pageDesigns: Record<string, any>
-
-  // 组件管理
-  components: Record<string, ComponentInstance>
-  selectedComponentIds: string[]
-
-  // 画布状态
-  canvas: CanvasState
-
-  // 拖拽状态
-  dragState: DragState
-
-  // 历史记录
-  history: {
-    past: PageDesignerState[]
-    present: PageDesignerState
-    future: PageDesignerState[]
-  }
-}
