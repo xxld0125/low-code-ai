@@ -2,7 +2,7 @@
  * Dynamic CRUD Route Handlers for Generated Tables
  *
  * Purpose: Handle CRUD operations for dynamically generated tables
- * Route: /api/designer/tables/[tableName]
+ * Route: /api/designer/tables/[tableId]/data
  * Methods: GET, POST
  */
 
@@ -13,17 +13,32 @@ import { getTableSchema, validateTableExists } from '@/lib/designer/table-regist
 
 interface RouteContext {
   params: Promise<{
-    tableName: string
+    tableId: string
   }>
 }
 
 /**
- * GET /api/designer/tables/[tableName]
+ * GET /api/designer/tables/[tableId]/data
  * List records with pagination, sorting, and filtering
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { tableName } = await context.params
+    const { tableId } = await context.params
+
+    // First get the table definition to get the actual table name
+    const supabase = await createClient()
+    const { data: tableDef, error: tableError } = await supabase
+      .from('data_tables')
+      .select('table_name, status')
+      .eq('id', tableId)
+      .eq('status', 'active')
+      .single()
+
+    if (tableError || !tableDef) {
+      return NextResponse.json({ error: 'Table not found or not active' }, { status: 404 })
+    }
+
+    const tableName = tableDef.table_name
     const { searchParams } = new URL(request.url)
 
     // Validate table exists and is active
@@ -102,8 +117,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const { tableName } = await context.params
+    const { tableId } = await context.params
     const body = await request.json()
+
+    // First get the table definition to get the actual table name
+    const supabase = await createClient()
+    const { data: tableDef, error: tableError } = await supabase
+      .from('data_tables')
+      .select('table_name, status')
+      .eq('id', tableId)
+      .eq('status', 'active')
+      .single()
+
+    if (tableError || !tableDef) {
+      return NextResponse.json({ error: 'Table not found or not active' }, { status: 404 })
+    }
+
+    const tableName = tableDef.table_name
 
     // Validate table exists and is active
     const tableValidation = await validateTableExists(tableName)

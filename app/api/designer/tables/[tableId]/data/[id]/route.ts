@@ -2,7 +2,7 @@
  * Dynamic CRUD Route Handlers for Individual Records
  *
  * Purpose: Handle individual record operations (GET, PUT, DELETE) for dynamically generated tables
- * Route: /api/designer/tables/[tableName]/[id]
+ * Route: /api/designer/tables/[tableId]/data/[id]
  * Methods: GET, PUT, DELETE
  */
 
@@ -20,18 +20,33 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
 interface RouteContext {
   params: Promise<{
-    tableName: string
+    tableId: string
     id: string
   }>
 }
 
 /**
- * GET /api/designer/tables/[tableName]/[id]
+ * GET /api/designer/tables/[tableId]/data/[id]
  * Retrieve a single record by ID
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { tableName, id } = await context.params
+    const { tableId, id } = await context.params
+
+    // First get the table definition to get the actual table name
+    const supabase = await createClient()
+    const { data: tableDef, error: tableError } = await supabase
+      .from('data_tables')
+      .select('table_name, status')
+      .eq('id', tableId)
+      .eq('status', 'active')
+      .single()
+
+    if (tableError || !tableDef) {
+      return NextResponse.json({ error: 'Table not found or not active' }, { status: 404 })
+    }
+
+    const tableName = tableDef.table_name
 
     // Validate table exists and is active
     const tableValidation = await validateTableExists(tableName)
@@ -81,8 +96,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    const { tableName, id } = await context.params
+    const { tableId, id } = await context.params
     const body = await request.json()
+
+    // First get the table definition to get the actual table name
+    const supabase = await createClient()
+    const { data: tableDef, error: tableError } = await supabase
+      .from('data_tables')
+      .select('table_name, status')
+      .eq('id', tableId)
+      .eq('status', 'active')
+      .single()
+
+    if (tableError || !tableDef) {
+      return NextResponse.json({ error: 'Table not found or not active' }, { status: 404 })
+    }
+
+    const tableName = tableDef.table_name
 
     // Validate table exists and is active
     const tableValidation = await validateTableExists(tableName)
@@ -161,7 +191,22 @@ export async function PUT(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { tableName, id } = await context.params
+    const { tableId, id } = await context.params
+
+    // First get the table definition to get the actual table name
+    const supabase = await createClient()
+    const { data: tableDef, error: tableError } = await supabase
+      .from('data_tables')
+      .select('table_name, status')
+      .eq('id', tableId)
+      .eq('status', 'active')
+      .single()
+
+    if (tableError || !tableDef) {
+      return NextResponse.json({ error: 'Table not found or not active' }, { status: 404 })
+    }
+
+    const tableName = tableDef.table_name
 
     // Validate table exists and is active
     const tableValidation = await validateTableExists(tableName)
