@@ -1,0 +1,1421 @@
+openapi: 3.0.3
+info:
+  title: FlowBase 页面设计器 API
+  description: FlowBase低代码平台页面设计器的RESTful API接口
+  version: 1.0.0
+  contact:
+    name: FlowBase Team
+    email: dev@flowbase.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://your-project.supabase.co/rest/v1
+    description: 生产环境
+  - url: http://localhost:3000/api
+    description: 开发环境
+
+security:
+  - BearerAuth: []
+
+paths:
+  # 页面设计相关API
+  /page-designs:
+    get:
+      tags:
+        - 页面设计
+      summary: 获取页面设计列表
+      description: 获取当前用户可访问的页面设计列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          description: 页面状态筛选
+          schema:
+            type: string
+            enum: [draft, published, archived]
+        - name: search
+          in: query
+          description: 搜索关键词
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: 标签筛选（逗号分隔）
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: 排序字段
+          schema:
+            type: string
+            enum: [name, created_at, updated_at]
+            default: updated_at
+        - name: order
+          in: query
+          description: 排序方向
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: 成功返回页面设计列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PageDesign'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - 页面设计
+      summary: 创建新页面设计
+      description: 创建一个新的页面设计
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: 页面名称
+                description:
+                  type: string
+                  maxLength: 1000
+                  description: 页面描述
+                config:
+                  $ref: '#/components/schemas/PageConfig'
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: 标签列表
+      responses:
+        '201':
+          description: 成功创建页面设计
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDesign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /page-designs/{id}:
+    get:
+      tags:
+        - 页面设计
+      summary: 获取页面设计详情
+      description: 根据ID获取页面设计的详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功返回页面设计详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDesignDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - 页面设计
+      summary: 更新页面设计
+      description: 更新页面设计的基本信息和配置
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                description:
+                  type: string
+                  maxLength: 1000
+                config:
+                  $ref: '#/components/schemas/PageConfig'
+                status:
+                  type: string
+                  enum: [draft, published, archived]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                shared_with:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                version:
+                  type: integer
+                  minimum: 1
+                  description: 乐观锁版本号
+      responses:
+        '200':
+          description: 成功更新页面设计
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDesign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 版本冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - 页面设计
+      summary: 删除页面设计
+      description: 删除指定的页面设计及其所有组件
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 成功删除页面设计
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /page-designs/{id}/duplicate:
+    post:
+      tags:
+        - 页面设计
+      summary: 复制页面设计
+      description: 复制现有的页面设计
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 源页面设计ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: 新页面设计的名称
+                description:
+                  type: string
+                  maxLength: 1000
+                  description: 新页面设计的描述
+      responses:
+        '201':
+          description: 成功复制页面设计
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDesign'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # 组件实例相关API
+  /page-designs/{pageId}/components:
+    get:
+      tags:
+        - 组件实例
+      summary: 获取页面组件列表
+      description: 获取指定页面的所有组件实例
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          description: 组件类型筛选
+          schema:
+            type: string
+            enum: [button, input, text, image, container, row, col, form, card, grid]
+        - name: parent_id
+          in: query
+          description: 父组件ID筛选
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功返回组件列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComponentInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - 组件实例
+      summary: 创建组件实例
+      description: 在指定页面中创建新的组件实例
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - component_type
+                - parent_id
+              properties:
+                component_type:
+                  type: string
+                  enum: [button, input, text, image, container, row, col, form, card, grid]
+                  description: 组件类型
+                parent_id:
+                  type: string
+                  format: uuid
+                  description: 父组件ID
+                position:
+                  $ref: '#/components/schemas/ComponentPosition'
+                props:
+                  type: object
+                  description: 组件属性
+                styles:
+                  $ref: '#/components/schemas/ComponentStyles'
+                events:
+                  type: object
+                  description: 事件配置
+                responsive:
+                  type: object
+                  description: 响应式配置
+                layout_props:
+                  type: object
+                  description: 布局属性
+                meta:
+                  type: object
+                  description: 元数据
+      responses:
+        '201':
+          description: 成功创建组件实例
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /page-designs/{pageId}/components/{componentId}:
+    get:
+      tags:
+        - 组件实例
+      summary: 获取组件实例详情
+      description: 获取指定组件实例的详细信息
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: componentId
+          in: path
+          required: true
+          description: 组件实例ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功返回组件实例详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - 组件实例
+      summary: 更新组件实例
+      description: 更新组件实例的属性和配置
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: componentId
+          in: path
+          required: true
+          description: 组件实例ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent_id:
+                  type: string
+                  format: uuid
+                  description: 新的父组件ID
+                position:
+                  $ref: '#/components/schemas/ComponentPosition'
+                props:
+                  type: object
+                  description: 组件属性
+                styles:
+                  $ref: '#/components/schemas/ComponentStyles'
+                events:
+                  type: object
+                  description: 事件配置
+                responsive:
+                  type: object
+                  description: 响应式配置
+                layout_props:
+                  type: object
+                  description: 布局属性
+                meta:
+                  type: object
+                  description: 元数据
+                version:
+                  type: integer
+                  minimum: 1
+                  description: 乐观锁版本号
+      responses:
+        '200':
+          description: 成功更新组件实例
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 版本冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - 组件实例
+      summary: 删除组件实例
+      description: 删除指定的组件实例及其所有子组件
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: componentId
+          in: path
+          required: true
+          description: 组件实例ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 成功删除组件实例
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /page-designs/{pageId}/components/{componentId}/copy:
+    post:
+      tags:
+        - 组件实例
+      summary: 复制组件实例
+      description: 复制组件实例（包含所有子组件）
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: componentId
+          in: path
+          required: true
+          description: 源组件实例ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - parent_id
+              properties:
+                parent_id:
+                  type: string
+                  format: uuid
+                  description: 新组件的父组件ID
+                position:
+                  $ref: '#/components/schemas/ComponentPosition'
+      responses:
+        '201':
+          description: 成功复制组件实例
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # 批量操作API
+  /page-designs/{pageId}/components/batch:
+    post:
+      tags:
+        - 批量操作
+      summary: 批量操作组件
+      description: 批量创建、更新或删除组件
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - operations
+              properties:
+                operations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BatchOperation'
+      responses:
+        '200':
+          description: 成功执行批量操作
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BatchOperationResult'
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        operation_index:
+                          type: integer
+                        error:
+                          type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # 布局相关API
+  /page-designs/{pageId}/layout:
+    get:
+      tags:
+        - 布局管理
+      summary: 获取页面布局结构
+      description: 获取页面的完整布局树结构
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          description: 返回格式
+          schema:
+            type: string
+            enum: [tree, flat]
+            default: tree
+      responses:
+        '200':
+          description: 成功返回布局结构
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LayoutTree'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - 布局管理
+      summary: 更新页面布局结构
+      description: 批量更新页面的布局结构
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - component_tree
+              properties:
+                component_tree:
+                  $ref: '#/components/schemas/ComponentTree'
+                version:
+                  type: integer
+                  minimum: 1
+                  description: 乐观锁版本号
+      responses:
+        '200':
+          description: 成功更新布局结构
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LayoutTree'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 版本冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # 历史记录相关API
+  /page-designs/{pageId}/history:
+    get:
+      tags:
+        - 历史记录
+      summary: 获取设计历史
+      description: 获取页面设计的历史操作记录
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: action
+          in: query
+          description: 操作类型筛选
+          schema:
+            type: string
+            enum: [create_component, update_component, delete_component, move_component, copy_component, paste_component, undo, redo, batch_operation]
+      responses:
+        '200':
+          description: 成功返回历史记录
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DesignHistory'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /page-designs/{pageId}/history/{historyId}/restore:
+    post:
+      tags:
+        - 历史记录
+      summary: 恢复到历史版本
+      description: 将页面设计恢复到指定的历史版本
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+        - name: historyId
+          in: path
+          required: true
+          description: 历史记录ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功恢复到历史版本
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDesign'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # 自动保存API
+  /page-designs/{pageId}/auto-save:
+    post:
+      tags:
+        - 自动保存
+      summary: 自动保存页面设计
+      description: 自动保存页面的当前状态
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          description: 页面设计ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                component_tree:
+                  $ref: '#/components/schemas/ComponentTree'
+                thumbnail_data:
+                  type: string
+                  description: Base64编码的缩略图数据
+      responses:
+        '200':
+          description: 成功自动保存
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved_at:
+                    type: string
+                    format: date-time
+                  version:
+                    type: integer
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # 组件库API
+  /components/library:
+    get:
+      tags:
+        - 组件库
+      summary: 获取组件库
+      description: 获取可用的组件类型和模板
+      parameters:
+        - name: category
+          in: query
+          description: 组件分类筛选
+          schema:
+            type: string
+            enum: [basic, layout, form, navigation, list, advanced]
+      responses:
+        '200':
+          description: 成功返回组件库
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComponentCategory'
+                  components:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComponentLibraryItem'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    # 基础数据结构
+    PageDesign:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        config:
+          $ref: '#/components/schemas/PageConfig'
+        root_component_id:
+          type: string
+          format: uuid
+        component_tree:
+          $ref: '#/components/schemas/ComponentTree'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, archived]
+        thumbnail_url:
+          type: string
+        shared_with:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            type: string
+
+    PageDesignDetail:
+      allOf:
+        - $ref: '#/components/schemas/PageDesign'
+        - type: object
+          properties:
+            components:
+              type: array
+              items:
+                $ref: '#/components/schemas/ComponentInstance'
+            layout_tree:
+              $ref: '#/components/schemas/LayoutTree'
+
+    PageConfig:
+      type: object
+      properties:
+        title:
+          type: string
+        meta:
+          type: object
+          properties:
+            description:
+              type: string
+            keywords:
+              type: array
+              items:
+                type: string
+            author:
+              type: string
+        styles:
+          type: object
+          properties:
+            theme:
+              type: string
+              enum: [light, dark, auto]
+            backgroundColor:
+              type: string
+            backgroundImage:
+              type: string
+            spacing:
+              type: string
+              enum: [compact, normal, relaxed]
+        layout:
+          type: object
+          properties:
+            maxWidth:
+              type: integer
+            padding:
+              $ref: '#/components/schemas/SpacingValue'
+            centered:
+              type: boolean
+
+    ComponentInstance:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        page_design_id:
+          type: string
+          format: uuid
+        component_type:
+          type: string
+          enum: [button, input, text, image, container, row, col, form, card, grid]
+        parent_id:
+          type: string
+          format: uuid
+        position:
+          $ref: '#/components/schemas/ComponentPosition'
+        props:
+          type: object
+        styles:
+          $ref: '#/components/schemas/ComponentStyles'
+        events:
+          type: object
+        responsive:
+          type: object
+        layout_props:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        meta:
+          type: object
+
+    ComponentPosition:
+      type: object
+      properties:
+        z_index:
+          type: integer
+          minimum: 0
+        order:
+          type: integer
+          minimum: 0
+
+    ComponentStyles:
+      type: object
+      properties:
+        width:
+          type: string
+        height:
+          type: string
+        margin:
+          $ref: '#/components/schemas/SpacingValue'
+        padding:
+          $ref: '#/components/schemas/SpacingValue'
+        backgroundColor:
+          type: string
+        border:
+          $ref: '#/components/schemas/BorderValue'
+        borderRadius:
+          type: string
+        color:
+          type: string
+        fontSize:
+          type: string
+        fontWeight:
+          type: string
+        textAlign:
+          type: string
+          enum: [left, center, right, justify]
+
+    SpacingValue:
+      oneOf:
+        - type: integer
+        - type: object
+          properties:
+            x:
+              type: integer
+            y:
+              type: integer
+            top:
+              type: integer
+            right:
+              type: integer
+            bottom:
+              type: integer
+            left:
+              type: integer
+
+    BorderValue:
+      oneOf:
+        - type: boolean
+        - type: object
+          properties:
+            width:
+              type: integer
+            color:
+              type: string
+            style:
+              type: string
+              enum: [solid, dashed, dotted, double]
+            side:
+              type: string
+              enum: [all, top, right, bottom, left, x, y]
+
+    ComponentTree:
+      type: object
+      properties:
+        version:
+          type: string
+        root_id:
+          type: string
+          format: uuid
+        components:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ComponentInstance'
+        hierarchy:
+          type: array
+          items:
+            $ref: '#/components/schemas/HierarchyNode'
+
+    HierarchyNode:
+      type: object
+      properties:
+        component_id:
+          type: string
+          format: uuid
+        parent_id:
+          type: string
+          format: uuid
+        children:
+          type: array
+          items:
+            type: string
+            format: uuid
+        depth:
+          type: integer
+          minimum: 0
+        path:
+          type: string
+
+    LayoutTree:
+      type: object
+      properties:
+        page_design:
+          $ref: '#/components/schemas/PageDesign'
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComponentInstance'
+        hierarchy:
+          type: object
+          properties:
+            flat:
+              type: array
+              items:
+                $ref: '#/components/schemas/HierarchyNode'
+            tree:
+              type: object
+        statistics:
+          type: object
+          properties:
+            total_components:
+              type: integer
+            component_types:
+              type: object
+              additionalProperties:
+                type: integer
+            max_depth:
+              type: integer
+
+    DesignHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        page_design_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [create_component, update_component, delete_component, move_component, copy_component, paste_component, undo, redo, batch_operation]
+        description:
+          type: string
+        before_state:
+          $ref: '#/components/schemas/ComponentTree'
+        after_state:
+          $ref: '#/components/schemas/ComponentTree'
+        affected_components:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+        session_id:
+          type: string
+          format: uuid
+
+    BatchOperation:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum: [create, update, delete, move]
+        data:
+          type: object
+          description: 操作数据，根据类型不同而不同
+        id:
+          type: string
+          format: uuid
+          description: 组件ID（更新和删除操作需要）
+
+    BatchOperationResult:
+      type: object
+      properties:
+        operation:
+          $ref: '#/components/schemas/BatchOperation'
+        success:
+          type: boolean
+        data:
+          type: object
+          description: 操作结果数据
+        error:
+          type: string
+          description: 错误信息（操作失败时）
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+
+    ComponentCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+
+    ComponentLibraryItem:
+      type: object
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        icon:
+          type: string
+        default_props:
+          type: object
+        default_styles:
+          $ref: '#/components/schemas/ComponentStyles'
+        configurable_props:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+              label:
+                type: string
+              required:
+                type: boolean
+              default:
+                description: 默认值
+              options:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    label:
+                      type: string
+                    value:
+                      type: string
+
+    ConflictError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Version conflict
+        message:
+          type: string
+          example: The resource has been modified by another process
+        current_version:
+          type: integer
+        your_version:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: object
+
+    Unauthorized:
+      description: 未授权访问
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+              message:
+                type: string
+                example: Authentication required
+
+    NotFound:
+      description: 资源未找到
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Not Found
+              message:
+                type: string
+                example: The requested resource was not found
+
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Internal Server Error
+              message:
+                type: string
+                example: An unexpected error occurred
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase JWT Token
+
+tags:
+  - name: 页面设计
+    description: 页面设计的管理操作
+  - name: 组件实例
+    description: 组件实例的管理操作
+  - name: 批量操作
+    description: 批量操作组件
+  - name: 布局管理
+    description: 页面布局的管理
+  - name: 历史记录
+    description: 设计历史记录的管理
+  - name: 自动保存
+    description: 自动保存功能
+  - name: 组件库
+    description: 组件库管理
+
+# 外部文档
+externalDocs:
+  description: FlowBase 项目文档
+  url: https://docs.flowbase.com
