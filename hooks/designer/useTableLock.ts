@@ -9,13 +9,8 @@ import {
   DEFAULT_LOCK_DURATIONS,
   cleanupExpiredLocks,
 } from '@/lib/designer/locking'
-import {
-  LockError,
-} from '@/lib/designer/locking'
-import type {
-  TableLock,
-  AcquireLockRequest,
-} from '@/types/designer/api'
+import { LockError } from '@/lib/designer/locking'
+import type { TableLock, AcquireLockRequest } from '@/types/designer/api'
 
 /**
  * Hook state interface
@@ -107,7 +102,7 @@ export function useTableLock(
   // Refs for cleanup and timers
   const renewalTimerRef = useRef<NodeJS.Timeout | null>(null)
   const cleanupTimerRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // Clear existing timers
   const clearTimers = useCallback(() => {
     if (renewalTimerRef.current) {
@@ -126,9 +121,12 @@ export function useTableLock(
   }, [])
 
   // Set error helper
-  const setError = useCallback((error: string | null) => {
-    updateState({ error, lockStatus: error ? 'error' : 'idle' })
-  }, [updateState])
+  const setError = useCallback(
+    (error: string | null) => {
+      updateState({ error, lockStatus: error ? 'error' : 'idle' })
+    },
+    [updateState]
+  )
 
   // Calculate time remaining until lock expiration
   const getTimeRemaining = useCallback((lock: TableLock | null): number | null => {
@@ -160,7 +158,7 @@ export function useTableLock(
 
     // If we have user metadata, use it
     if (state.currentLock.user?.user_metadata?.name) {
-      return state.currentLock.user.user_metadata.name
+      return String(state.currentLock.user.user_metadata.name)
     }
 
     // Fall back to email
@@ -191,44 +189,74 @@ export function useTableLock(
     return `${minutes}m`
   }, [])
 
-  // Acquire a new lock
-  const acquireLock = useCallback(async (
-    request: Omit<AcquireLockRequest, 'duration_minutes'>
-  ): Promise<boolean> => {
-    if (!projectId || !user) {
-      setError('User not authenticated or project not selected')
-      return false
-    }
-
-    updateState({ isLoading: true, error: null, lockStatus: 'acquiring' })
+  // Refresh active locks for the table
+  const refreshLocks = useCallback(async (): Promise<void> => {
+    if (!projectId) return
 
     try {
-      const lockRequest: AcquireLockRequest = {
-        ...request,
-        duration_minutes: opts.defaultDuration,
+      const locks = await getTableLocks(projectId, tableId)
+      setState(prev => ({ ...prev, activeLocks: locks }))
+
+      // Update current lock if it's still active
+      if (state.currentLock) {
+        const currentLockStillActive = locks.find(lock => lock.id === state.currentLock!.id)
+        if (!currentLockStillActive || !isLockValid(currentLockStillActive)) {
+          setState(prev => ({
+            ...prev,
+            currentLock: null,
+            lockStatus: 'idle',
+          }))
+        } else if (currentLockStillActive.expires_at !== state.currentLock.expires_at) {
+          setState(prev => ({
+            ...prev,
+            currentLock: currentLockStillActive,
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh locks:', error)
+    }
+  }, [projectId, tableId, state.currentLock])
+
+  // Acquire a new lock
+  const acquireLock = useCallback(
+    async (request: Omit<AcquireLockRequest, 'duration_minutes'>): Promise<boolean> => {
+      if (!projectId || !user) {
+        setError('User not authenticated or project not selected')
+        return false
       }
 
-      const response = await acquireTableLock(projectId, tableId, lockRequest)
+      updateState({ isLoading: true, error: null, lockStatus: 'acquiring' })
 
-      setState(prev => ({
-        ...prev,
-        currentLock: response.data,
-        isLoading: false,
-        error: null,
-        lockStatus: 'acquired',
-      }))
+      try {
+        const lockRequest: AcquireLockRequest = {
+          ...request,
+          duration_minutes: opts.defaultDuration,
+        }
 
-      // Refresh active locks
-      await refreshLocks()
+        const response = await acquireTableLock(projectId, tableId, lockRequest)
 
-      return true
-    } catch (error) {
-      const errorMessage = error instanceof LockError ? error.message : 'Failed to acquire lock'
-      setError(errorMessage)
-      updateState({ isLoading: false })
-      return false
-    }
-  }, [projectId, tableId, user, opts.defaultDuration, setError, updateState, refreshLocks])
+        setState(prev => ({
+          ...prev,
+          currentLock: response.data,
+          isLoading: false,
+          error: null,
+          lockStatus: 'acquired',
+        }))
+
+        // Refresh active locks
+        await refreshLocks()
+
+        return true
+      } catch (error) {
+        const errorMessage = error instanceof LockError ? error.message : 'Failed to acquire lock'
+        setError(errorMessage)
+        updateState({ isLoading: false })
+        return false
+      }
+    },
+    [projectId, tableId, user, opts.defaultDuration, setError, updateState, refreshLocks]
+  )
 
   // Release current lock
   const releaseLock = useCallback(async (): Promise<boolean> => {
@@ -264,74 +292,56 @@ export function useTableLock(
       updateState({ isLoading: false })
       return false
     }
-  }, [state.currentLock, projectId, tableId, opts.confirmActions, setError, updateState, refreshLocks])
+  }, [
+    state.currentLock,
+    projectId,
+    tableId,
+    opts.confirmActions,
+    setError,
+    updateState,
+    refreshLocks,
+  ])
 
   // Extend current lock
-  const extendLock = useCallback(async (additionalMinutes = 30): Promise<boolean> => {
-    if (!state.currentLock || !projectId) {
-      setError('No lock to extend')
-      return false
-    }
-
-    if (!isLockedByCurrentUser) {
-      setError('You can only extend your own locks')
-      return false
-    }
-
-    updateState({ isLoading: true, error: null })
-
-    try {
-      const extendedLock = await extendLockApi(
-        projectId,
-        tableId,
-        state.currentLock.lock_token,
-        additionalMinutes
-      )
-
-      setState(prev => ({
-        ...prev,
-        currentLock: extendedLock,
-        isLoading: false,
-        error: null,
-      }))
-
-      return true
-    } catch (error) {
-      const errorMessage = error instanceof LockError ? error.message : 'Failed to extend lock'
-      setError(errorMessage)
-      updateState({ isLoading: false })
-      return false
-    }
-  }, [state.currentLock, projectId, tableId, isLockedByCurrentUser, setError, updateState])
-
-  // Refresh active locks for the table
-  const refreshLocks = useCallback(async (): Promise<void> => {
-    if (!projectId) return
-
-    try {
-      const locks = await getTableLocks(projectId, tableId)
-      setState(prev => ({ ...prev, activeLocks: locks }))
-
-      // Update current lock if it's still active
-      if (state.currentLock) {
-        const currentLockStillActive = locks.find(lock => lock.id === state.currentLock!.id)
-        if (!currentLockStillActive || !isLockValid(currentLockStillActive)) {
-          setState(prev => ({
-            ...prev,
-            currentLock: null,
-            lockStatus: 'idle',
-          }))
-        } else if (currentLockStillActive.expires_at !== state.currentLock.expires_at) {
-          setState(prev => ({
-            ...prev,
-            currentLock: currentLockStillActive,
-          }))
-        }
+  const extendLock = useCallback(
+    async (additionalMinutes = 30): Promise<boolean> => {
+      if (!state.currentLock || !projectId) {
+        setError('No lock to extend')
+        return false
       }
-    } catch (error) {
-      console.error('Failed to refresh locks:', error)
-    }
-  }, [projectId, tableId, state.currentLock])
+
+      if (!isLockedByCurrentUser) {
+        setError('You can only extend your own locks')
+        return false
+      }
+
+      updateState({ isLoading: true, error: null })
+
+      try {
+        const extendedLock = await extendLockApi(
+          projectId,
+          tableId,
+          state.currentLock.lock_token,
+          additionalMinutes
+        )
+
+        setState(prev => ({
+          ...prev,
+          currentLock: extendedLock,
+          isLoading: false,
+          error: null,
+        }))
+
+        return true
+      } catch (error) {
+        const errorMessage = error instanceof LockError ? error.message : 'Failed to extend lock'
+        setError(errorMessage)
+        updateState({ isLoading: false })
+        return false
+      }
+    },
+    [state.currentLock, projectId, tableId, isLockedByCurrentUser, setError, updateState]
+  )
 
   // Auto-renewal logic
   useEffect(() => {
@@ -344,16 +354,16 @@ export function useTableLock(
         // Set up renewal timer
         renewalTimerRef.current = setInterval(async () => {
           const currentRemaining = getTimeRemaining(state.currentLock)
-          if (currentRemaining && currentRemaining <= opts.autoRenewMinutes && state.currentLock && projectId) {
+          if (
+            currentRemaining &&
+            currentRemaining <= opts.autoRenewMinutes &&
+            state.currentLock &&
+            projectId
+          ) {
             const lockType = state.currentLock.lock_type
             const lockToken = state.currentLock.lock_token
             if (lockType && lockToken) {
-              await extendLockApi(
-                projectId,
-                tableId,
-                lockToken!,
-                DEFAULT_LOCK_DURATIONS[lockType]
-              )
+              await extendLockApi(projectId, tableId, lockToken!, DEFAULT_LOCK_DURATIONS[lockType])
             }
           }
         }, 60000) // Check every minute
@@ -361,7 +371,16 @@ export function useTableLock(
     }
 
     return clearTimers
-  }, [state.currentLock, isLockedByCurrentUser, opts.autoRenewMinutes, getTimeRemaining, extendLock, clearTimers, projectId, tableId])
+  }, [
+    state.currentLock,
+    isLockedByCurrentUser,
+    opts.autoRenewMinutes,
+    getTimeRemaining,
+    extendLock,
+    clearTimers,
+    projectId,
+    tableId,
+  ])
 
   // Auto-cleanup logic
   useEffect(() => {
@@ -429,10 +448,7 @@ export function useTableLock(
 /**
  * Hook for managing multiple table locks (for batch operations)
  */
-export function useMultipleTableLocks(
-  tableIds: string[],
-  options: UseTableLockOptions = {}
-) {
+export function useMultipleTableLocks(tableIds: string[], options: UseTableLockOptions = {}) {
   const [lockStates, setLockStates] = useState<Record<string, UseTableLockReturn>>({})
   const [isBatchOperating, setIsBatchOperating] = useState(false)
   const [batchError, setBatchError] = useState<string | null>(null)
@@ -452,41 +468,47 @@ export function useMultipleTableLocks(
     setLockStates(states)
   }, [tableIds, options, lockStates])
 
-  const acquireBatchLocks = useCallback(async (
-    request: Omit<AcquireLockRequest, 'duration_minutes'>
-  ): Promise<{ successful: string[]; failed: string[] }> => {
-    setIsBatchOperating(true)
-    setBatchError(null)
+  const acquireBatchLocks = useCallback(
+    async (
+      request: Omit<AcquireLockRequest, 'duration_minutes'>
+    ): Promise<{ successful: string[]; failed: string[] }> => {
+      setIsBatchOperating(true)
+      setBatchError(null)
 
-    const successful: string[] = []
-    const failed: string[] = []
+      const successful: string[] = []
+      const failed: string[] = []
 
-    try {
-      // Try to acquire locks for all tables
-      const promises = tableIds.map(async (tableId) => {
-        try {
-          const hook = lockStates[tableId]
-          if (hook && await hook.acquireLock(request)) {
-            successful.push(tableId)
-          } else {
+      try {
+        // Try to acquire locks for all tables
+        const promises = tableIds.map(async tableId => {
+          try {
+            const hook = lockStates[tableId]
+            if (hook && (await hook.acquireLock(request))) {
+              successful.push(tableId)
+            } else {
+              failed.push(tableId)
+            }
+          } catch {
             failed.push(tableId)
           }
-        } catch {
-          failed.push(tableId)
-        }
-      })
+        })
 
-      await Promise.all(promises)
-    } catch (error) {
-      setBatchError(error instanceof Error ? error.message : 'Batch lock acquisition failed')
-    } finally {
-      setIsBatchOperating(false)
-    }
+        await Promise.all(promises)
+      } catch (error) {
+        setBatchError(error instanceof Error ? error.message : 'Batch lock acquisition failed')
+      } finally {
+        setIsBatchOperating(false)
+      }
 
-    return { successful, failed }
-  }, [tableIds, lockStates])
+      return { successful, failed }
+    },
+    [tableIds, lockStates]
+  )
 
-  const releaseBatchLocks = useCallback(async (): Promise<{ successful: string[]; failed: string[] }> => {
+  const releaseBatchLocks = useCallback(async (): Promise<{
+    successful: string[]
+    failed: string[]
+  }> => {
     setIsBatchOperating(true)
     setBatchError(null)
 

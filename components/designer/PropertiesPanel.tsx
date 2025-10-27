@@ -121,20 +121,26 @@ export function PropertiesPanel({
   // Table editing handlers
   const handleStartEditTable = () => {
     if (!tableLock.canEdit && selectedTable) {
-      createNotification(NotificationType.ERROR, 'Table Locked', 'Cannot edit table - it is locked by another user')
+      createNotification(
+        NotificationType.ERROR,
+        'Table Locked',
+        'Cannot edit table - it is locked by another user'
+      )
       return
     }
 
     if (!isEditingTable && selectedTable) {
       // Acquire lock before editing
-      tableLock.acquireLock({
-        lock_type: 'optimistic',
-        reason: 'Editing table properties',
-      }).then(success => {
-        if (success) {
-          setIsEditingTable(true)
-        }
-      })
+      tableLock
+        .acquireLock({
+          lock_type: 'optimistic',
+          reason: 'Editing table properties',
+        })
+        .then(success => {
+          if (success) {
+            setIsEditingTable(true)
+          }
+        })
     }
   }
 
@@ -170,7 +176,11 @@ export function PropertiesPanel({
 
   const handleDeleteTable = () => {
     if (selectedTable && onTableDelete) {
-      if (window.confirm(`Are you sure you want to delete the table "${selectedTable.name}"? This action cannot be undone.`)) {
+      if (
+        window.confirm(
+          `Are you sure you want to delete the table "${selectedTable.name}"? This action cannot be undone.`
+        )
+      ) {
         onTableDelete(selectedTable.id)
       }
     }
@@ -195,13 +205,13 @@ export function PropertiesPanel({
 
     return (
       <div className="space-y-2">
-        <div className={`flex items-center gap-2 text-sm ${
-          isLockedByCurrentUser ? 'text-blue-600' : 'text-orange-600'
-        }`}>
+        <div
+          className={`flex items-center gap-2 text-sm ${
+            isLockedByCurrentUser ? 'text-blue-600' : 'text-orange-600'
+          }`}
+        >
           <Lock className="h-4 w-4" />
-          <span>
-            Locked by {isLockedByCurrentUser ? 'you' : tableLock.getLockOwner()}
-          </span>
+          <span>Locked by {isLockedByCurrentUser ? 'you' : tableLock.getLockOwner()}</span>
         </div>
 
         {timeRemaining !== null && (
@@ -276,13 +286,17 @@ export function PropertiesPanel({
             {/* Show active users */}
             {tableLock.activeLocks.length > 0 && (
               <div className="mt-3 space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">Active Collaborators</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  Active Collaborators
+                </Label>
                 <div className="space-y-1">
-                  {tableLock.activeLocks.map((lock) => (
+                  {tableLock.activeLocks.map(lock => (
                     <div key={lock.id} className="flex items-center gap-2 text-xs">
                       <User className="h-3 w-3" />
                       <span>
-                        {lock.user?.user_metadata?.name || lock.user?.email || 'Unknown user'}
+                        {String(
+                          lock.user?.user_metadata?.name || lock.user?.email || 'Unknown user'
+                        )}
                       </span>
                       <Badge variant="outline" className="text-xs">
                         {lock.lock_type}
@@ -324,11 +338,7 @@ export function PropertiesPanel({
                   >
                     <X className="h-3 w-3" />
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveTableEdit}
-                    className="h-7"
-                  >
+                  <Button size="sm" onClick={handleSaveTableEdit} className="h-7">
                     <Save className="h-3 w-3" />
                   </Button>
                 </div>
@@ -341,7 +351,7 @@ export function PropertiesPanel({
               {isEditingTable ? (
                 <Input
                   value={editedTable.name}
-                  onChange={(e) => setEditedTable({ ...editedTable, name: e.target.value })}
+                  onChange={e => setEditedTable({ ...editedTable, name: e.target.value })}
                   className="mt-1 h-8"
                   placeholder="Table name"
                 />
@@ -355,7 +365,7 @@ export function PropertiesPanel({
               {isEditingTable ? (
                 <Input
                   value={editedTable.table_name}
-                  onChange={(e) => setEditedTable({ ...editedTable, table_name: e.target.value })}
+                  onChange={e => setEditedTable({ ...editedTable, table_name: e.target.value })}
                   className="mt-1 h-8 font-mono text-sm"
                   placeholder="table_name"
                 />
@@ -378,7 +388,7 @@ export function PropertiesPanel({
               {isEditingTable ? (
                 <Textarea
                   value={editedTable.description || ''}
-                  onChange={(e) => setEditedTable({ ...editedTable, description: e.target.value })}
+                  onChange={e => setEditedTable({ ...editedTable, description: e.target.value })}
                   className="mt-1 min-h-16 resize-none"
                   placeholder="Table description (optional)"
                 />
@@ -495,7 +505,11 @@ export function PropertiesPanel({
               size="sm"
               variant="outline"
               onClick={() => {
-                createNotification(NotificationType.INFO, 'Export Schema', 'Schema export functionality coming soon')
+                createNotification(
+                  NotificationType.INFO,
+                  'Export Schema',
+                  'Schema export functionality coming soon'
+                )
               }}
               className="w-full"
             >

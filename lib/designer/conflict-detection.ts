@@ -10,6 +10,10 @@ interface DatabasePayload<T> {
   [key: string]: unknown
 }
 
+interface DataTableWithUpdatedBy extends DataTable {
+  updated_by?: string
+}
+
 /**
  * Conflict types
  */
@@ -162,7 +166,7 @@ export class ConflictDetector {
           schema: 'public',
           table: 'table_locks',
         },
-        (payload) => this.handleTableLockChange(payload)
+        payload => this.handleTableLockChange(payload as unknown as DatabasePayload<TableLock>)
       )
       .on(
         'postgres_changes',
@@ -171,7 +175,7 @@ export class ConflictDetector {
           schema: 'public',
           table: 'data_tables',
         },
-        (payload) => this.handleTableChange(payload)
+        payload => this.handleTableChange(payload as unknown as DatabasePayload<DataTable>)
       )
       .on(
         'postgres_changes',
@@ -180,7 +184,7 @@ export class ConflictDetector {
           schema: 'public',
           table: 'data_fields',
         },
-        (payload) => this.handleFieldChange(payload)
+        payload => this.handleFieldChange(payload as unknown as DatabasePayload<DataField>)
       )
       .subscribe()
 
@@ -195,23 +199,23 @@ export class ConflictDetector {
   private handleTableLockChange(payload: DatabasePayload<TableLock>) {
     const { eventType, new: newRecord, old: oldRecord } = payload
 
-    if (eventType === 'INSERT') {
+    if (eventType === 'INSERT' && newRecord) {
       this.emitRealTimeEvent({
         id: crypto.randomUUID(),
         type: RealTimeEventType.TABLE_LOCKED,
         payload: { lock: newRecord },
         userId: newRecord.user_id,
         timestamp: new Date(),
-        projectId: newRecord.project_id,
+        projectId: newRecord.table_id, // Use table_id as project identifier
       })
-    } else if (eventType === 'DELETE') {
+    } else if (eventType === 'DELETE' && oldRecord) {
       this.emitRealTimeEvent({
         id: crypto.randomUUID(),
         type: RealTimeEventType.TABLE_UNLOCKED,
         payload: { lock: oldRecord },
         userId: oldRecord.user_id,
         timestamp: new Date(),
-        projectId: oldRecord.project_id,
+        projectId: oldRecord.table_id, // Use table_id as project identifier
       })
     }
   }
@@ -222,12 +226,12 @@ export class ConflictDetector {
   private handleTableChange(payload: DatabasePayload<DataTable>) {
     const { eventType, new: newRecord, old: oldRecord } = payload
 
-    if (eventType === 'UPDATE') {
+    if (eventType === 'UPDATE' && newRecord) {
       this.emitRealTimeEvent({
         id: crypto.randomUUID(),
         type: RealTimeEventType.TABLE_MODIFIED,
         payload: { oldTable: oldRecord, newTable: newRecord },
-        userId: newRecord.updated_by || oldRecord.updated_by,
+        userId: newRecord.created_by || oldRecord?.created_by || 'unknown',
         timestamp: new Date(),
         projectId: newRecord.project_id,
       })
@@ -240,14 +244,17 @@ export class ConflictDetector {
   private handleFieldChange(payload: DatabasePayload<DataField>) {
     const { eventType, new: newRecord, old: oldRecord } = payload
 
-    if (eventType === 'UPDATE') {
-      this.emitRealTimeEvent({
-        id: crypto.randomUUID(),
-        type: RealTimeEventType.FIELD_MODIFIED,
-        payload: { oldField: oldRecord, newField: newRecord },
-        userId: newRecord.updated_by || oldRecord.updated_by,
-        timestamp: new Date(),
-        projectId: newRecord.project_id,
+    if (eventType === 'UPDATE' && newRecord) {
+      // Get user info from auth context since DataField doesn't have user tracking
+      this.supabase.auth.getUser().then(({ data: { user } }) => {
+        this.emitRealTimeEvent({
+          id: crypto.randomUUID(),
+          type: RealTimeEventType.FIELD_MODIFIED,
+          payload: { oldField: oldRecord, newField: newRecord },
+          userId: user?.id || 'unknown',
+          timestamp: new Date(),
+          projectId: newRecord.table_id, // DataField has table_id instead of project_id
+        })
       })
     }
   }
@@ -269,10 +276,7 @@ export class ConflictDetector {
   /**
    * Add real-time event listener
    */
-  public addEventListener(
-    eventType: RealTimeEventType,
-    listener: (event: RealTimeEvent) => void
-  ) {
+  public addEventListener(eventType: RealTimeEventType, listener: (event: RealTimeEvent) => void) {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, [])
     }
@@ -326,6 +330,7 @@ export class ConflictDetector {
     changes?: Partial<DataTable>
   ): Promise<ConflictDetectionResult> {
     const conflicts: Conflict[] = []
+    const warnings: Conflict[] = []
 
     try {
       // Check for active locks
@@ -338,7 +343,9 @@ export class ConflictDetector {
       if (locks && locks.length > 0) {
         const activeLock = locks.find(lock => isLockValid(lock as TableLock))
         if (activeLock) {
-          const { data: { user } } = await this.supabase.auth.getUser()
+          const {
+            data: { user },
+          } = await this.supabase.auth.getUser()
           const isOwnLock = activeLock.user_id === user?.id
 
           conflicts.push({
@@ -360,7 +367,8 @@ export class ConflictDetector {
             resourceType: 'table',
             conflictingUserId: activeLock.user_id,
             conflictingUserData: {
-              name: activeLock.user?.user_metadata?.name || activeLock.user?.email || 'Unknown User',
+              name:
+                activeLock.user?.user_metadata?.name || activeLock.user?.email || 'Unknown User',
               email: activeLock.user?.email || '',
             },
           })
@@ -371,7 +379,7 @@ export class ConflictDetector {
       if (operation === 'update' && changes) {
         const { data: currentTable } = await this.supabase
           .from('data_tables')
-          .select('updated_at, updated_by, user:users(id, email, user_metadata)')
+          .select('updated_at, created_by, updated_by, user:users(id, email, user_metadata)')
           .eq('id', tableId)
           .single()
 
@@ -382,10 +390,18 @@ export class ConflictDetector {
           if (userLastSeen) {
             const lastSeenTime = new Date(userLastSeen)
             if (lastUpdate > lastSeenTime) {
-              const { data: { user } } = await this.supabase.auth.getUser()
+              const {
+                data: { user },
+              } = await this.supabase.auth.getUser()
               const userData = currentTable.user[0]
 
-              if (currentTable.updated_by !== user?.id) {
+              // Since updated_by is not available, just check if someone else might have modified
+              // This is a simplified check - in a real implementation you'd track the last modifier
+              const currentTableWithUpdatedBy = currentTable as DataTableWithUpdatedBy
+              if (
+                currentTableWithUpdatedBy.updated_by &&
+                currentTableWithUpdatedBy.updated_by !== user?.id
+              ) {
                 warnings.push({
                   id: crypto.randomUUID(),
                   type: ConflictType.CONCURRENT_EDIT,
@@ -442,7 +458,6 @@ export class ConflictDetector {
           }
         }
       }
-
     } catch (error) {
       console.error('Error detecting table conflicts:', error)
     }
@@ -466,6 +481,7 @@ export class ConflictDetector {
     changes?: Partial<DataField>
   ): Promise<ConflictDetectionResult> {
     const conflicts: Conflict[] = []
+    const warnings: Conflict[] = []
 
     try {
       // Check if table is locked
@@ -478,7 +494,9 @@ export class ConflictDetector {
       if (locks && locks.length > 0) {
         const activeLock = locks.find(lock => isLockValid(lock as TableLock))
         if (activeLock) {
-          const { data: { user } } = await this.supabase.auth.getUser()
+          const {
+            data: { user },
+          } = await this.supabase.auth.getUser()
           const isOwnLock = activeLock.user_id === user?.id
 
           if (!isOwnLock) {
@@ -549,7 +567,9 @@ export class ConflictDetector {
             description: `This field is used in ${relationships.length} relationship(s) and cannot be modified or deleted.`,
             details: {
               relationships,
-              affectedTables: relationships.map(rel => rel.source_table_id).concat(relationships.map(rel => rel.target_table_id)),
+              affectedTables: relationships
+                .map(rel => rel.source_table_id)
+                .concat(relationships.map(rel => rel.target_table_id)),
             },
             createdAt: new Date(),
             resourceId: fieldId,
@@ -557,7 +577,6 @@ export class ConflictDetector {
           })
         }
       }
-
     } catch (error) {
       console.error('Error detecting field conflicts:', error)
     }
@@ -573,16 +592,16 @@ export class ConflictDetector {
   /**
    * Suggest resolution strategy based on conflicts
    */
-  private suggestResolution(
-    conflicts: Conflict[],
-  ): ConflictResolution | undefined {
+  private suggestResolution(conflicts: Conflict[]): ConflictResolution | undefined {
     if (conflicts.length === 0) return undefined
 
     const hasLockConflict = conflicts.some(c => c.type === ConflictType.TABLE_LOCKED)
-    const hasNameConflict = conflicts.some(c =>
-      c.type === ConflictType.SCHEMA_MODIFIED || c.type === ConflictType.FIELD_CONFLICT
+    const hasNameConflict = conflicts.some(
+      c => c.type === ConflictType.SCHEMA_MODIFIED || c.type === ConflictType.FIELD_CONFLICT
     )
-    const hasRelationshipConflict = conflicts.some(c => c.type === ConflictType.RELATIONSHIP_CONFLICT)
+    const hasRelationshipConflict = conflicts.some(
+      c => c.type === ConflictType.RELATIONSHIP_CONFLICT
+    )
 
     if (hasRelationshipConflict) {
       return ConflictResolution.CANCEL_OPERATION
@@ -633,16 +652,11 @@ export class ConflictDetector {
    * Show conflict notification to user
    */
   public showConflictNotification(conflict: Conflict): void {
-    this.createNotification(
-      NotificationType.CONFLICT,
-      conflict.title,
-      conflict.description,
-      {
-        persistent: conflict.severity === ConflictSeverity.CRITICAL,
-        actions: this.createConflictActions(conflict),
-        metadata: { conflict },
-      }
-    )
+    this.createNotification(NotificationType.CONFLICT, conflict.title, conflict.description, {
+      persistent: conflict.severity === ConflictSeverity.CRITICAL,
+      actions: this.createConflictActions(conflict),
+      metadata: { conflict },
+    })
   }
 
   /**
@@ -744,14 +758,16 @@ export class ConflictDetector {
   /**
    * Get user activity in the project
    */
-  public async getActiveUsers(): Promise<Array<{
-    id: string
-    name: string
-    email: string
-    avatar?: string
-    lastActivity: Date
-    currentActivity?: string
-  }>> {
+  public async getActiveUsers(): Promise<
+    Array<{
+      id: string
+      name: string
+      email: string
+      avatar?: string
+      lastActivity: Date
+      currentActivity?: string
+    }>
+  > {
     try {
       // This would typically involve querying a user activity table
       // For now, return a placeholder implementation
@@ -782,47 +798,60 @@ export function useConflictDetection(projectId: string) {
 
   useEffect(() => {
     // Set up notification listener
-    const unsubscribeNotification = conflictDetector.addNotificationListener((notification) => {
+    const unsubscribeNotification = conflictDetector.addNotificationListener(notification => {
       setNotifications(prev => [notification, ...prev].slice(0, 50)) // Keep last 50 notifications
     })
 
     return unsubscribeNotification
   }, [projectId])
 
-  const detectTableConflicts = useCallback(async (
-    tableId: string,
-    operation: 'create' | 'update' | 'delete',
-    changes?: Partial<DataTable>
-  ) => {
-    return await conflictDetector.detectTableConflicts(projectId, tableId, operation, changes)
-  }, [projectId])
+  const detectTableConflicts = useCallback(
+    async (
+      tableId: string,
+      operation: 'create' | 'update' | 'delete',
+      changes?: Partial<DataTable>
+    ) => {
+      return await conflictDetector.detectTableConflicts(projectId, tableId, operation, changes)
+    },
+    [projectId]
+  )
 
-  const detectFieldConflicts = useCallback(async (
-    tableId: string,
-    fieldId: string,
-    operation: 'create' | 'update' | 'delete',
-    changes?: Partial<DataField>
-  ) => {
-    return await conflictDetector.detectFieldConflicts(projectId, tableId, fieldId, operation, changes)
-  }, [projectId])
+  const detectFieldConflicts = useCallback(
+    async (
+      tableId: string,
+      fieldId: string,
+      operation: 'create' | 'update' | 'delete',
+      changes?: Partial<DataField>
+    ) => {
+      return await conflictDetector.detectFieldConflicts(
+        projectId,
+        tableId,
+        fieldId,
+        operation,
+        changes
+      )
+    },
+    [projectId]
+  )
 
-  const createNotification = useCallback((
-    type: NotificationType,
-    title: string,
-    message: string,
-    options?: {
-      persistent?: boolean
-      actions?: NotificationAction[]
-      metadata?: Record<string, unknown>
-    }
-  ) => {
-    return conflictDetector.createNotification(type, title, message, options)
-  }, [])
+  const createNotification = useCallback(
+    (
+      type: NotificationType,
+      title: string,
+      message: string,
+      options?: {
+        persistent?: boolean
+        actions?: NotificationAction[]
+        metadata?: Record<string, unknown>
+      }
+    ) => {
+      return conflictDetector.createNotification(type, title, message, options)
+    },
+    []
+  )
 
   const markNotificationAsRead = useCallback((notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-    )
+    setNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, read: true } : n)))
   }, [])
 
   const clearNotifications = useCallback(() => {

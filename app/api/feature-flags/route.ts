@@ -76,7 +76,7 @@ function hashCode(str: string): number {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash
   }
   return Math.abs(hash)
@@ -85,10 +85,7 @@ function hashCode(str: string): number {
 /**
  * Evaluate if a flag should be enabled for the current user
  */
-function evaluateFlag(
-  flag: FeatureFlag,
-  context: EvaluationContext
-): boolean {
+function evaluateFlag(flag: FeatureFlag, context: EvaluationContext): boolean {
   if (!flag.enabled) {
     return false
   }
@@ -96,7 +93,7 @@ function evaluateFlag(
   // Check rollout percentage
   if (flag.rolloutPercentage !== undefined && flag.rolloutPercentage < 100) {
     const hash = hashCode(`${context.userId || 'anonymous'}-${flag.name}`)
-    const shouldInclude = (hash % 100) < flag.rolloutPercentage
+    const shouldInclude = hash % 100 < flag.rolloutPercentage
 
     if (!shouldInclude) {
       return false
@@ -139,14 +136,26 @@ export async function GET(request: NextRequest) {
         .eq('active', true)
 
       if (!error && flags) {
-        dbFlags = flags.reduce((acc: Record<string, FeatureFlag>, flag: { key: string; enabled: boolean; rollout_percentage: number; [key: string]: unknown }) => {
-          acc[flag.key] = {
-            ...flag,
-            enabled: flag.enabled,
-            rolloutPercentage: flag.rollout_percentage,
-          }
-          return acc
-        }, {})
+        dbFlags = flags.reduce(
+          (
+            acc: Record<string, FeatureFlag>,
+            flag: {
+              key: string
+              enabled: boolean
+              rollout_percentage: number
+              [key: string]: unknown
+            }
+          ) => {
+            acc[flag.key] = {
+              name: String(flag.name || flag.key),
+              description: String(flag.description || `Feature flag: ${flag.key}`),
+              enabled: flag.enabled,
+              rolloutPercentage: flag.rollout_percentage,
+            }
+            return acc
+          },
+          {}
+        )
       }
     } catch (error) {
       console.error('Error loading flags from database:', error)
@@ -172,23 +181,16 @@ export async function GET(request: NextRequest) {
       enabled: enabledFlags,
       timestamp: new Date().toISOString(),
     })
-
   } catch (error) {
     console.error('Error in feature flags API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 /**
  * PATCH /api/feature-flags/[key] - Update a feature flag (admin only)
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { key: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { key: string } }) {
   try {
     const supabase = createClient()
     const { key } = params
@@ -210,22 +212,15 @@ export async function PATCH(
 
     if (error) {
       console.error('Error updating feature flag:', error)
-      return NextResponse.json(
-        { error: 'Failed to update feature flag' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to update feature flag' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       flag: data,
     })
-
   } catch (error) {
     console.error('Error updating feature flag:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
