@@ -397,7 +397,7 @@ export class ConflictDetector {
 
               // Since updated_by is not available, just check if someone else might have modified
               // This is a simplified check - in a real implementation you'd track the last modifier
-              const currentTableWithUpdatedBy = currentTable as DataTableWithUpdatedBy
+              const currentTableWithUpdatedBy = currentTable as unknown as DataTableWithUpdatedBy
               if (
                 currentTableWithUpdatedBy.updated_by &&
                 currentTableWithUpdatedBy.updated_by !== user?.id

@@ -64,7 +64,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    const supabase = await createClient()
     const tableSchema = await getTableSchema(tableName)
 
     // Build query
@@ -120,8 +119,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const { tableId } = await context.params
     const body = await request.json()
 
-    // First get the table definition to get the actual table name
+    // Create supabase client for this function
     const supabase = await createClient()
+
+    // First get the table definition to get the actual table name
     const { data: tableDef, error: tableError } = await supabase
       .from('data_tables')
       .select('table_name, status')
@@ -149,8 +150,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
         { status: 422 }
       )
     }
-
-    const supabase = await createClient()
 
     // Extract validated data
     const { data: recordData } = validation

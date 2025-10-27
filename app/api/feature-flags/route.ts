@@ -190,10 +190,13 @@ export async function GET(request: NextRequest) {
 /**
  * PATCH /api/feature-flags/[key] - Update a feature flag (admin only)
  */
-export async function PATCH(request: NextRequest, { params }: { params: { key: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ key: string }> }
+) {
   try {
     const supabase = createClient()
-    const { key } = params
+    const { key } = await params
     const body = await request.json()
 
     // This would typically require admin authentication

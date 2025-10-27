@@ -69,8 +69,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    const supabase = await createClient()
-
     const { data: record, error } = await supabase.from(tableName).select('*').eq('id', id).single()
 
     if (error) {
@@ -143,8 +141,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         { status: 422 }
       )
     }
-
-    const supabase = await createClient()
 
     // Extract validated data
     const { data: updateData } = validation
@@ -228,8 +224,6 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
         { status: 404 }
       )
     }
-
-    const supabase = await createClient()
 
     // Check for foreign key constraints before deletion
     const tableSchema = await getTableSchema(tableName)
