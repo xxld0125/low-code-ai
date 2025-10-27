@@ -17,8 +17,8 @@
 **Target Platform**: Web浏览器 (Chrome 88+, Firefox 85+, Safari 14+)
 **Project Type**: Web application (单页应用)
 **Performance Goals**: 拖拽响应时间 <50ms, 页面加载 <3秒, 50个组件时流畅度 >90%
-**Constraints**: 支持移动端触摸拖拽, 响应式设计, 自动保存防丢失
-**Scale/Scope**: 支持最多500个组件/页面, 1000+并发用户
+**Constraints**: 单用户模式（MVP版本）, 固定画布宽度1200px, 自动保存防丢失
+**Scale/Scope**: 支持最多50个组件/页面, JSON格式设计数据 + 渲染引擎
 
 ## Constitution Check
 
@@ -107,7 +107,7 @@ specs/003-page-designer/
       └── Grid.tsx
 
 /lib/
-  /designer/                    # 设计器核心逻辑
+  /page-designer/              # 页面设计器核心逻辑（避免与现有数据库设计器冲突）
     ├── layout-engine.ts        # 布局引擎
     ├── component-registry.ts   # 组件注册表
     ├── style-system.ts         # 样式系统
@@ -116,7 +116,7 @@ specs/003-page-designer/
     └── constraints.ts          # 约束规则
 
   /stores/                      # Zustand状态管理
-    ├── designer-store.ts       # 设计器状态
+    ├── page-designer.ts       # 页面设计器状态（避免与现有数据库设计器冲突）
     ├── component-store.ts      # 组件状态
     └── layout-store.ts         # 布局状态
 
@@ -139,7 +139,7 @@ specs/003-page-designer/
   ├── layout.ts                # 布局类型
   └── api.ts                   # API类型
 
-/app/api/designer/             # API路由实现
+/app/api/page-designer/         # API路由实现（避免与现有数据库设计器API冲突）
   ├── page-designs/route.ts
   ├── components/route.ts
   └── layout/route.ts
@@ -321,7 +321,7 @@ interface DesignerStore {
 
 - 使用React.memo优化组件渲染
 - 防抖的位置更新(100ms)
-- 虚拟化长组件列表(>50个组件时)
+- 虚拟化长组件列表(>30个组件时，50个为上限)
 
 **布局计算优化**:
 
@@ -335,25 +335,24 @@ interface DesignerStore {
 - 历史记录限制为50条
 - 图片懒加载
 
-### 5. 响应式设计系统
+### 5. 画布和设计系统
 
-**断点配置**:
+**画布配置**:
 
 ```typescript
-const BREAKPOINTS = {
-  xs: { min: 0, max: 639, container: 100 },
-  sm: { min: 640, max: 767, container: 640 },
-  md: { min: 768, max: 1023, container: 768 },
-  lg: { min: 1024, max: 1279, container: 1024 },
-  xl: { min: 1280, container: 1280 },
+const CANVAS_CONFIG = {
+  width: 1200, // 固定画布宽度（MVP版本）
+  maxWidth: 50, // 最大组件数量限制
+  gridSize: 8, // 网格大小（用于对齐）
 }
 ```
 
-**响应式实现**:
+**设计实现**:
 
-- 每个组件支持断点特定的属性配置
-- 实时预览不同断点的显示效果
-- 自动生成响应式CSS代码
+- 固定宽度1200px画布设计区域
+- 组件属性编辑：基础属性（文本、值、可见性）+ 简单样式（颜色、大小）
+- JSON格式保存设计数据 + 运行时渲染引擎
+- 单用户模式（不考虑协作编辑）
 
 ## Development Plan
 
@@ -515,10 +514,12 @@ const BREAKPOINTS = {
   - 用户满意度: > 4.0/5.0
 
 - **功能指标**:
-  - 支持组件类型: > 15种
-  - 最大嵌套层级: 10层
+  - 支持组件类型: > 10种（MVP版本）
+  - 最大嵌套层级: 5层
   - 自动保存间隔: 30秒
   - 历史记录容量: 50条
+  - 画布最大组件数: 50个
+  - 画布固定宽度: 1200px
 
 ## Next Steps
 

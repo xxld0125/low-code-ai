@@ -1,327 +1,359 @@
-# Implementation Tasks: 基础页面设计器
+---
+description: 'Task list for 基础页面设计器 implementation'
+---
 
-**Branch**: `003-page-designer` | **Date**: 2025-10-27
-**Spec**: [基础页面设计器规格](./spec.md) | **Plan**: [技术实现规划](./plan.md)
-**Total Tasks**: 68 | **Estimated Duration**: 12 weeks
+# Tasks: 基础页面设计器
 
-## ⚠️ 重要：与现有项目的冲突解决
+**Input**: Design documents from `/specs/003-page-designer/`
+**Prerequisites**: plan.md (required), spec.md (required for user stories), data-model.md, contracts/, quickstart.md
 
-### 依赖状态
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
-- ✅ `@dnd-kit/core`、`@dnd-kit/sortable`、`@dnd-kit/utilities` - 已安装
-- ✅ `zustand` - 已安装
-- ❌ `framer-motion` - 需要安装 (T002)
-- ❌ `react-zoom-pan-pinch` - 需要安装 (T003)
+**更新说明**: 已分析当前项目依赖和目录结构，解决了与现有数据库设计器的冲突问题。任务总数90个，其中60个可并行执行。T042已分解为10个具体的组件属性编辑任务，解决了FR-011功能覆盖不完整的问题。
 
-### 文件冲突解决策略
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
-为避免与现有数据库设计器功能冲突，页面设计器使用独立的命名空间：
+## 依赖和冲突分析
 
-1. **Store**: 使用 `stores/page-designer.ts` 而非 `stores/designer-store.ts`
-2. **API**: 使用 `/api/page-designer/` 前缀而非 `/api/designer/`
-3. **Lib**: 使用 `lib/page-designer/` 目录而非 `lib/designer/`
-4. **Supabase**: 使用 `lib/supabase/page-designer.ts` 而非 `lib/supabase/designer.ts`
+### 已存在的核心依赖 ✅
+
+项目已包含页面设计器所需的大部分核心依赖：
+
+- `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` ✅
+- `zustand` ✅
+- `framer-motion` ✅
+- `react-zoom-pan-pinch` ✅
+- `lodash-es` 和 `@types/lodash-es` ✅
+- `zod` ✅
+- `@supabase/ssr`, `@supabase/supabase-js` ✅
+
+### 需要补充的依赖 ❌
+
+- `react-use` - 响应式工具库
+
+### 现有目录结构冲突 ⚠️
+
+项目已存在数据库设计器功能，为避免冲突，页面设计器使用专用命名空间：
+
+**冲突的现有目录**:
+
+- `/components/designer/` - 数据库设计器组件
+- `/lib/designer/` - 数据库设计器逻辑
+- `/stores/designer/` - 数据库设计器状态
+- `/types/designer/` - 数据库设计器类型
+
+**页面设计器专用目录**:
+
+- `/components/page-designer/` - 页面设计器组件
+- `/lib/page-designer/` - 页面设计器逻辑
+- `/stores/page-designer/` - 页面设计器状态
+- `/types/page-designer/` - 页面设计器类型
+- `/components/lowcode/page-basic/` - 页面基础组件
+- `/components/lowcode/page-layout/` - 页面布局组件
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+- Include exact file paths in descriptions
+
+## Path Conventions
+
+- **Web app**: `/app/`, `/components/`, `/lib/`, `/hooks/`, `/types/`
+- **API routes**: `/app/api/page-designer/`
+- **重要**: 为避免与现有数据库设计器冲突，页面设计器使用以下专用命名空间：
+  - 组件: `/components/page-designer/` (不是 `/components/designer/`)
+  - 状态: `/stores/page-designer/` (不是 `/stores/designer/`)
+  - 类型: `/types/page-designer/` (不是 `/types/designer/`)
+  - 低代码组件: `/components/lowcode/page-basic/`, `/components/lowcode/page-layout/` (避免冲突)
+  - Hooks: `/hooks/use-page-*` (避免冲突)
+- Paths shown below follow the Next.js App Router structure with conflict avoidance
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and basic structure
+
+- [ ] T001 创建页面设计器专用目录结构，避免与现有数据库设计器冲突
+- [ ] T002 安装缺失的页面设计器依赖包 (react-use)
+- [ ] T003 [P] 验证现有依赖@dnd-kit, zustand, framer-motion等版本兼容性
+- [ ] T004 [P] 配置TypeScript严格模式和ESLint规则 (如果需要额外配置)
+- [ ] T005 [P] 配置shadcn/ui设计系统集成 (验证现有集成)
+- [ ] T006 [P] 设置响应式设计断点和无障碍标准
+- [ ] T007 [P] 实现性能监控和Core Web Vitals跟踪
+- [ ] T008 [P] 配置环境变量和Supabase客户端 (验证现有配置)
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [ ] T009 创建页面设计器专用数据库表结构和RLS策略 (page_designs, component_instances, design_history)
+- [ ] T010 [P] 实现页面设计器API路由框架 (/app/api/page-designer/) - 避免与现有数据库设计器API冲突
+- [ ] T011 [P] 创建页面设计器专用Zustand状态管理 (/stores/page-designer/ 避免与现有/stores/designer/冲突)
+- [ ] T012 [P] 创建页面设计器TypeScript类型定义 (/types/page-designer/ 避免与现有/types/designer/冲突)
+- [ ] T013 实现错误处理和日志记录基础设施
+- [ ] T014 创建页面设计器组件注册表系统 (/lib/page-designer/)
+- [ ] T015 [P] 实现页面设计器布局引擎核心逻辑 (/lib/page-designer/)
+- [ ] T016 [P] 创建页面设计器样式系统和验证器 (/lib/page-designer/)
+
+**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+
+---
+
+## Phase 3: User Story 1 - 组件拖拽到画布 (Priority: P1) 🎯 MVP
+
+**Goal**: 实现从组件面板拖拽基础组件到画布的核心功能
+
+**Independent Test**: 用户能够从左侧组件面板拖拽Button、Input、Text、Image等基础组件到中央画布，组件在拖拽位置正确显示
+
+### Implementation for User Story 1
+
+- [ ] T017 [P] [US1] 创建页面设计器基础组件类型定义在 /types/page-designer/component.ts
+- [ ] T018 [P] [US1] 实现页面设计器基础低代码组件在 /components/lowcode/page-basic/ (Button.tsx, Input.tsx, Text.tsx, Image.tsx) - 避免与现有基础组件冲突
+- [ ] T019 [P] [US1] 创建页面设计器组件面板在 /components/page-designer/ComponentPanel.tsx - 避免与现有数据库设计器组件冲突
+- [ ] T020 [P] [US1] 实现页面设计器拖拽提供者在 /components/page-designer/PageDesignerProvider.tsx
+- [ ] T021 [P] [US1] 创建页面设计器拖拽覆盖层在 /components/page-designer/DragOverlay.tsx
+- [ ] T022 [US1] 实现页面设计器中央画布在 /components/page-designer/PageCanvas.tsx (依赖T018, T019, T020)
+- [ ] T023 [US1] 集成@dnd-kit拖拽系统到PageDesignerProvider (依赖T020, T021)
+- [ ] T024 [US1] 实现组件添加到画布的状态管理逻辑
+- [ ] T025 [US1] 添加拖拽视觉反馈和动画效果
+- [ ] T026 [US1] 创建页面设计器主布局在 /components/page-designer/PageDesignerLayout.tsx (依赖T019, T022)
+
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+
+---
+
+## Phase 4: User Story 2 - 基础布局系统 (Priority: P1)
+
+**Goal**: 实现Container、Row、Col布局组件的嵌套布局系统
+
+**Independent Test**: 用户能够拖拽布局组件到画布，并将其他组件放入布局容器中，形成正确的嵌套结构和响应式布局
+
+### Implementation for User Story 2
+
+- [ ] T027 [P] [US2] 创建页面设计器布局组件类型定义在 /types/page-designer/layout.ts
+- [ ] T028 [P] [US2] 实现页面设计器布局组件在 /components/lowcode/page-layout/ (Container.tsx, Row.tsx, Col.tsx) - 避免与现有布局组件冲突
+- [ ] T029 [P] [US2] 扩展页面设计器组件注册表支持布局组件在 /lib/page-designer/component-registry.ts
+- [ ] T030 [US2] 实现页面设计器布局约束验证器在 /lib/page-designer/constraints.ts
+- [ ] T031 [US2] 扩展页面设计器布局引擎支持Container/Row/Col布局计算在 /lib/page-designer/layout-engine.ts
+- [ ] T032 [US2] 实现组件嵌套规则验证和层级管理
+- [ ] T033 [US2] 添加布局属性编辑功能到页面设计器属性面板
+- [ ] T034 [US2] 实现响应式布局断点处理
+- [ ] T035 [US2] 集成布局组件到页面设计器拖拽系统
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+
+---
+
+## Phase 5: User Story 3 - 组件选择和移动 (Priority: P2)
+
+**Goal**: 实现画布上组件的选择、移动、删除等编辑操作
+
+**Independent Test**: 用户能够点击选择组件看到选中边框，拖拽移动组件到新位置，使用Delete键删除组件
+
+### Implementation for User Story 3
+
+- [ ] T036 [P] [US3] 创建页面设计器选择状态管理在 /stores/page-designer/selection-store.ts
+- [ ] T037 [P] [US3] 实现页面设计器组件选择高亮样式和边框
+- [ ] T038 [P] [US3] 创建页面设计器组件移动逻辑在拖拽系统
+- [ ] T039 [P] [US3] 实现页面设计器组件删除功能
+- [ ] T040 [P] [US3] 添加页面设计器键盘快捷键支持在 /hooks/use-page-keyboard-shortcuts.ts
+- [ ] T041 [US3] 创建页面设计器属性面板在 /components/page-designer/PagePropertiesPanel.tsx - 避免与现有PropertiesPanel.tsx冲突
+- [ ] T042a [P] [US3] 创建组件属性类型定义在 /types/page-designer/properties.ts (定义基础属性和样式属性接口)
+- [ ] T042b [P] [US3] 实现文本类属性编辑器在 /components/page-designer/property-editors/TextPropertyEditor.tsx
+- [ ] T042c [P] [US3] 实现数值类属性编辑器在 /components/page-designer/property-editors/NumberPropertyEditor.tsx
+- [ ] T042d [P] [US3] 实现布尔类属性编辑器在 /components/page-designer/property-editors/BooleanPropertyEditor.tsx
+- [ ] T042e [P] [US3] 实现颜色选择器在 /components/page-designer/property-editors/ColorPicker.tsx
+- [ ] T042f [P] [US3] 实现尺寸属性编辑器在 /components/page-designer/property-editors/SizePropertyEditor.tsx
+- [ ] T042g [US3] 实现属性面板动态渲染逻辑在 /components/page-designer/PagePropertiesPanel.tsx
+- [ ] T042h [US3] 添加属性验证和约束检查功能
+- [ ] T042i [US3] 实现属性变更的撤销/重做支持
+- [ ] T042j [US3] 添加属性变更的自动保存功能
+- [ ] T053 [US3] 添加页面设计器组件复制和粘贴功能
+- [ ] T054 [US3] 实现页面设计器多选和批量操作
+- [ ] T055 [US3] 集成选择和移动功能到页面设计器画布
+
+**Checkpoint**: All user stories should now be independently functional
+
+---
+
+## Phase 6: User Story 4 - 画布缩放和对齐 (Priority: P3)
+
+**Goal**: 实现画布缩放控制和对齐辅助线功能
+
+**Independent Test**: 用户能够使用缩放控件调整画布大小，拖拽组件时看到对齐辅助线帮助精确定位
+
+### Implementation for User Story 4
+
+- [ ] T056 [P] [US4] 创建页面设计器画布缩放控制在 /components/page-designer/PageToolbar.tsx - 避免与现有组件冲突
+- [ ] T057 [P] [US4] 实现页面设计器缩放状态管理在 /stores/page-designer/zoom-store.ts
+- [ ] T058 [P] [US4] 集成react-zoom-pan-pinch库实现页面设计器缩放功能
+- [ ] T059 [P] [US4] 创建页面设计器对齐辅助线在 /components/page-designer/PageAlignmentGuides.tsx
+- [ ] T060 [P] [US4] 实现页面设计器对齐计算算法在 /lib/page-designer/alignment.ts
+- [ ] T061 [US4] 添加页面设计器网格显示和网格对齐功能
+- [ ] T062 [US4] 实现页面设计器小地图导航在 /components/page-designer/PageMiniMap.tsx
+- [ ] T063 [US4] 集成缩放和对齐功能到页面设计器主画布
+
+---
+
+## Phase 7: 高级功能和数据持久化
+
+**Purpose**: 实现自动保存、历史管理、API集成等高级功能
+
+- [ ] T064 [P] 实现自动保存Hook在 /hooks/use-auto-save.ts
+- [ ] T065 [P] 创建历史管理器在 /lib/page-designer/history-manager.ts
+- [ ] T066 [P] 实现撤销/重做功能在状态管理
+- [ ] T067 [P] 创建页面设计API路由在 /app/api/page-designer/page-designs/route.ts
+- [ ] T068 [P] 创建组件实例API路由在 /app/api/page-designer/components/route.ts
+- [ ] T069 [P] 实现布局API路由在 /app/api/page-designer/layout/route.ts
+- [ ] T070 实现页面设计数据加载和保存逻辑
+- [ ] T071 实现组件树结构的序列化和反序列化
+- [ ] T072 添加错误边界和异常处理
+- [ ] T073 实现加载状态和骨架屏
+
+---
+
+## Phase 8: 页面路由和导航
+
+**Purpose**: 创建页面设计器的路由结构和导航
+
+- [ ] T074 [P] 创建设计器列表页面在 /app/protected/designer/list/page.tsx
+- [ ] T075 [P] 创建新页面创建页面在 /app/protected/designer/create/page.tsx
+- [ ] T076 [P] 创建设计器编辑页面布局在 /app/protected/designer/page/[id]/layout.tsx
+- [ ] T077 [P] 创建设计器编辑主页面在 /app/protected/designer/page/[id]/page.tsx
+- [ ] T078 实现页面设计列表的CRUD操作
+- [ ] T079 添加页面设计分享和权限管理
+- [ ] T080 实现页面设计预览功能
+- [ ] T081 添加页面设计导出功能
+
+---
+
+## Phase 9: Polish & Cross-Cutting Concerns
+
+**Purpose**: Improvements that affect multiple user stories
+
+- [ ] T082 [P] 优化拖拽性能和响应时间
+- [ ] T083 [P] 实现组件懒加载和代码分割
+- [ ] T084 [P] 添加无障碍功能和ARIA标签
+- [ ] T085 [P] 优化Bundle大小和加载性能
+- [ ] T086 [P] 实现跨浏览器兼容性测试
+- [ ] T087 [P] 添加错误监控和日志记录
+- [ ] T088 更新文档和用户指南
+- [ ] T089 代码清理和重构
+- [ ] T090 运行完整性能测试和优化
+- [ ] T091 实现生产环境部署配置
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Stories (Phase 3-6)**: All depend on Foundational phase completion
+  - User stories can then proceed in parallel (if staffed)
+  - Or sequentially in priority order (US1 → US2 → US3 → US4)
+- **Advanced Features (Phase 7)**: Depends on US1, US2 completion
+- **Page Routes (Phase 8)**: Depends on all core user stories completion
+- **Polish (Final Phase)**: Depends on all desired user stories being complete
+
+### User Story Dependencies
+
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P1)**: Can start after Foundational (Phase 2) - Should integrate with US1 drag system
+- **User Story 3 (P2)**: Can start after US1, US2 - Depends on having components to select and move
+- **User Story 4 (P3)**: Can start after US1, US2, US3 - Enhances existing canvas interactions
+
+### Within Each User Story
+
+- Component types before component implementations
+- Component implementations before integration
+- Core functionality before advanced features
+- Story complete before moving to next priority
+
+### Parallel Opportunities
+
+- All Setup tasks marked [P] can run in parallel
+- All Foundational tasks marked [P] can run in parallel (within Phase 2)
+- Once Foundational phase completes, US1 and US2 can start in parallel (both P1)
+- All component implementations within a story marked [P] can run in parallel
+- Different user stories can be worked on in parallel by different team members
+
+---
+
+## Parallel Example: User Story 1
+
+```bash
+# Launch all component creation for User Story 1 together:
+Task: "T016 [P] [US1] 创建基础组件类型定义在 /types/component.ts"
+Task: "T017 [P] [US1] 实现基础低代码组件在 /components/lowcode/basic/"
+Task: "T018 [P] [US1] 创建组件面板在 /components/designer/ComponentPanel.tsx"
+Task: "T019 [P] [US1] 实现拖拽提供者在 /components/designer/DesignerProvider.tsx"
+
+# Then integrate:
+Task: "T021 [US1] 实现中央画布组件在 /components/designer/Canvas.tsx"
+Task: "T025 [US1] 创建设计器主布局在 /components/designer/DesignerLayout.tsx"
+```
 
 ---
 
 ## Implementation Strategy
 
-### MVP Scope
+### MVP First (User Story 1 Only)
 
-**Suggested MVP**: User Story 1 (组件拖拽到画布) + User Story 2 (基础布局系统)
-
-- Rationale: These two stories provide the core value proposition of a drag-and-drop page builder
-- Timeline: 6-8 weeks for functional MVP
-- Risk mitigation: Core drag-and-drop functionality validated early
+1. Complete Phase 1: Setup
+2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
+3. Complete Phase 3: User Story 1
+4. **STOP and VALIDATE**: Test drag and drop functionality independently
+5. Deploy/demo basic drag-drop MVP
 
 ### Incremental Delivery
 
-1. **Phase 1**: Infrastructure setup (2 weeks) - Blocking for all stories
-2. **Phase 2**: Foundational systems (2 weeks) - Shared drag-drop foundation
-3. **Phase 3**: User Story 1 - Component drag-drop (2 weeks)
-4. **Phase 4**: User Story 2 - Layout system (2 weeks)
-5. **Phase 5**: User Story 3 - Component selection/movement (1-2 weeks)
-6. **Phase 6**: User Story 4 - Canvas zoom/alignment (1-2 weeks)
-7. **Phase 7**: Polish & optimization (1-2 weeks)
+1. Complete Setup + Foundational → Foundation ready
+2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
+3. Add User Story 2 → Test independently → Deploy/Demo
+4. Add User Story 3 → Test independently → Deploy/Demo
+5. Add User Story 4 → Test independently → Deploy/Demo
+6. Each story adds value without breaking previous stories
 
-### Parallel Execution Opportunities
+### Parallel Team Strategy
 
-- **Setup Phase**: Multiple developers can work on different infrastructure components
-- **User Story Phases**: Frontend components can be developed in parallel with backend APIs
-- **Component Development**: Different basic components (Button, Input, Text, Image) can be built simultaneously
+With multiple developers:
 
----
-
-## Phase 1: Infrastructure Setup (Week 1-2)
-
-**Goal**: Establish project foundation and development environment
-**Independent Test Criteria**: Project starts, builds successfully, and basic routing works
-
-- [ ] T001 Verify @dnd-kit core dependencies are properly installed for drag-drop functionality
-- [ ] T002 [P] Install framer-motion for animations and transitions
-- [ ] T003 [P] Install react-zoom-pan-pinch for canvas zoom functionality
-- [ ] T004 [P] Configure TypeScript strict mode and project type definitions
-- [ ] T005 Create project structure per implementation plan (all directories)
-- [ ] T006 Create database migration scripts for all tables (page_designs, component_instances, design_history)
-- [ ] T007 Apply RLS policies for all designer tables
-- [ ] T008 [P] Create basic TypeScript type definitions in types/designer.ts
-- [ ] T009 [P] Create basic TypeScript type definitions in types/component.ts
-- [ ] T010 [P] Create basic TypeScript type definitions in types/layout.ts
-- [ ] T011 Configure ESLint and Prettier rules for designer components
-- [ ] T012 Create basic Zustand store structure in stores/page-designer.ts (避免与现有数据库设计器冲突)
-- [ ] T013 [P] Create basic Zustand store structure in stores/component-store.ts
-- [ ] T014 [P] Create basic Zustand store structure in stores/layout-store.ts
-- [ ] T015 Create Next.js routing structure for /protected/designer/\* pages
-- [ ] T016 Create basic layout.tsx for designer pages with three-column structure
-- [ ] T017 [P] Create empty page.tsx for designer list page
-- [ ] T018 [P] Create empty page.tsx for designer create page
-- [ ] T019 [P] Create empty page.tsx for designer edit page [id]
-- [ ] T020 [P] Create empty layout.tsx for designer edit page [id]
-- [ ] T021 Configure environment variables for designer functionality
-- [ ] T022 Test project builds successfully with all dependencies installed
+1. Team completes Setup + Foundational together
+2. Once Foundational is done:
+   - Developer A: User Story 1 (Drag & Drop)
+   - Developer B: User Story 2 (Layout System)
+   - Developer C: User Story 3 (Selection & Editing)
+3. Stories complete and integrate independently
+4. Developer D works on User Story 4 (Zoom & Alignment) and advanced features
 
 ---
 
-## Phase 2: Foundational Systems (Week 3-4)
+## Notes
 
-**Goal**: Build shared drag-drop foundation and core designer infrastructure
-**Independent Test Criteria**: Basic three-column layout renders, drag-drop context works
+- [P] tasks = different files, no dependencies
+- [Story] label maps task to specific user story for traceability
+- Each user story should be independently completable and testable
+- Focus on performance: drag response < 50ms, page load < 3s
+- Maintain 50 component limit per page for performance
+- Fixed canvas width of 1200px for MVP version
+- Single-user mode (no collaboration) for MVP
+- Auto-save enabled to prevent data loss
+- All UI text and comments in Chinese as per project standards
 
-- [ ] T023 Create DesignerLayout.tsx with three-column structure (left panel, canvas, right panel)
-- [ ] T024 [P] Create ComponentPanel.tsx empty structure for component library
-- [ ] T025 [P] Create Canvas.tsx empty structure for design canvas
-- [ ] T026 [P] Create PropertiesPanel.tsx empty structure for property editing
-- [ ] T027 Create DragOverlay.tsx for drag preview functionality
-- [ ] T028 [P] Create Toolbar.tsx for canvas controls
-- [ ] T029 Implement DndContext wrapper in DesignerLayout.tsx with @dnd-kit
-- [ ] T030 [P] Configure drag sensors (PointerSensor, KeyboardSensor) in drag context
-- [ ] T031 Create component registry system in lib/page-designer/component-registry.ts (避免与现有数据库设计器冲突)
-- [ ] T032 [P] Define component types constants in types/component.ts
-- [ ] T033 Create basic component validation in lib/page-designer/validation.ts
-- [ ] T034 [P] Create layout constraints system in lib/page-designer/constraints.ts
-- [ ] T035 Implement page designer state management actions in stores/page-designer.ts
-- [ ] T036 [P] Implement component state management actions in stores/component-store.ts
-- [ ] T037 Create API route for page designs in app/api/page-designer/page-designs/route.ts (避免与现有数据库设计器API冲突)
-- [ ] T038 [P] Create API route for components in app/api/page-designer/components/route.ts
-- [ ] T039 Create API route for layout in app/api/page-designer/layout/route.ts
-- [ ] T040 [P] Implement Supabase client for page designer operations in lib/supabase/page-designer.ts
-- [ ] T041 Test three-column layout renders and drag-drop context initializes
+**⚠️ 重要提醒：避免与现有数据库设计器冲突**
 
----
-
-## Phase 3: User Story 1 - 组件拖拽到画布 (Week 5-6)
-
-**Story Goal**: Enable users to drag basic components from panel to canvas
-**Independent Test Criteria**: User can successfully drag Button from left panel to canvas and see it appear
-
-### Tests (not requested - Constitution shows testing needs setup)
-
-_(Note: Test framework needs to be configured per Constitution gaps)_
-
-### Implementation Tasks
-
-- [ ] T042 Create Button.tsx basic component in components/lowcode/basic/
-- [ ] T043 [P] Create Input.tsx basic component in components/lowcode/basic/
-- [ ] T044 [P] Create Text.tsx basic component in components/lowcode/basic/
-- [ ] T045 [P] Create Image.tsx basic component in components/lowcode/basic/
-- [ ] T046 Register Button component in component-registry.ts with type 'button'
-- [ ] T047 [P] Register Input component in component-registry.ts with type 'input'
-- [ ] T048 [P] Register Text component in component-registry.ts with type 'text'
-- [ ] T049 [P] Register Image component in component-registry.ts with type 'image'
-- [ ] T050 Implement draggability in ComponentPanel.tsx for basic components
-- [ ] T051 Create droppable area in Canvas.tsx for accepting dragged components
-- [ ] T052 Implement drag start handler in ComponentPanel.tsx
-- [ ] T053 [P] Implement drag end handler in DesignerLayout.tsx
-- [ ] T054 Implement drop handler in Canvas.tsx to add components to canvas
-- [ ] T055 Add visual drag indicators when component is over canvas
-- [ ] T056 [P] Prevent drops outside canvas boundaries
-- [ ] T057 Implement component rendering in Canvas.tsx based on component state
-- [ ] T058 Add component styling and appearance in canvas
-- [ ] T059 Update component store when new components are added
-- [ ] T060 [P] Save component data to backend via API when dropped
-- [ ] T061 Test drag-drop workflow: panel → canvas → component appears
-
----
-
-## Phase 4: User Story 2 - 基础布局系统 (Week 7-8)
-
-**Story Goal**: Enable Container/Row/Col layout components with proper nesting
-**Independent Test Criteria**: User can create Container, add Row inside, add Col in Row, add Button in Col
-
-### Implementation Tasks
-
-- [ ] T062 Create Container.tsx layout component in components/lowcode/layout/
-- [ ] T063 [P] Create Row.tsx layout component in components/lowcode/layout/
-- [ ] T064 Create Col.tsx layout component in components/lowcode/layout/
-- [ ] T065 Register Container component in component-registry.ts with type 'container'
-- [ ] T066 [P] Register Row component in component-registry.ts with type 'row'
-- [ ] T067 Register Col component in component-registry.ts with type 'col'
-- [ ] T068 Implement layout engine in lib/page-designer/layout-engine.ts (避免与现有数据库设计器冲突)
-- [ ] T069 [P] Create layout constraint validation for nesting rules
-- [ ] T070 Container can contain all component types (button, input, text, image, row, col)
-- [ ] T071 [P] Row can only contain Col components
-- [ ] T072 Col can contain basic components and Container
-- [ ] T073 Implement component drop validation based on layout constraints
-- [ ] T074 [P] Prevent invalid nesting (e.g., Row inside Col directly)
-- [ ] T075 Implement layout property editing for Container (direction, gap, padding)
-- [ ] T076 [P] Implement layout property editing for Row (justify, align, wrap, gap)
-- [ ] T077 Implement layout property editing for Col (span, offset)
-- [ ] T078 Update Canvas.tsx to render layout components with flexbox styling
-- [ ] T079 [P] Implement responsive layout calculations for different breakpoints
-- [ ] T080 Test layout creation workflow: Container → Row → Col → Button
-- [ ] T081 Test layout constraint validation prevents invalid nesting
-
----
-
-## Phase 5: User Story 3 - 组件选择和移动 (Week 9-10)
-
-**Story Goal**: Enable component selection, visual feedback, and repositioning
-**Independent Test Criteria**: User can select component, see selection border, drag to new position
-
-### Implementation Tasks
-
-- [ ] T082 Implement component selection in Canvas.tsx with click handler
-- [ ] T083 [P] Add visual selection feedback (border, handles, highlight)
-- [ ] T084 Update component store with selected component IDs
-- [ ] T085 Implement component deselection when clicking empty canvas area
-- [ ] T086 [P] Implement multi-select with Shift+click
-- [ ] T087 Enable dragging of existing components within canvas
-- [ ] T088 Implement component move to new parent container
-- [ ] T089 [P] Implement component reordering within same parent
-- [ ] T090 Update layout engine when components are moved
-- [ ] T091 Add visual feedback during component move operations
-- [ ] T092 [P] Implement component deletion with Delete key
-- [ ] T093 Implement component deletion with right-click context menu
-- [ ] T094 Update backend when components are moved/deleted
-- [ ] T095 Add undo/redo support for component operations in history manager
-- [ ] T096 Test component selection, move, and deletion workflow
-
----
-
-## Phase 6: User Story 4 - 画布缩放和对齐 (Week 11)
-
-**Story Goal**: Add canvas zoom controls and alignment guides for precise positioning
-**Independent Test Criteria**: User can zoom canvas and see alignment guides when dragging components
-
-### Implementation Tasks
-
-- [ ] T097 Create AlignmentGuides.tsx component for visual alignment lines
-- [ ] T098 [P] Implement zoom controls in Toolbar.tsx (zoom in, zoom out, reset)
-- [ ] T099 Implement canvas zoom functionality with react-zoom-pan-pinch
-- [ ] T100 Calculate alignment positions for components in Canvas.tsx
-- [ ] T101 [P] Show vertical alignment guides when dragging near other components
-- [ ] T102 Show horizontal alignment guides when dragging near other components
-- [ ] T103 Show center alignment guides for component centering
-- [ ] T104 Implement snap-to-grid functionality for precise alignment
-- [ ] T105 [P] Update component positions when alignment guides are followed
-- [ ] T106 Add keyboard shortcuts for zoom (Ctrl +/-, Ctrl 0)
-- [ ] T107 Implement MiniMap.tsx component for navigation in large canvases
-- [ ] T108 Test zoom controls and alignment guide functionality
-
----
-
-## Phase 7: Polish & Cross-Cutting Concerns (Week 12)
-
-**Goal**: Complete implementation with performance optimization and user experience refinements
-
-### Implementation Tasks
-
-- [ ] T109 Implement auto-save functionality in use-auto-save.ts hook
-- [ ] T110 [P] Add loading states and skeleton screens for better UX
-- [ ] T111 Implement error boundaries for designer components
-- [ ] T112 Add keyboard shortcuts support (Ctrl+Z, Ctrl+Y, Delete, etc.)
-- [ ] T113 [P] Implement component copy/paste functionality
-- [ ] T114 Add responsive design for mobile/tablet view of designer
-- [ ] T115 Optimize performance for large numbers of components (>50)
-- [ ] T116 Add accessibility features (ARIA labels, keyboard navigation)
-- [ ] T117 [P] Implement component property validation and error display
-- [ ] T118 Add user preference settings (theme, grid display, etc.)
-- [ ] T119 Create comprehensive error handling and user feedback
-- [ ] T120 Add analytics and performance monitoring
-- [ ] T121 Final integration testing and bug fixes
-- [ ] T122 Documentation updates and deployment preparation
-
----
-
-## Dependencies
-
-### Story Completion Order
-
-1. **Setup Phase** (T001-T022) → **Foundational Phase** (T023-T041)
-2. **Foundational Phase** → **User Story 1** (T042-T061)
-3. **Foundational Phase** → **User Story 2** (T062-T081)
-4. **User Story 1** + **User Story 2** → **User Story 3** (T082-T096)
-5. **User Story 3** → **User Story 4** (T097-T108)
-6. **All Previous** → **Polish Phase** (T109-T122)
-
-### Critical Dependencies
-
-- **T029** (DndContext) must complete before any drag-drop tasks
-- **T031** (Component Registry) must complete before component registration tasks
-- **T068** (Layout Engine) must complete before layout component tasks
-- **T082** (Component Selection) must complete before component movement tasks
-
-### Parallel Development Opportunities
-
-**Setup Phase Parallel Tasks**:
-
-- Team A: T001, T003, T004, T008, T011, T021 (Dependencies & Configuration)
-- Team B: T002, T005, T009, T010, T012, T013 (Types & Stores)
-- Team C: T006, T007, T014, T015-T020 (Database & Routing)
-
-**Component Development Parallel Tasks**:
-
-- Team A: T042, T046, T050, T054 (Button & Drag Implementation)
-- Team B: T043, T047, T051, T055 (Input & Visual Feedback)
-- Team C: T044, T048, T052, T056 (Text & Validation)
-
-**Layout System Parallel Tasks**:
-
-- Team A: T062, T065, T068, T071 (Container & Layout Engine)
-- Team B: T063, T066, T069, T073 (Row & Validation)
-- Team C: T064, T067, T070, T075 (Col & Properties)
-
----
-
-## Risk Mitigation
-
-### Technical Risks
-
-- **Drag Performance Risk**: Early implementation of T029, T030, T031 to validate performance
-- **Layout Complexity Risk**: Start with simple Container/Row/Col, add complexity in T068-T077
-- **State Management Risk**: Use Zustand patterns proven in T035-T037 for all state
-
-### Integration Risks
-
-- **API Integration Risk**: Implement T037-T040 early to validate backend communication
-- **Component Rendering Risk**: Test T058, T078 early to ensure components render correctly
-- **Browser Compatibility Risk**: Test core drag-drop in multiple browsers during T041
-
----
-
-## Success Metrics
-
-### User Story 1 Success
-
-- Users can drag Button from panel to canvas within 30 seconds
-- Drag operations complete in <100ms with visual feedback
-- Components appear at correct drop positions with 95% accuracy
-
-### User Story 2 Success
-
-- Users can create Container→Row→Col→Button structure in 2 minutes
-- Layout constraints prevent 100% of invalid nesting attempts
-- Responsive layout works correctly across all breakpoints
-
-### Overall Success
-
-- Designer loads in <3 seconds on initial visit
-- Drag operations maintain 60fps (16ms) performance
-- No critical bugs in core drag-drop workflow
-- Users can complete basic page creation without assistance
-
----
-
-**Document End**
-
-_This task list provides a complete, actionable roadmap for implementing the FlowBase基础页面设计器. Tasks are organized for independent testing and incremental delivery, with clear dependencies and parallel execution opportunities._
+- 使用 `/components/page-designer/` 而不是 `/components/designer/`
+- 使用 `/stores/page-designer/` 而不是 `/stores/designer/`
+- 使用 `/types/page-designer/` 而不是 `/types/designer/`
+- 使用 `/lib/page-designer/` 而不是 `/lib/designer/`
+- 使用 `Page*` 前缀命名页面设计器组件 (如 PageCanvas, PageDesignerLayout)
+- 使用 `use-page-*` 前缀命名页面设计器Hooks
+- 确保所有页面设计器相关代码都有明确的命名空间隔离
