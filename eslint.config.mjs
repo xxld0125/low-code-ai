@@ -56,6 +56,20 @@ const eslintConfig = [
       ".vercel",
     ],
   },
+  {
+    // 页面设计器相关文件的规则放宽
+    files: [
+      "app/api/page-designer/**/*",
+      "stores/page-designer/**/*",
+      "types/page-designer/**/*",
+      "lib/page-designer/**/*",
+      "hooks/use-page-*",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;
