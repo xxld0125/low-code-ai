@@ -40,6 +40,21 @@ export const COMPONENT_TYPES = {
 
 export type ComponentType = (typeof COMPONENT_TYPES)[keyof typeof COMPONENT_TYPES]
 
+// 布局组件类型（从layout.ts重新导出）
+export type LayoutComponentType =
+  | 'container'
+  | 'row'
+  | 'col'
+  | 'grid'
+  | 'flex'
+  | 'section'
+  | 'aside'
+  | 'header'
+  | 'footer'
+  | 'main'
+  | 'nav'
+  | 'article'
+
 // 组件分类
 export const COMPONENT_CATEGORIES = {
   BASIC: 'basic',
@@ -147,6 +162,11 @@ export interface ComponentProps {
     span?: number | Record<Breakpoint, number>
     offset?: number | Record<Breakpoint, number>
     order?: number
+    flex?: string | number
+    flexGrow?: number
+    flexShrink?: number
+    flexBasis?: string | number
+    alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch'
     padding?: SpacingValue
     margin?: SpacingValue
   }
@@ -231,6 +251,9 @@ export interface ComponentStyles {
 
   // 显示和布局
   display?: 'block' | 'inline' | 'inline-block' | 'flex' | 'grid' | 'none'
+  overflow?: 'visible' | 'hidden' | 'scroll' | 'auto'
+  order?: number
+  alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch'
   flex?: {
     grow?: number
     shrink?: number
@@ -241,6 +264,20 @@ export interface ComponentStyles {
     align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
     gap?: string | number
   }
+  flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse'
+  flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse'
+  justifyContent?:
+    | 'flex-start'
+    | 'flex-end'
+    | 'center'
+    | 'space-between'
+    | 'space-around'
+    | 'space-evenly'
+  alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline'
+  gap?: SpacingValue
+  flexGrow?: number
+  flexShrink?: number
+  flexBasis?: string | number
   grid?: {
     columns?: string
     rows?: string
@@ -250,10 +287,16 @@ export interface ComponentStyles {
 
   // 背景
   background?: BackgroundValue
+  backgroundColor?: string
+  backgroundImage?: string
+  backgroundSize?: string
+  backgroundPosition?: string
+  backgroundRepeat?: string
 
   // 边框
   border?: BorderValue
   borderRadius?: RoundedValue
+  marginLeft?: string | number
 
   // 阴影
   boxShadow?: ShadowValue

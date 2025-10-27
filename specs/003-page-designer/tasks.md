@@ -136,15 +136,15 @@ description: 'Task list for 基础页面设计器 implementation'
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] 创建页面设计器布局组件类型定义在 /types/page-designer/layout.ts
-- [ ] T028 [P] [US2] 实现页面设计器布局组件在 /components/lowcode/page-layout/ (Container.tsx, Row.tsx, Col.tsx) - 避免与现有布局组件冲突
-- [ ] T029 [P] [US2] 扩展页面设计器组件注册表支持布局组件在 /lib/page-designer/component-registry.ts
-- [ ] T030 [US2] 实现页面设计器布局约束验证器在 /lib/page-designer/constraints.ts
-- [ ] T031 [US2] 扩展页面设计器布局引擎支持Container/Row/Col布局计算在 /lib/page-designer/layout-engine.ts
-- [ ] T032 [US2] 实现组件嵌套规则验证和层级管理
-- [ ] T033 [US2] 添加布局属性编辑功能到页面设计器属性面板
-- [ ] T034 [US2] 实现响应式布局断点处理
-- [ ] T035 [US2] 集成布局组件到页面设计器拖拽系统
+- [x] T027 [P] [US2] 创建页面设计器布局组件类型定义在 /types/page-designer/layout.ts
+- [x] T028 [P] [US2] 实现页面设计器布局组件在 /components/lowcode/page-layout/ (Container.tsx, Row.tsx, Col.tsx) - 避免与现有布局组件冲突
+- [x] T029 [P] [US2] 扩展页面设计器组件注册表支持布局组件在 /lib/page-designer/component-registry.ts
+- [x] T030 [US2] 实现页面设计器布局约束验证器在 /lib/page-designer/constraints.ts
+- [x] T031 [US2] 扩展页面设计器布局引擎支持Container/Row/Col布局计算在 /lib/page-designer/layout-engine.ts
+- [x] T032 [US2] 实现组件嵌套规则验证和层级管理
+- [x] T033 [US2] 添加布局属性编辑功能到页面设计器属性面板
+- [x] T034 [US2] 实现响应式布局断点处理
+- [x] T035 [US2] 集成布局组件到页面设计器拖拽系统
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
