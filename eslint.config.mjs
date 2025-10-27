@@ -54,6 +54,14 @@ const eslintConfig = [
 
       // Vercel
       ".vercel",
+
+      // Legacy ignore files (from .eslintignore)
+      "*.min.js",
+      "*.min.css",
+      "public/static/**",
+      ".cache/**",
+      "temp/**",
+      ".tmp/**",
     ],
   },
   {

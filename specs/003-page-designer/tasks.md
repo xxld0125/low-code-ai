@@ -158,25 +158,25 @@ description: 'Task list for 基础页面设计器 implementation'
 
 ### Implementation for User Story 3
 
-- [ ] T036 [P] [US3] 创建页面设计器选择状态管理在 /stores/page-designer/selection-store.ts
-- [ ] T037 [P] [US3] 实现页面设计器组件选择高亮样式和边框
-- [ ] T038 [P] [US3] 创建页面设计器组件移动逻辑在拖拽系统
-- [ ] T039 [P] [US3] 实现页面设计器组件删除功能
-- [ ] T040 [P] [US3] 添加页面设计器键盘快捷键支持在 /hooks/use-page-keyboard-shortcuts.ts
-- [ ] T041 [US3] 创建页面设计器属性面板在 /components/page-designer/PagePropertiesPanel.tsx - 避免与现有PropertiesPanel.tsx冲突
-- [ ] T042a [P] [US3] 创建组件属性类型定义在 /types/page-designer/properties.ts (定义基础属性和样式属性接口)
-- [ ] T042b [P] [US3] 实现文本类属性编辑器在 /components/page-designer/property-editors/TextPropertyEditor.tsx
-- [ ] T042c [P] [US3] 实现数值类属性编辑器在 /components/page-designer/property-editors/NumberPropertyEditor.tsx
-- [ ] T042d [P] [US3] 实现布尔类属性编辑器在 /components/page-designer/property-editors/BooleanPropertyEditor.tsx
-- [ ] T042e [P] [US3] 实现颜色选择器在 /components/page-designer/property-editors/ColorPicker.tsx
-- [ ] T042f [P] [US3] 实现尺寸属性编辑器在 /components/page-designer/property-editors/SizePropertyEditor.tsx
-- [ ] T042g [US3] 实现属性面板动态渲染逻辑在 /components/page-designer/PagePropertiesPanel.tsx
-- [ ] T042h [US3] 添加属性验证和约束检查功能
-- [ ] T042i [US3] 实现属性变更的撤销/重做支持
-- [ ] T042j [US3] 添加属性变更的自动保存功能
-- [ ] T053 [US3] 添加页面设计器组件复制和粘贴功能
-- [ ] T054 [US3] 实现页面设计器多选和批量操作
-- [ ] T055 [US3] 集成选择和移动功能到页面设计器画布
+- [x] T036 [P] [US3] 创建页面设计器选择状态管理在 /stores/page-designer/selection-store.ts
+- [x] T037 [P] [US3] 实现页面设计器组件选择高亮样式和边框
+- [x] T038 [P] [US3] 创建页面设计器组件移动逻辑在拖拽系统
+- [x] T039 [P] [US3] 实现页面设计器组件删除功能
+- [x] T040 [P] [US3] 添加页面设计器键盘快捷键支持在 /hooks/use-page-keyboard-shortcuts.ts
+- [x] T041 [US3] 创建页面设计器属性面板在 /components/page-designer/PagePropertiesPanel.tsx - 避免与现有PropertiesPanel.tsx冲突
+- [x] T042a [P] [US3] 创建组件属性类型定义在 /types/page-designer/properties.ts (定义基础属性和样式属性接口)
+- [x] T042b [P] [US3] 实现文本类属性编辑器在 /components/page-designer/property-editors/TextPropertyEditor.tsx
+- [x] T042c [P] [US3] 实现数值类属性编辑器在 /components/page-designer/property-editors/NumberPropertyEditor.tsx
+- [x] T042d [P] [US3] 实现布尔类属性编辑器在 /components/page-designer/property-editors/BooleanPropertyEditor.tsx
+- [x] T042e [P] [US3] 实现颜色选择器在 /components/page-designer/property-editors/ColorPicker.tsx
+- [x] T042f [P] [US3] 实现尺寸属性编辑器在 /components/page-designer/property-editors/SizePropertyEditor.tsx
+- [x] T042g [US3] 实现属性面板动态渲染逻辑在 /components/page-designer/PagePropertiesPanel.tsx
+- [x] T042h [US3] 添加属性验证和约束检查功能
+- [x] T042i [US3] 实现属性变更的撤销/重做支持
+- [x] T042j [US3] 添加属性变更的自动保存功能
+- [x] T053 [US3] 添加页面设计器组件复制和粘贴功能
+- [x] T054 [US3] 实现页面设计器多选和批量操作
+- [x] T055 [US3] 集成选择和移动功能到页面设计器画布
 
 **Checkpoint**: All user stories should now be independently functional
 

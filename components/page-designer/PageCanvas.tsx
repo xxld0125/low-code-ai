@@ -10,7 +10,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ZoomIn, ZoomOut, Maximize2, Grid3X3, Layers, MousePointer, Move } from 'lucide-react'
+import {
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Grid3X3,
+  Layers,
+  MousePointer,
+  Move,
+  Copy,
+  Trash2,
+  GripVertical,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   COMPONENT_TYPES,
@@ -80,11 +95,59 @@ const ComponentWrapper: React.FC<{
   component: ComponentInstance
   isSelected: boolean
   isDragging?: boolean
+  isHovered?: boolean
   onSelect: (id: string) => void
   onUpdate: (id: string, updates: Partial<ComponentInstance>) => void
   onDelete: (id: string) => void
-}> = ({ component, isSelected, isDragging = false, onSelect, onUpdate, onDelete }) => {
+  onDuplicate?: (id: string) => void
+  onMove?: (id: string, direction: 'up' | 'down' | 'left' | 'right') => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
+}> = ({
+  component,
+  isSelected,
+  isDragging = false,
+  isHovered = false,
+  onSelect,
+  onUpdate,
+  onDelete,
+  onDuplicate,
+  onMove,
+  onMouseEnter,
+  onMouseLeave,
+}) => {
   const Renderer = ComponentRenderers[component.component_type]
+
+  const handleWrapperClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onSelect(component.id)
+    },
+    [component.id, onSelect]
+  )
+
+  const handleDuplicate = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onDuplicate?.(component.id)
+    },
+    [component.id, onDuplicate]
+  )
+
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onDelete(component.id)
+    },
+    [component.id, onDelete]
+  )
+
+  const handleMove = useCallback(
+    (direction: 'up' | 'down' | 'left' | 'right') => {
+      onMove?.(component.id, direction)
+    },
+    [component.id, onMove]
+  )
 
   if (!Renderer) {
     console.warn(`No renderer found for component type: ${component.component_type}`)
@@ -102,43 +165,131 @@ const ComponentWrapper: React.FC<{
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       className={cn(
-        'relative',
+        'group relative',
         'transition-all duration-200',
-        isSelected && 'rounded-lg ring-2 ring-blue-500 ring-offset-2',
-        isDragging && 'opacity-50'
+        // 基础状态样式
+        !isSelected && !isHovered && 'hover:ring-1 hover:ring-gray-300',
+        // 选中状态样式
+        isSelected && ['ring-2 ring-blue-500 ring-offset-2', 'shadow-lg shadow-blue-500/20'],
+        // 拖拽状态
+        isDragging && 'scale-95 opacity-50',
+        // 悬停状态
+        isHovered && !isSelected && 'ring-1 ring-blue-300'
       )}
+      onClick={handleWrapperClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      whileHover={{ scale: isSelected ? 1 : 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <Renderer
-        id={component.id}
-        type={component.component_type}
-        props={component.props}
-        styles={component.styles}
-        events={component.events}
-        isSelected={isSelected}
-        isDragging={isDragging}
-        onSelect={onSelect}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-      />
+      {/* 组件内容 */}
+      <div className={cn('relative', isSelected && 'overflow-hidden rounded-lg')}>
+        <Renderer
+          id={component.id}
+          type={component.component_type}
+          props={component.props}
+          styles={component.styles}
+          events={component.events}
+          isSelected={isSelected}
+          isDragging={isDragging}
+          onSelect={onSelect}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+        />
+      </div>
 
-      {/* 选中状态的操作手柄 */}
+      {/* 选中状态的增强视觉反馈 */}
       <AnimatePresence>
         {isSelected && (
+          <>
+            {/* 选择边框增强 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="pointer-events-none absolute inset-0 rounded-lg border-2 border-blue-500"
+              style={{
+                boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.1), 0 0 20px rgba(59, 130, 246, 0.2)',
+              }}
+            />
+
+            {/* 拖拽手柄 */}
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 transform opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex h-8 w-2 cursor-move items-center justify-center rounded-l bg-blue-500">
+                <GripVertical className="h-3 w-3 text-white" />
+              </div>
+            </div>
+
+            {/* 右侧操作手柄 */}
+            <div className="absolute -right-2 top-1/2 -translate-y-1/2 transform opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex flex-col space-y-1">
+                <button
+                  onClick={handleMove.bind(null, 'up')}
+                  className="flex h-6 w-6 items-center justify-center rounded-t bg-blue-500 text-xs text-white hover:bg-blue-600"
+                  title="向上移动"
+                >
+                  <ArrowUp className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={handleMove.bind(null, 'down')}
+                  className="flex h-6 w-6 items-center justify-center rounded-b bg-blue-500 text-xs text-white hover:bg-blue-600"
+                  title="向下移动"
+                >
+                  <ArrowDown className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* 底部操作手柄 */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 transform opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex items-center space-x-1 rounded bg-blue-500 px-2 py-1 text-xs text-white shadow-lg">
+                <span className="max-w-32 truncate">
+                  {component.meta.custom_name || component.component_type}
+                </span>
+                <div className="h-4 w-px bg-blue-400" />
+                <button
+                  onClick={handleDuplicate}
+                  className="rounded p-0.5 transition-colors hover:bg-blue-600"
+                  title="复制组件"
+                >
+                  <Copy className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="ml-1 rounded bg-red-500 p-0.5 transition-colors hover:bg-red-600"
+                  title="删除组件"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* 左上角选择指示器 */}
+            <div className="absolute -left-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-md" />
+
+            {/* 右上角选择指示器 */}
+            <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-md" />
+
+            {/* 左下角选择指示器 */}
+            <div className="absolute -bottom-1 -left-1 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-md" />
+
+            {/* 右下角选择指示器 */}
+            <div className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-md" />
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* 悬停状态的提示 */}
+      <AnimatePresence>
+        {!isSelected && isHovered && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute -top-8 left-0 flex items-center space-x-1 rounded bg-blue-500 px-2 py-1 text-xs text-white"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="absolute -top-6 left-0 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white shadow-lg"
           >
-            <span>{component.meta.custom_name || component.component_type}</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-4 w-4 p-0 text-white hover:bg-blue-600"
-              onClick={() => onDelete(component.id)}
-            >
-              ×
-            </Button>
+            {component.meta.custom_name || component.component_type}
+            <div className="absolute -bottom-1 left-4 h-2 w-2 rotate-45 transform bg-gray-800" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -272,6 +423,7 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null)
   const [isOver, setIsOver] = useState(false)
+  const [hoveredComponentId, setHoveredComponentId] = useState<string | null>(null)
 
   // 设置拖拽区域
   const { setNodeRef, isOver: isDroppableOver } = useDroppable({
@@ -304,6 +456,81 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
     },
     [onComponentDelete]
   )
+
+  // 处理组件复制
+  const handleComponentDuplicate = useCallback(
+    (id: string) => {
+      const component = components.find(c => c.id === id)
+      if (!component) return
+
+      const now = new Date().toISOString()
+      const duplicatedComponent: ComponentInstance = {
+        ...component,
+        id: `component-${Date.now()}`,
+        position: {
+          ...component.position,
+          order: components.length,
+        },
+        created_at: now,
+        updated_at: now,
+        meta: {
+          ...component.meta,
+          custom_name: component.meta.custom_name
+            ? `${component.meta.custom_name} 副本`
+            : `${component.component_type} 副本`,
+        },
+      }
+
+      onComponentAdd(duplicatedComponent)
+    },
+    [components, onComponentAdd]
+  )
+
+  // 处理组件移动
+  const handleComponentMove = useCallback(
+    (id: string, direction: 'up' | 'down' | 'left' | 'right') => {
+      const componentIndex = components.findIndex(c => c.id === id)
+      if (componentIndex === -1) return
+
+      const newComponents = [...components]
+      let newIndex = componentIndex
+
+      switch (direction) {
+        case 'up':
+          newIndex = Math.max(0, componentIndex - 1)
+          break
+        case 'down':
+          newIndex = Math.min(components.length - 1, componentIndex + 1)
+          break
+        case 'left':
+          // 在布局系统中，left/right可能需要不同的处理逻辑
+          newIndex = Math.max(0, componentIndex - 1)
+          break
+        case 'right':
+          newIndex = Math.min(components.length - 1, componentIndex + 1)
+          break
+      }
+
+      if (newIndex !== componentIndex) {
+        // 交换组件位置
+        const [movedComponent] = newComponents.splice(componentIndex, 1)
+        newComponents.splice(newIndex, 0, movedComponent)
+
+        // 更新所有组件的order属性
+        newComponents.forEach((component, index) => {
+          onComponentUpdate(component.id, {
+            position: { ...component.position, order: index },
+          })
+        })
+      }
+    },
+    [components, onComponentUpdate]
+  )
+
+  // 处理悬停状态
+  const handleComponentHover = useCallback((id: string | null) => {
+    setHoveredComponentId(id)
+  }, [])
 
   // 处理快速添加组件
   const handleQuickAddComponent = useCallback(
@@ -469,9 +696,14 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
                         component={component}
                         isSelected={selectedComponentIds.includes(component.id)}
                         isDragging={dragState.isDragging && dragState.activeId === component.id}
+                        isHovered={hoveredComponentId === component.id}
                         onSelect={handleComponentSelect}
                         onUpdate={handleComponentUpdate}
                         onDelete={handleComponentDelete}
+                        onDuplicate={handleComponentDuplicate}
+                        onMove={handleComponentMove}
+                        onMouseEnter={() => handleComponentHover(component.id)}
+                        onMouseLeave={() => handleComponentHover(null)}
                       />
                     ))}
                   </AnimatePresence>

@@ -51,6 +51,7 @@ import {
   EnableDisableEditor,
 } from './property-editors/BooleanPropertyEditor'
 import { ColorPicker, BackgroundColorPicker, TextColorPicker } from './property-editors/ColorPicker'
+import { SizePropertyEditor, SpacingSizeEditor } from './property-editors/SizePropertyEditor'
 
 // 导入自动保存Hook
 import { useComponentAutoSave } from '@/hooks/use-page-auto-save'
