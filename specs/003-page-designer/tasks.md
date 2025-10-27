@@ -4,6 +4,24 @@
 **Spec**: [基础页面设计器规格](./spec.md) | **Plan**: [技术实现规划](./plan.md)
 **Total Tasks**: 68 | **Estimated Duration**: 12 weeks
 
+## ⚠️ 重要：与现有项目的冲突解决
+
+### 依赖状态
+
+- ✅ `@dnd-kit/core`、`@dnd-kit/sortable`、`@dnd-kit/utilities` - 已安装
+- ✅ `zustand` - 已安装
+- ❌ `framer-motion` - 需要安装 (T002)
+- ❌ `react-zoom-pan-pinch` - 需要安装 (T003)
+
+### 文件冲突解决策略
+
+为避免与现有数据库设计器功能冲突，页面设计器使用独立的命名空间：
+
+1. **Store**: 使用 `stores/page-designer.ts` 而非 `stores/designer-store.ts`
+2. **API**: 使用 `/api/page-designer/` 前缀而非 `/api/designer/`
+3. **Lib**: 使用 `lib/page-designer/` 目录而非 `lib/designer/`
+4. **Supabase**: 使用 `lib/supabase/page-designer.ts` 而非 `lib/supabase/designer.ts`
+
 ---
 
 ## Implementation Strategy
@@ -39,7 +57,7 @@
 **Goal**: Establish project foundation and development environment
 **Independent Test Criteria**: Project starts, builds successfully, and basic routing works
 
-- [ ] T001 Install @dnd-kit core dependencies for drag-drop functionality
+- [ ] T001 Verify @dnd-kit core dependencies are properly installed for drag-drop functionality
 - [ ] T002 [P] Install framer-motion for animations and transitions
 - [ ] T003 [P] Install react-zoom-pan-pinch for canvas zoom functionality
 - [ ] T004 [P] Configure TypeScript strict mode and project type definitions
@@ -50,7 +68,7 @@
 - [ ] T009 [P] Create basic TypeScript type definitions in types/component.ts
 - [ ] T010 [P] Create basic TypeScript type definitions in types/layout.ts
 - [ ] T011 Configure ESLint and Prettier rules for designer components
-- [ ] T012 Create basic Zustand store structure in stores/designer-store.ts
+- [ ] T012 Create basic Zustand store structure in stores/page-designer.ts (避免与现有数据库设计器冲突)
 - [ ] T013 [P] Create basic Zustand store structure in stores/component-store.ts
 - [ ] T014 [P] Create basic Zustand store structure in stores/layout-store.ts
 - [ ] T015 Create Next.js routing structure for /protected/designer/\* pages
@@ -77,16 +95,16 @@
 - [ ] T028 [P] Create Toolbar.tsx for canvas controls
 - [ ] T029 Implement DndContext wrapper in DesignerLayout.tsx with @dnd-kit
 - [ ] T030 [P] Configure drag sensors (PointerSensor, KeyboardSensor) in drag context
-- [ ] T031 Create component registry system in lib/designer/component-registry.ts
+- [ ] T031 Create component registry system in lib/page-designer/component-registry.ts (避免与现有数据库设计器冲突)
 - [ ] T032 [P] Define component types constants in types/component.ts
-- [ ] T033 Create basic component validation in lib/designer/validation.ts
-- [ ] T034 [P] Create layout constraints system in lib/designer/constraints.ts
-- [ ] T035 Implement designer state management actions in stores/designer-store.ts
+- [ ] T033 Create basic component validation in lib/page-designer/validation.ts
+- [ ] T034 [P] Create layout constraints system in lib/page-designer/constraints.ts
+- [ ] T035 Implement page designer state management actions in stores/page-designer.ts
 - [ ] T036 [P] Implement component state management actions in stores/component-store.ts
-- [ ] T037 Create API route for page designs in app/api/designer/page-designs/route.ts
-- [ ] T038 [P] Create API route for components in app/api/designer/components/route.ts
-- [ ] T039 Create API route for layout in app/api/designer/layout/route.ts
-- [ ] T040 [P] Implement Supabase client for designer operations in lib/supabase/designer.ts
+- [ ] T037 Create API route for page designs in app/api/page-designer/page-designs/route.ts (避免与现有数据库设计器API冲突)
+- [ ] T038 [P] Create API route for components in app/api/page-designer/components/route.ts
+- [ ] T039 Create API route for layout in app/api/page-designer/layout/route.ts
+- [ ] T040 [P] Implement Supabase client for page designer operations in lib/supabase/page-designer.ts
 - [ ] T041 Test three-column layout renders and drag-drop context initializes
 
 ---
@@ -138,7 +156,7 @@ _(Note: Test framework needs to be configured per Constitution gaps)_
 - [ ] T065 Register Container component in component-registry.ts with type 'container'
 - [ ] T066 [P] Register Row component in component-registry.ts with type 'row'
 - [ ] T067 Register Col component in component-registry.ts with type 'col'
-- [ ] T068 Implement layout engine in lib/designer/layout-engine.ts
+- [ ] T068 Implement layout engine in lib/page-designer/layout-engine.ts (避免与现有数据库设计器冲突)
 - [ ] T069 [P] Create layout constraint validation for nesting rules
 - [ ] T070 Container can contain all component types (button, input, text, image, row, col)
 - [ ] T071 [P] Row can only contain Col components
