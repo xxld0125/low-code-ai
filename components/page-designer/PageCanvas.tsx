@@ -5,7 +5,13 @@
  */
 
 import React, { useRef, useState, useCallback, useEffect } from 'react'
-import { useDroppable } from '@dnd-kit/core'
+import { useDroppable, DndContext } from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+  useSortable,
+} from '@dnd-kit/sortable'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
@@ -86,11 +92,10 @@ export interface PageCanvasProps {
   onCanvasStateChange: (updates: Partial<CanvasState>) => void
 }
 
-// 组件容器
-const ComponentWrapper: React.FC<{
+// 可排序组件包装器
+const SortableComponentWrapper: React.FC<{
   component: ComponentInstance
   isSelected: boolean
-  isDragging?: boolean
   isHovered?: boolean
   onSelect: (id: string) => void
   onUpdate: (id: string, updates: Partial<ComponentInstance>) => void
@@ -102,7 +107,6 @@ const ComponentWrapper: React.FC<{
 }> = ({
   component,
   isSelected,
-  isDragging = false,
   isHovered = false,
   onSelect,
   onUpdate,
@@ -112,6 +116,10 @@ const ComponentWrapper: React.FC<{
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: component.id,
+  })
+
   const Renderer = ComponentRenderers[component.component_type]
 
   const handleWrapperClick = useCallback(
@@ -154,12 +162,18 @@ const ComponentWrapper: React.FC<{
     )
   }
 
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        transition,
+      }
+    : undefined
+
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
       className={cn(
         'group relative',
         'transition-all duration-200',
@@ -168,15 +182,13 @@ const ComponentWrapper: React.FC<{
         // 选中状态样式
         isSelected && ['ring-2 ring-blue-500 ring-offset-2', 'shadow-lg shadow-blue-500/20'],
         // 拖拽状态
-        isDragging && 'scale-95 opacity-50',
+        isDragging && 'z-50 scale-95 opacity-50',
         // 悬停状态
         isHovered && !isSelected && 'ring-1 ring-blue-300'
       )}
       onClick={handleWrapperClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      whileHover={{ scale: isSelected ? 1 : 1.02 }}
-      whileTap={{ scale: 0.98 }}
     >
       {/* 组件内容 */}
       <div className={cn('relative', isSelected && 'overflow-hidden rounded-lg')}>
@@ -210,7 +222,10 @@ const ComponentWrapper: React.FC<{
             />
 
             {/* 拖拽手柄 */}
-            <div className="absolute -left-2 top-1/2 -translate-y-1/2 transform opacity-0 transition-opacity group-hover:opacity-100">
+            <div
+              {...listeners}
+              className="absolute -left-2 top-1/2 -translate-y-1/2 transform opacity-0 transition-opacity group-hover:opacity-100"
+            >
               <div className="flex h-8 w-2 cursor-move items-center justify-center rounded-l bg-blue-500">
                 <GripVertical className="h-3 w-3 text-white" />
               </div>
@@ -289,7 +304,7 @@ const ComponentWrapper: React.FC<{
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   )
 }
 
@@ -342,16 +357,23 @@ const ZoomControls: React.FC<{
 }> = ({ zoom, onZoomChange, onReset }) => {
   const handleZoomIn = () => {
     const newZoom = Math.min(zoom + CANVAS_CONFIG.zoomStep, CANVAS_CONFIG.maxZoom)
+    console.log('Zooming in:', { currentZoom: zoom, newZoom })
     onZoomChange(newZoom)
   }
 
   const handleZoomOut = () => {
     const newZoom = Math.max(zoom - CANVAS_CONFIG.zoomStep, CANVAS_CONFIG.minZoom)
+    console.log('Zooming out:', { currentZoom: zoom, newZoom })
     onZoomChange(newZoom)
   }
 
+  const handleReset = () => {
+    console.log('Resetting zoom')
+    onReset()
+  }
+
   return (
-    <div className="absolute bottom-4 right-4 flex items-center space-x-2 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+    <div className="absolute bottom-4 right-4 z-20 flex items-center space-x-2 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
       <Button
         variant="ghost"
         size="sm"
@@ -378,7 +400,7 @@ const ZoomControls: React.FC<{
 
       <div className="mx-1 h-6 w-px bg-gray-300" />
 
-      <Button variant="ghost" size="sm" onClick={onReset} className="h-8 w-8 p-0">
+      <Button variant="ghost" size="sm" onClick={handleReset} className="h-8 w-8 p-0">
         <Maximize2 className="h-4 w-4" />
       </Button>
     </div>
@@ -391,7 +413,7 @@ const CanvasToolbar: React.FC<{
   onToggleGrid: () => void
 }> = ({ showGrid, onToggleGrid }) => {
   return (
-    <div className="absolute right-4 top-4 flex items-center space-x-2 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+    <div className="absolute right-4 top-4 z-20 flex items-center space-x-2 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
       <Button
         variant={showGrid ? 'default' : 'ghost'}
         size="sm"
@@ -420,12 +442,14 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null)
   const [isOver, setIsOver] = useState(false)
   const [hoveredComponentId, setHoveredComponentId] = useState<string | null>(null)
+  const [orderedComponents, setOrderedComponents] = useState(components)
 
   // 设置拖拽区域
   const { setNodeRef, isOver: isDroppableOver } = useDroppable({
     id: 'canvas',
     data: {
       accepts: ['component'],
+      dropZoneType: 'canvas',
     },
   })
 
@@ -561,6 +585,7 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
   // 处理缩放变化
   const handleZoomChange = useCallback(
     (zoom: number) => {
+      console.log('PageCanvas: handleZoomChange called with zoom:', zoom)
       onCanvasStateChange({ zoom })
     },
     [onCanvasStateChange]
@@ -568,6 +593,7 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
 
   // 处理重置视图
   const handleResetView = useCallback(() => {
+    console.log('PageCanvas: handleResetView called')
     onCanvasStateChange({
       zoom: 1,
       pan: { x: 0, y: 0 },
@@ -584,6 +610,46 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
     setIsOver(isDroppableOver)
   }, [isDroppableOver])
 
+  // 同步组件顺序 - 确保组件按照order属性排序
+  useEffect(() => {
+    const sortedComponents = [...components].sort((a, b) => a.position.order - b.position.order)
+    setOrderedComponents(sortedComponents)
+  }, [components])
+
+  // 处理组件拖拽排序
+  const handleDragEnd = useCallback(
+    (event: any) => {
+      const { active, over } = event
+
+      // 如果是组件面板的拖拽，不处理排序
+      if (
+        typeof active.id === 'string' &&
+        active.id.startsWith('component-') &&
+        !components.find(c => c.id === active.id)
+      ) {
+        return
+      }
+
+      if (active && over && active.id !== over.id) {
+        const oldIndex = orderedComponents.findIndex(item => item.id === active.id)
+        const newIndex = orderedComponents.findIndex(item => item.id === over.id)
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const newComponents = arrayMove(orderedComponents, oldIndex, newIndex)
+          setOrderedComponents(newComponents)
+
+          // 更新所有组件的order属性
+          newComponents.forEach((component, index) => {
+            onComponentUpdate(component.id, {
+              position: { ...component.position, order: index },
+            })
+          })
+        }
+      }
+    },
+    [orderedComponents, onComponentUpdate, components]
+  )
+
   // 获取默认组件属性
   const getDefaultProps = (type: string) => {
     switch (type) {
@@ -592,7 +658,7 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
       case 'input':
         return { input: { placeholder: '请输入内容', type: 'text' as const } }
       case 'text':
-        return { text: { content: '文本内容', variant: 'body' as const } }
+        return { text: { content: '📝 文本内容', variant: 'body' as const } }
       case 'image':
         return { image: { src: '/api/placeholder/300/200', alt: '图片' } }
       default:
@@ -602,9 +668,25 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
 
   // 获取默认样式
   const getDefaultStyles = (type: string) => {
-    return {
+    const baseStyles = {
       margin: { bottom: 16 },
     }
+
+    // 为文本组件添加特殊样式以确保可见性
+    if (type === 'text') {
+      return {
+        ...baseStyles,
+        padding: '8px 12px',
+        backgroundColor: '#f3f4f6',
+        border: '1px dashed #d1d5db',
+        borderRadius: '4px',
+        minWidth: '120px',
+        minHeight: '32px',
+        display: 'inline-block',
+      }
+    }
+
+    return baseStyles
   }
 
   const canvasScale = canvasState.zoom
@@ -617,24 +699,7 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
 
       {/* 主画布区域 */}
       <ScrollArea className="h-full">
-        <div
-          ref={canvasRef}
-          className="flex min-h-full justify-center p-8"
-          onDragOver={e => {
-            e.preventDefault()
-            setIsOver(true)
-          }}
-          onDragLeave={e => {
-            // 只有当离开整个画布区域时才设置为false
-            if (!canvasRef.current?.contains(e.relatedTarget as Node)) {
-              setIsOver(false)
-            }
-          }}
-          onDrop={e => {
-            e.preventDefault()
-            setIsOver(false)
-          }}
-        >
+        <div ref={canvasRef} className="flex min-h-full justify-center p-8">
           <motion.div
             ref={setNodeRef}
             className="relative bg-white shadow-xl"
@@ -684,26 +749,32 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
               {components.length === 0 ? (
                 <EmptyCanvas onComponentAdd={handleQuickAddComponent} />
               ) : (
-                <div className="space-y-4">
-                  <AnimatePresence>
-                    {components.map(component => (
-                      <ComponentWrapper
-                        key={component.id}
-                        component={component}
-                        isSelected={selectedComponentIds.includes(component.id)}
-                        isDragging={dragState.isDragging && dragState.activeId === component.id}
-                        isHovered={hoveredComponentId === component.id}
-                        onSelect={handleComponentSelect}
-                        onUpdate={handleComponentUpdate}
-                        onDelete={handleComponentDelete}
-                        onDuplicate={handleComponentDuplicate}
-                        onMove={handleComponentMove}
-                        onMouseEnter={() => handleComponentHover(component.id)}
-                        onMouseLeave={() => handleComponentHover(null)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
+                <DndContext onDragEnd={handleDragEnd} autoScroll={true}>
+                  <SortableContext
+                    items={orderedComponents.map(c => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-4">
+                      <AnimatePresence>
+                        {orderedComponents.map(component => (
+                          <SortableComponentWrapper
+                            key={component.id}
+                            component={component}
+                            isSelected={selectedComponentIds.includes(component.id)}
+                            isHovered={hoveredComponentId === component.id}
+                            onSelect={handleComponentSelect}
+                            onUpdate={handleComponentUpdate}
+                            onDelete={handleComponentDelete}
+                            onDuplicate={handleComponentDuplicate}
+                            onMove={handleComponentMove}
+                            onMouseEnter={() => handleComponentHover(component.id)}
+                            onMouseLeave={() => handleComponentHover(null)}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
 

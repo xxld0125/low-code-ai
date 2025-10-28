@@ -266,6 +266,8 @@ export const useDesignerStore = create<DesignerStore>()(
           canUndo: false,
           canRedo: false,
           isRecordingHistory: true,
+          past: [],
+          future: [],
         },
         uiState: {
           leftPanelWidth: 280,

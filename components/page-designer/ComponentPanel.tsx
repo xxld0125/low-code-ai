@@ -164,37 +164,32 @@ const DraggableComponentItem: React.FC<{
     >
       <div
         className={cn(
-          'relative rounded-lg border border-gray-200 bg-white p-3',
+          'relative rounded border border-gray-200 bg-white p-2',
           'hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm',
           'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
           'transition-all duration-200'
         )}
       >
         {/* 拖拽指示器 */}
-        <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-            <LayoutGrid className="h-3 w-3 text-blue-600" />
+        <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100">
+            <LayoutGrid className="h-2 w-2 text-blue-600" />
           </div>
         </div>
 
         {/* 组件预览 */}
-        <div className="mb-3">
+        <div className="mb-2">
           <PreviewComponent />
         </div>
 
         {/* 组件信息 */}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-900">
+            <h3 className="text-xs font-medium text-gray-900">
               {component.icon} {component.name}
             </h3>
           </div>
-          <p className="text-xs text-gray-500">{component.description}</p>
-        </div>
-
-        {/* 键盘提示 */}
-        <div className="mt-2 flex items-center text-xs text-gray-400">
-          <span>拖拽或点击添加</span>
+          <p className="truncate text-xs text-gray-500">{component.description}</p>
         </div>
       </div>
     </div>
@@ -244,7 +239,7 @@ const CategorySection: React.FC<{
       {/* 分类标题 */}
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-left transition-colors hover:bg-gray-100"
+        className="flex w-full items-center justify-between rounded bg-gray-50 px-2 py-1.5 text-left transition-colors hover:bg-gray-100"
         aria-expanded={isExpanded}
         aria-controls={`category-${category.id}`}
       >
@@ -267,7 +262,7 @@ const CategorySection: React.FC<{
       {isExpanded && (
         <div
           id={`category-${category.id}`}
-          className="grid grid-cols-1 gap-3"
+          className="grid grid-cols-1 gap-2"
           role="list"
           aria-label={`${category.name}组件列表`}
         >
@@ -372,8 +367,8 @@ export const ComponentPanel: React.FC<{
       </div>
 
       {/* 组件列表 */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-6">
+      <ScrollArea className="flex-1 p-3">
+        <div className="space-y-4">
           {COMPONENT_CATEGORIES.map(category => (
             <CategorySection
               key={category.id}

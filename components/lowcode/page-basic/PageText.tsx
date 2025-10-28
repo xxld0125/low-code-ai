@@ -133,6 +133,46 @@ export const PageText: React.FC<ComponentRendererProps> = ({
     }
   }
 
+  // 处理 margin 属性 - 支持对象格式
+  const getMarginStyle = (margin: any): React.CSSProperties => {
+    if (!margin) return {}
+
+    if (typeof margin === 'string') {
+      return { margin }
+    }
+
+    if (typeof margin === 'object') {
+      return {
+        marginTop: margin.top,
+        marginRight: margin.right,
+        marginBottom: margin.bottom,
+        marginLeft: margin.left,
+      }
+    }
+
+    return {}
+  }
+
+  // 处理 padding 属性 - 支持对象格式
+  const getPaddingStyle = (padding: any): React.CSSProperties => {
+    if (!padding) return {}
+
+    if (typeof padding === 'string') {
+      return { padding }
+    }
+
+    if (typeof padding === 'object') {
+      return {
+        paddingTop: padding.top,
+        paddingRight: padding.right,
+        paddingBottom: padding.bottom,
+        paddingLeft: padding.left,
+      }
+    }
+
+    return {}
+  }
+
   // 合并默认样式和自定义样式
   const mergedStyles: React.CSSProperties = {
     width: styles.width || 'auto',
@@ -141,18 +181,20 @@ export const PageText: React.FC<ComponentRendererProps> = ({
     cursor: isDragging ? 'grabbing' : 'text',
     transition: styles.transition || 'all 0.2s ease-in-out',
     userSelect: 'none',
+    // 确保背景色优先级高于CSS类
+    backgroundColor: styles.backgroundColor || '#f3f4f6',
+    // 确保边框样式
+    border: styles.border || '1px dashed #d1d5db',
+    borderRadius: styles.borderRadius || '4px',
+    // 确保显示方式
+    display: styles.display || 'inline-block',
+    minWidth: styles.minWidth || '120px',
+    minHeight: styles.minHeight || '32px',
     // 过滤掉不兼容的样式属性
     boxShadow:
       styles.boxShadow && typeof styles.boxShadow === 'string' ? styles.boxShadow : undefined,
-    background:
-      styles.background && typeof styles.background === 'string' ? styles.background : undefined,
-    border: styles.border && typeof styles.border === 'string' ? styles.border : undefined,
-    borderRadius:
-      styles.borderRadius && typeof styles.borderRadius !== 'boolean'
-        ? styles.borderRadius
-        : undefined,
-    margin: styles.margin && typeof styles.margin === 'string' ? styles.margin : undefined,
-    padding: styles.padding && typeof styles.padding === 'string' ? styles.padding : undefined,
+    ...getMarginStyle(styles.margin),
+    ...getPaddingStyle(styles.padding),
     // 直接支持的标准CSS属性
     fontSize: styles.fontSize,
     fontWeight: styles.fontWeight,
@@ -168,9 +210,6 @@ export const PageText: React.FC<ComponentRendererProps> = ({
     bottom: styles.bottom,
     left: styles.left,
     zIndex: styles.zIndex,
-    display: styles.display,
-    minWidth: styles.minWidth,
-    minHeight: styles.minHeight,
     maxWidth: styles.maxWidth,
     maxHeight: styles.maxHeight,
   }
@@ -192,7 +231,7 @@ export const PageText: React.FC<ComponentRendererProps> = ({
         getDecorationClass(textProps.decoration || 'none'),
         isSelected && 'ring-2 ring-blue-500 ring-offset-2 rounded p-1',
         isDragging && 'opacity-75',
-        'hover:bg-gray-50',
+        // 移除hover:bg-gray-50避免与内联样式冲突
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
         props.className
       ),
@@ -214,7 +253,7 @@ export const PageTextPreview: React.FC<{
 }> = ({ onClick }) => {
   return (
     <div
-      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
+      className="flex h-12 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-gray-50 p-2 hover:border-blue-300 hover:bg-blue-50"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -224,7 +263,10 @@ export const PageTextPreview: React.FC<{
         }
       }}
     >
-      <span className="text-sm text-gray-700">文本</span>
+      <div className="flex items-center space-x-1">
+        <span className="text-sm font-medium text-gray-700">文本</span>
+        <div className="h-2 w-2 rounded-full bg-blue-400"></div>
+      </div>
     </div>
   )
 }

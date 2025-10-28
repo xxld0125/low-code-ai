@@ -17,7 +17,6 @@ import {
   DragOverEvent,
   DragEndEvent,
   DragCancelEvent,
-  CollisionDetection,
   defaultDropAnimationSideEffects,
   DropAnimation,
 } from '@dnd-kit/core'
@@ -44,26 +43,7 @@ export interface PageDesignerProviderProps {
   onDragEnd?: (dragData: DragItem | null, dropData: any) => void
   onDragOver?: (dragData: DragItem, dropData: any) => void
   onDragCancel?: (dragData: DragItem | null) => void
-  collisionDetection?: CollisionDetection
   dropAnimation?: DropAnimation | null
-}
-
-// 自定义碰撞检测算法
-const customCollisionDetection: CollisionDetection = args => {
-  const { active, droppableContainers } = args
-
-  // 首先尝试中心点最近距离
-  const centerCollisions = closestCenter({
-    active,
-    droppableContainers,
-  } as any)
-
-  if (centerCollisions.length > 0) {
-    return centerCollisions
-  }
-
-  // 如果没有找到中心点碰撞，返回空数组
-  return []
 }
 
 // 默认拖拽动画配置
@@ -78,7 +58,6 @@ export const PageDesignerProvider: React.FC<PageDesignerProviderProps> = ({
   onDragEnd,
   onDragOver,
   onDragCancel,
-  collisionDetection = customCollisionDetection,
   dropAnimation = defaultDropAnimation,
 }) => {
   const [dragState, setDragState] = useState<DragState>({
@@ -169,6 +148,15 @@ export const PageDesignerProvider: React.FC<PageDesignerProviderProps> = ({
       const { active, over } = event
       const dragDuration = Date.now() - dragStartTime.current
 
+      // 详细调试信息
+      console.log('DragEnd event details:', {
+        active: active.id,
+        over: over?.id,
+        activeData: active.data.current,
+        overData: over?.data.current,
+        dragDuration,
+      })
+
       // 重置拖拽状态
       setDragState({
         isDragging: false,
@@ -185,6 +173,9 @@ export const PageDesignerProvider: React.FC<PageDesignerProviderProps> = ({
       let dropData = null
       if (over) {
         dropData = over.data.current
+        console.log('Drop zone data:', dropData)
+      } else {
+        console.log('No drop zone detected - drag ended outside droppable area')
       }
 
       // 触发外部回调
@@ -295,7 +286,7 @@ export const PageDesignerProvider: React.FC<PageDesignerProviderProps> = ({
     <PageDesignerContext.Provider value={contextValue}>
       <DndContext
         sensors={sensors}
-        collisionDetection={collisionDetection}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}

@@ -64,7 +64,7 @@ export default function CreatePageDesign() {
         throw new Error(error.error || '创建失败')
       }
 
-      const newDesign = await response.json()
+      const result = await response.json()
 
       toast({
         title: '创建成功',
@@ -72,7 +72,7 @@ export default function CreatePageDesign() {
       })
 
       // 跳转到编辑页面
-      router.push(`/protected/designer/page/${newDesign.id}`)
+      router.push(`/protected/designer/page/${result.data.id}`)
     } catch (error) {
       console.error('创建页面设计失败:', error)
       toast({

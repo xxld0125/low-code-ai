@@ -149,16 +149,19 @@ export async function POST(request: NextRequest) {
 
     const pageDesignData = validationResult.data
 
+    // 先创建一个临时UUID用于根组件
+    const tempRootId = crypto.randomUUID()
+
     // 创建页面设计
     const { data: pageDesign, error } = await supabase
       .from('page_designs')
       .insert({
         ...pageDesignData,
         user_id: user.id,
-        root_component_id: '', // 稍后创建根组件时更新
+        root_component_id: tempRootId, // 使用临时UUID
         component_tree: {
           version: '1.0',
-          root_id: '',
+          root_id: tempRootId,
           components: {},
           hierarchy: [],
         },
@@ -175,6 +178,7 @@ export async function POST(request: NextRequest) {
     const { data: rootComponent, error: rootComponentError } = await supabase
       .from('component_instances')
       .insert({
+        id: tempRootId, // 使用相同的UUID
         page_design_id: pageDesign.id,
         component_type: 'container',
         position: { z_index: 0, order: 0 },
@@ -213,20 +217,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '创建根组件失败' }, { status: 500 })
     }
 
-    // 更新页面设计的根组件ID
+    // 更新页面设计的组件树
     const { data: updatedPageDesign, error: updateError } = await supabase
       .from('page_designs')
       .update({
-        root_component_id: rootComponent.id,
         component_tree: {
           version: '1.0',
-          root_id: rootComponent.id,
+          root_id: tempRootId,
           components: {
-            [rootComponent.id]: rootComponent,
+            [tempRootId]: rootComponent,
           },
           hierarchy: [
             {
-              component_id: rootComponent.id,
+              component_id: tempRootId,
               parent_id: null,
               children: [],
               depth: 0,

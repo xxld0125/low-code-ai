@@ -147,13 +147,15 @@ export default function PageDesignerList() {
   }
 
   useEffect(() => {
-    // 重置页码为第一页当搜索查询改变时
+    loadPageDesigns()
+  }, [debouncedSearchQuery, statusFilter, pagination.page])
+
+  // 当搜索查询改变时重置页码为第一页
+  useEffect(() => {
     if (debouncedSearchQuery !== searchQuery) {
       setPagination(prev => ({ ...prev, page: 1 }))
-      return
     }
-    loadPageDesigns()
-  }, [debouncedSearchQuery, statusFilter, pagination.page, loadPageDesigns, searchQuery])
+  }, [searchQuery, debouncedSearchQuery])
 
   const getStatusBadge = (status: string) => {
     const variants = {
