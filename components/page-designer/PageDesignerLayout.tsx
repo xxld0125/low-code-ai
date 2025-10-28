@@ -199,6 +199,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
     updateComponent,
     deleteComponent,
     setCanvasSize,
+    toggleGrid,
     startDrag,
     endDrag,
     updateDrag,
@@ -338,12 +339,17 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
   // 处理画布状态变化
   const handleCanvasStateChange = useCallback(
     (updates: Partial<PageDesignerCanvasState>) => {
-      // 这里可以根据需要更新 canvas 状态
+      // 处理画布尺寸更新
       if (updates.canvasWidth && updates.canvasHeight) {
         setCanvasSize(updates.canvasWidth, updates.canvasHeight)
       }
+
+      // 处理网格显示切换
+      if ('showGrid' in updates) {
+        toggleGrid()
+      }
     },
-    [setCanvasSize]
+    [setCanvasSize, toggleGrid]
   )
 
   // 拖拽轨迹状态
