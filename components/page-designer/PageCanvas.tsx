@@ -27,8 +27,6 @@ import {
   Copy,
   Trash2,
   GripVertical,
-  ArrowUp,
-  ArrowDown,
   ArrowLeft,
   ArrowRight,
 } from 'lucide-react'
@@ -101,7 +99,6 @@ const SortableComponentWrapper: React.FC<{
   onUpdate: (id: string, updates: Partial<ComponentInstance>) => void
   onDelete: (id: string) => void
   onDuplicate?: (id: string) => void
-  onMove?: (id: string, direction: 'up' | 'down' | 'left' | 'right') => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
 }> = ({
@@ -112,7 +109,6 @@ const SortableComponentWrapper: React.FC<{
   onUpdate,
   onDelete,
   onDuplicate,
-  onMove,
   onMouseEnter,
   onMouseLeave,
 }) => {
@@ -144,13 +140,6 @@ const SortableComponentWrapper: React.FC<{
       onDelete(component.id)
     },
     [component.id, onDelete]
-  )
-
-  const handleMove = useCallback(
-    (direction: 'up' | 'down' | 'left' | 'right') => {
-      onMove?.(component.id, direction)
-    },
-    [component.id, onMove]
   )
 
   if (!Renderer) {
@@ -228,26 +217,6 @@ const SortableComponentWrapper: React.FC<{
             >
               <div className="flex h-8 w-2 cursor-move items-center justify-center rounded-l bg-blue-500">
                 <GripVertical className="h-3 w-3 text-white" />
-              </div>
-            </div>
-
-            {/* 右侧操作手柄 */}
-            <div className="absolute -right-2 top-1/2 -translate-y-1/2 transform opacity-0 transition-opacity group-hover:opacity-100">
-              <div className="flex flex-col space-y-1">
-                <button
-                  onClick={handleMove.bind(null, 'up')}
-                  className="flex h-6 w-6 items-center justify-center rounded-t bg-blue-500 text-xs text-white hover:bg-blue-600"
-                  title="向上移动"
-                >
-                  <ArrowUp className="h-3 w-3" />
-                </button>
-                <button
-                  onClick={handleMove.bind(null, 'down')}
-                  className="flex h-6 w-6 items-center justify-center rounded-b bg-blue-500 text-xs text-white hover:bg-blue-600"
-                  title="向下移动"
-                >
-                  <ArrowDown className="h-3 w-3" />
-                </button>
               </div>
             </div>
 
@@ -506,47 +475,6 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
     [components, onComponentAdd]
   )
 
-  // 处理组件移动
-  const handleComponentMove = useCallback(
-    (id: string, direction: 'up' | 'down' | 'left' | 'right') => {
-      const componentIndex = components.findIndex(c => c.id === id)
-      if (componentIndex === -1) return
-
-      const newComponents = [...components]
-      let newIndex = componentIndex
-
-      switch (direction) {
-        case 'up':
-          newIndex = Math.max(0, componentIndex - 1)
-          break
-        case 'down':
-          newIndex = Math.min(components.length - 1, componentIndex + 1)
-          break
-        case 'left':
-          // 在布局系统中，left/right可能需要不同的处理逻辑
-          newIndex = Math.max(0, componentIndex - 1)
-          break
-        case 'right':
-          newIndex = Math.min(components.length - 1, componentIndex + 1)
-          break
-      }
-
-      if (newIndex !== componentIndex) {
-        // 交换组件位置
-        const [movedComponent] = newComponents.splice(componentIndex, 1)
-        newComponents.splice(newIndex, 0, movedComponent)
-
-        // 更新所有组件的order属性
-        newComponents.forEach((component, index) => {
-          onComponentUpdate(component.id, {
-            position: { ...component.position, order: index },
-          })
-        })
-      }
-    },
-    [components, onComponentUpdate]
-  )
-
   // 处理悬停状态
   const handleComponentHover = useCallback((id: string | null) => {
     setHoveredComponentId(id)
@@ -766,7 +694,6 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
                             onUpdate={handleComponentUpdate}
                             onDelete={handleComponentDelete}
                             onDuplicate={handleComponentDuplicate}
-                            onMove={handleComponentMove}
                             onMouseEnter={() => handleComponentHover(component.id)}
                             onMouseLeave={() => handleComponentHover(null)}
                           />
