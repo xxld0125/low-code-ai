@@ -27,10 +27,10 @@ description: 'Task list for 基础组件库 implementation'
 
 **Purpose**: 项目初始化和基础结构搭建
 
-- [ ] T001 创建基础组件库目录结构 per implementation plan
-- [ ] T002 [P] 配置TypeScript严格模式和类型定义文件 in `types/lowcode/`
-- [ ] T003 [P] 配置测试框架 (Jest + React Testing Library) with coverage reporting in `jest.config.js`
-- [ ] T004 [P] 创建组件库基础类型定义 in `types/lowcode/index.ts`
+- [x] T001 创建基础组件库目录结构 per implementation plan
+- [x] T002 [P] 配置TypeScript严格模式和类型定义文件 in `types/lowcode/`
+- [x] T003 [P] 配置测试框架 (Jest + React Testing Library) with coverage reporting in `jest.config.js`
+- [x] T004 [P] 创建组件库基础类型定义 in `types/lowcode/index.ts`
 
 ---
 
