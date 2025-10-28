@@ -451,7 +451,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
                   zoom: canvas.zoom,
                   pan: canvas.pan,
                   gridSize: canvas.gridSize,
-                  showGrid: true,
+                  showGrid: canvas.showGrid,
                   canvasWidth: canvas.canvasWidth,
                   canvasHeight: canvas.canvasHeight,
                 }}
@@ -492,7 +492,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
             zoom: canvas.zoom,
             pan: canvas.pan,
             gridSize: canvas.gridSize,
-            showGrid: true,
+            showGrid: canvas.showGrid,
             canvasWidth: canvas.canvasWidth,
             canvasHeight: canvas.canvasHeight,
           }}
