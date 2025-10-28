@@ -128,8 +128,12 @@ const DraggableComponentItem: React.FC<{
     },
   })
 
-  const handleClick = () => {
-    onComponentClick?.(component.type)
+  const handleClick = (e: React.MouseEvent) => {
+    // 阻止点击事件冒泡到拖拽处理器
+    e.preventDefault()
+    e.stopPropagation()
+    // 注释掉点击添加组件的功能，只允许拖拽添加
+    // onComponentClick?.(component.type)
   }
 
   const style = transform
@@ -152,15 +156,17 @@ const DraggableComponentItem: React.FC<{
         isDragging && 'scale-95 opacity-50'
       )}
       onClick={handleClick}
+      onDoubleClick={handleClick} // 双击也不添加组件
       role="button"
       tabIndex={0}
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          handleClick()
+          // 键盘事件也不添加组件，只允许拖拽
+          // handleClick()
         }
       }}
-      aria-label={`拖拽 ${component.name} 组件`}
+      aria-label={`拖拽 ${component.name} 组件到画布`}
     >
       <div
         className={cn(
@@ -406,7 +412,7 @@ export const ComponentPanel: React.FC<{
       {/* 面板底部 */}
       <div className="border-t border-gray-200 p-4">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>拖拽组件到画布</span>
+          <span>拖拽组件到画布添加</span>
           <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
             <Plus className="mr-1 h-3 w-3" />
             自定义组件
