@@ -15,8 +15,10 @@ import { useAutoSave } from '@/hooks/use-auto-save'
 import type { ComponentInstance } from '@/types/page-designer/component'
 
 // 安全序列化组件数据
-const serializeComponents = (components: Record<string, ComponentInstance>): Record<string, any> => {
-  const serialized: Record<string, any> = {}
+const serializeComponents = (
+  components: Record<string, ComponentInstance>
+): Record<string, unknown> => {
+  const serialized: Record<string, unknown> = {}
 
   Object.entries(components).forEach(([id, component]) => {
     serialized[id] = {
@@ -41,30 +43,37 @@ const serializeComponents = (components: Record<string, ComponentInstance>): Rec
 }
 
 // 构建组件层级结构
-const buildComponentHierarchy = (components: Record<string, any>): any[] => {
+const buildComponentHierarchy = (components: Record<string, unknown>): unknown[] => {
   const componentMap = new Map(Object.entries(components))
 
   // 找到根组件
   const rootComponents = Array.from(componentMap.values()).filter(
-    component => !component.parent_id
+    component => !(component as { parent_id?: string }).parent_id
   )
 
   // 递归构建层级结构
-  const buildComponentHierarchy = (component: any): any => {
+  const buildHierarchy = (component: unknown): unknown => {
+    const componentData = component as {
+      id: string
+      parent_id?: string
+      component_type: string
+      props?: unknown
+      styles?: unknown
+    }
     const children = Array.from(componentMap.values())
-      .filter(child => child.parent_id === component.id)
-      .map(buildComponentHierarchy)
+      .filter(child => (child as { parent_id?: string }).parent_id === componentData.id)
+      .map(buildHierarchy)
 
     return {
-      id: component.id,
-      type: component.component_type,
+      id: componentData.id,
+      type: componentData.component_type,
       children,
-      props: component.props || {},
-      styles: component.styles || {},
+      props: componentData.props || {},
+      styles: componentData.styles || {},
     }
   }
 
-  return rootComponents.map(buildComponentHierarchy)
+  return rootComponents.map(buildHierarchy)
 }
 
 export default function PageDesignerEditor() {
@@ -79,8 +88,6 @@ export default function PageDesignerEditor() {
   const {
     currentPageId,
     setPageDesign,
-    components,
-    loadPageDesign,
     // savePageDesign // 暂时未使用
   } = useDesignerStore()
 
@@ -117,7 +124,7 @@ export default function PageDesignerEditor() {
 
         // 设置当前页面ID
         useDesignerStore.setState({
-          currentPageId: pageDesignId
+          currentPageId: pageDesignId,
         })
 
         // 从 component_tree 恢复组件数据
@@ -125,7 +132,7 @@ export default function PageDesignerEditor() {
           const treeComponents = designData.pageDesign.component_tree.components
 
           // 转换为 Zustand store 需要的格式
-          const componentsRecord: Record<string, any> = {}
+          const componentsRecord: Record<string, unknown> = {}
           Object.entries(treeComponents).forEach(([id, component]) => {
             componentsRecord[id] = {
               ...component,
@@ -139,7 +146,7 @@ export default function PageDesignerEditor() {
 
           // 直接设置到 store 的 components 状态
           useDesignerStore.setState({
-            components: componentsRecord
+            components: componentsRecord as Record<string, ComponentInstance>,
           })
         }
       } catch (err) {
@@ -170,7 +177,7 @@ export default function PageDesignerEditor() {
       const hierarchy = buildComponentHierarchy(serializedComponents)
 
       // 动态计算根组件ID
-      const componentArray = Object.values(serializedComponents)
+      const componentArray = Object.values(serializedComponents) as ComponentInstance[]
       const rootComponent = componentArray.find(comp => !comp.parent_id)
       const rootId = rootComponent?.id || ''
 

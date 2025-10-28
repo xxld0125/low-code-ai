@@ -148,7 +148,7 @@ export default function PageDesignerList() {
 
   useEffect(() => {
     loadPageDesigns()
-  }, [debouncedSearchQuery, statusFilter, pagination.page])
+  }, [debouncedSearchQuery, statusFilter, pagination.page, loadPageDesigns])
 
   // 当搜索查询改变时重置页码为第一页
   useEffect(() => {

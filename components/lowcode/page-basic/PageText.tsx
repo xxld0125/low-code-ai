@@ -183,9 +183,13 @@ export const PageText: React.FC<ComponentRendererProps> = ({
     userSelect: 'none',
     // 确保背景色优先级高于CSS类
     backgroundColor: styles.backgroundColor || '#f3f4f6',
-    // 确保边框样式
-    border: styles.border || '1px dashed #d1d5db',
-    borderRadius: styles.borderRadius || '4px',
+    // 确保边框样式 - 根据 BorderValue 类型进行转换
+    border:
+      typeof styles.border === 'boolean' || typeof styles.border === 'object'
+        ? undefined
+        : styles.border || '1px dashed #d1d5db',
+    borderRadius:
+      typeof styles.borderRadius === 'boolean' ? undefined : styles.borderRadius || '4px',
     // 确保显示方式
     display: styles.display || 'inline-block',
     minWidth: styles.minWidth || '120px',

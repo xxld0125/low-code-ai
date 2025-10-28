@@ -208,7 +208,9 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
 
   // 转换为数组格式以兼容现有组件
   const componentsArray = Object.values(components)
-  const selectedComponentsArray = selectionState.selectedComponentIds.map(id => components[id]).filter(Boolean)
+  const selectedComponentsArray = selectionState.selectedComponentIds
+    .map(id => components[id])
+    .filter(Boolean)
 
   // 统计信息
   const stats = {
@@ -242,13 +244,19 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
     [selectComponent]
   )
 
-  const handleComponentUpdate = useCallback((id: string, updates: Partial<ComponentInstance>) => {
-    updateComponent(id, updates)
-  }, [updateComponent])
+  const handleComponentUpdate = useCallback(
+    (id: string, updates: Partial<ComponentInstance>) => {
+      updateComponent(id, updates)
+    },
+    [updateComponent]
+  )
 
-  const handleComponentDelete = useCallback((id: string) => {
-    deleteComponent(id)
-  }, [deleteComponent])
+  const handleComponentDelete = useCallback(
+    (id: string) => {
+      deleteComponent(id)
+    },
+    [deleteComponent]
+  )
 
   const handleComponentAdd = useCallback(
     (component: ComponentInstance) => {
@@ -259,9 +267,12 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
     [componentsArray.length, addComponentFromType]
   )
 
-  const handleDragStart = useCallback((dragData: DragItem) => {
-    startDrag('component', dragData.type as ComponentType, dragData.id)
-  }, [startDrag])
+  const handleDragStart = useCallback(
+    (dragData: DragItem) => {
+      startDrag(dragData.type as ComponentType, dragData.type, dragData.id)
+    },
+    [startDrag]
+  )
 
   const handleDragEnd = useCallback(
     (dragData: DragItem | null, dropData: any) => {
@@ -278,9 +289,12 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
     [addComponentFromType, endDrag]
   )
 
-  const handleDragOver = useCallback((dragData: DragItem, dropData: any) => {
-    updateDrag({ x: 0, y: 0 }, dropData?.id)
-  }, [updateDrag])
+  const handleDragOver = useCallback(
+    (dragData: DragItem, dropData: any) => {
+      updateDrag({ x: 0, y: 0 }, dropData?.id)
+    },
+    [updateDrag]
+  )
 
   // 获取默认组件属性
   const getDefaultProps = (type: string) => {
@@ -322,12 +336,15 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
   }
 
   // 处理画布状态变化
-  const handleCanvasStateChange = useCallback((updates: Partial<PageDesignerCanvasState>) => {
-    // 这里可以根据需要更新 canvas 状态
-    if (updates.width && updates.height) {
-      setCanvasSize(updates.width, updates.height)
-    }
-  }, [setCanvasSize])
+  const handleCanvasStateChange = useCallback(
+    (updates: Partial<PageDesignerCanvasState>) => {
+      // 这里可以根据需要更新 canvas 状态
+      if (updates.canvasWidth && updates.canvasHeight) {
+        setCanvasSize(updates.canvasWidth, updates.canvasHeight)
+      }
+    },
+    [setCanvasSize]
+  )
 
   // 拖拽轨迹状态
   const [dragTrail, setDragTrail] = useState<Array<{ x: number; y: number; timestamp: number }>>([])

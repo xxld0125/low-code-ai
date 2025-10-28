@@ -682,7 +682,7 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
         borderRadius: '4px',
         minWidth: '120px',
         minHeight: '32px',
-        display: 'inline-block',
+        display: 'inline-block' as const,
       }
     }
 

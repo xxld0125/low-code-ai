@@ -29,8 +29,10 @@ interface ComponentHierarchy {
 }
 
 // 安全序列化组件数据，移除不可序列化的内容
-const serializeComponents = (components: Record<string, ComponentInstance>): Record<string, any> => {
-  const serialized: Record<string, any> = {}
+const serializeComponents = (
+  components: Record<string, ComponentInstance>
+): Record<string, unknown> => {
+  const serialized: Record<string, unknown> = {}
 
   Object.entries(components).forEach(([id, component]) => {
     serialized[id] = {
@@ -179,26 +181,33 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
   }, [debouncedSave])
 
   // 构建组件层级结构
-  const buildHierarchy = (components: Record<string, any>): ComponentHierarchy[] => {
+  const buildHierarchy = (components: Record<string, unknown>): ComponentHierarchy[] => {
     const componentMap = new Map(Object.entries(components))
 
     // 找到根组件
     const rootComponents = Array.from(componentMap.values()).filter(
-      component => !component.parent_id
+      component => !(component as { parent_id?: string }).parent_id
     )
 
     // 递归构建层级结构
-    const buildComponentHierarchy = (component: any): ComponentHierarchy => {
+    const buildComponentHierarchy = (component: unknown): ComponentHierarchy => {
+      const componentData = component as {
+        id: string
+        parent_id?: string
+        component_type: string
+        props?: unknown
+        styles?: unknown
+      }
       const children = Array.from(componentMap.values())
-        .filter(child => child.parent_id === component.id)
+        .filter(child => (child as { parent_id?: string }).parent_id === componentData.id)
         .map(buildComponentHierarchy)
 
       return {
-        id: component.id,
-        type: component.component_type,
+        id: componentData.id,
+        type: componentData.component_type,
         children,
-        props: component.props || {},
-        styles: component.styles || {},
+        props: (componentData.props as Record<string, unknown>) || {},
+        styles: (componentData.styles as Record<string, unknown>) || {},
       }
     }
 
