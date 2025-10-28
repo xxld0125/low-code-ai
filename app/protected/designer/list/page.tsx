@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Copy, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -59,13 +59,18 @@ export default function PageDesignerList() {
   // 检查是否正在搜索（用于显示加载状态）
   const isSearching = debouncedSearchQuery !== searchQuery
 
+  // 使用 ref 来存储最新的分页状态，避免闭包问题
+  const paginationRef = useRef(pagination)
+  paginationRef.current = pagination
+
   // 加载页面设计列表
   const loadPageDesigns = useCallback(async () => {
     try {
       setLoading(true)
+      const currentPagination = paginationRef.current
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
+        page: currentPagination.page.toString(),
+        limit: currentPagination.limit.toString(),
         search: debouncedSearchQuery,
         ...(statusFilter !== 'all' && { status: statusFilter }),
       })
@@ -75,7 +80,10 @@ export default function PageDesignerList() {
 
       const data = await response.json()
       setPageDesigns(data.data || [])
-      setPagination(data.pagination || pagination)
+      setPagination(prev => ({
+        ...prev,
+        ...data.pagination,
+      }))
     } catch (error) {
       console.error('加载页面设计列表失败:', error)
       toast({
@@ -86,7 +94,7 @@ export default function PageDesignerList() {
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearchQuery, statusFilter, pagination])
+  }, [debouncedSearchQuery, statusFilter])
 
   // 删除页面设计
   const deletePageDesign = async (id: string) => {
@@ -148,7 +156,14 @@ export default function PageDesignerList() {
 
   useEffect(() => {
     loadPageDesigns()
-  }, [debouncedSearchQuery, statusFilter, pagination.page, loadPageDesigns])
+  }, [debouncedSearchQuery, statusFilter, loadPageDesigns])
+
+  // 监听页码变化，当页码改变时重新加载数据
+  useEffect(() => {
+    if (paginationRef.current.page !== pagination.page) {
+      loadPageDesigns()
+    }
+  }, [pagination.page, loadPageDesigns])
 
   // 当搜索查询改变时重置页码为第一页
   useEffect(() => {
