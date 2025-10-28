@@ -256,3 +256,115 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '服务器内部错误' }, { status: 500 })
   }
 }
+
+// PUT - 更新页面设计
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json({ error: '缺少页面设计ID' }, { status: 400 })
+    }
+
+    // 验证请求数据
+    const validationResult = UpdatePageDesignSchema.safeParse(updateData)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: '请求数据无效',
+          details: validationResult.error.issues,
+        },
+        { status: 400 }
+      )
+    }
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 })
+    }
+
+    const validatedData = validationResult.data
+
+    // 更新页面设计
+    const { data: pageDesign, error } = await supabase
+      .from('page_designs')
+      .update({
+        ...validatedData,
+        updated_at: new Date().toISOString(),
+        version: await getNextVersion(supabase, id),
+      })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('更新页面设计失败:', error)
+      return NextResponse.json({ error: '更新页面设计失败' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      data: pageDesign,
+      message: '页面设计更新成功',
+    })
+  } catch (error) {
+    console.error('API错误:', error)
+    return NextResponse.json({ error: '服务器内部错误' }, { status: 500 })
+  }
+}
+
+// DELETE - 删除页面设计
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: '缺少页面设计ID' }, { status: 400 })
+    }
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 })
+    }
+
+    // 删除页面设计（级联删除相关组件和历史记录）
+    const { error } = await supabase
+      .from('page_designs')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('删除页面设计失败:', error)
+      return NextResponse.json({ error: '删除页面设计失败' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      message: '页面设计删除成功',
+    })
+  } catch (error) {
+    console.error('API错误:', error)
+    return NextResponse.json({ error: '服务器内部错误' }, { status: 500 })
+  }
+}
+
+// 辅助函数：获取下一个版本号
+async function getNextVersion(supabase: any, pageDesignId: string): Promise<number> {
+  const { data } = await supabase
+    .from('page_designs')
+    .select('version')
+    .eq('id', pageDesignId)
+    .single()
+
+  return (data?.version || 0) + 1
+}

@@ -1,13 +1,30 @@
-/**
- * 页面设计器历史管理器 - 撤销/重做支持
- * 功能模块: 基础页面设计器 (003-page-designer)
- * 创建日期: 2025-10-28
- */
+import { ComponentInstance, PageDesign, ComponentTree } from '@/types/page-designer'
 
-import { ComponentInstance, ComponentTree } from '@/types/page-designer/component'
+interface HistoryState {
+  id: string
+  timestamp: string
+  action: HistoryAction
+  description: string
+  beforeState: DesignerStateSnapshot
+  afterState: DesignerStateSnapshot
+  affectedComponents: string[]
+  sessionId?: string
+}
 
-// 历史记录类型
-export type HistoryActionType =
+interface DesignerStateSnapshot {
+  currentPageId: string | null
+  pageDesigns: Record<string, PageDesign>
+  components: Record<string, ComponentInstance>
+  selectedComponentIds: string[]
+  canvas: {
+    zoom: number
+    pan: { x: number; y: number }
+    gridSize: number
+    showGrid: boolean
+  }
+}
+
+type HistoryAction =
   | 'create_component'
   | 'update_component'
   | 'delete_component'
@@ -15,481 +32,425 @@ export type HistoryActionType =
   | 'copy_component'
   | 'paste_component'
   | 'batch_operation'
-  | 'update_property'
-  | 'update_style'
-  | 'update_layout'
+  | 'undo'
+  | 'redo'
 
-// 历史记录项
-export interface HistoryItem {
-  id: string
-  type: HistoryActionType
-  description: string
-  timestamp: Date
-  componentId?: string
-  componentIds?: string[]
-
-  // 状态快照
-  beforeState: {
-    components: Record<string, ComponentInstance>
-    componentTree: ComponentTree
-    selectedIds: string[]
-  }
-
-  afterState: {
-    components: Record<string, ComponentInstance>
-    componentTree: ComponentTree
-    selectedIds: string[]
-  }
-
-  // 元数据
-  metadata?: {
-    userId?: string
-    sessionId?: string
-    batchId?: string
-    isAutoSave?: boolean
-    tags?: string[]
-    originalOperations?: number
-  }
+interface HistoryManagerOptions {
+  maxHistorySize?: number
+  maxMemoryUsage?: number // MB
+  enablePersistence?: boolean
+  compressionEnabled?: boolean
 }
 
-// 历史管理器配置
-export interface HistoryManagerConfig {
-  maxHistorySize?: number // 最大历史记录数量
-  enableAutoCleanup?: boolean // 是否启用自动清理
-  compressionThreshold?: number // 压缩阈值
-  enablePersistence?: boolean // 是否启用持久化
-  persistenceKey?: string // 持久化存储键
-}
-
-// 历史管理器事件
-export interface HistoryManagerEvents {
-  onHistoryChange?: (history: HistoryItem[], currentIndex: number) => void
-  onUndo?: (item: HistoryItem) => void
-  onRedo?: (item: HistoryItem) => void
-  onHistoryCleared?: () => void
-  onHistoryCompressed?: (beforeCount: number, afterCount: number) => void
-}
-
-// 深度克隆对象
-const deepClone = <T>(obj: T): T => {
-  if (obj === null || typeof obj !== 'object') return obj
-  if (obj instanceof Date) return new Date(obj.getTime()) as unknown as T
-  if (obj instanceof Array) return obj.map(item => deepClone(item)) as unknown as T
-  if (typeof obj === 'object') {
-    const clonedObj = {} as { [key: string]: any }
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        clonedObj[key] = deepClone(obj[key])
-      }
-    }
-    return clonedObj as T
-  }
-  return obj
-}
-
-// 生成唯一ID
-const generateId = (): string => {
-  return `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-}
-
-// 压缩历史记录
-const compressHistory = (history: HistoryItem[]): HistoryItem[] => {
-  const compressed: HistoryItem[] = []
-  let currentBatch: HistoryItem[] = []
-
-  for (const item of history) {
-    // 如果是相同类型的连续操作，合并它们
-    if (
-      currentBatch.length > 0 &&
-      currentBatch[0].type === item.type &&
-      currentBatch[0].componentId === item.componentId &&
-      item.timestamp.getTime() - currentBatch[currentBatch.length - 1].timestamp.getTime() < 1000
-    ) {
-      currentBatch.push(item)
-    } else {
-      // 处理当前批次
-      if (currentBatch.length > 0) {
-        compressed.push(mergeBatchItems(currentBatch))
-        currentBatch = []
-      }
-      currentBatch.push(item)
-    }
-  }
-
-  // 处理最后一个批次
-  if (currentBatch.length > 0) {
-    compressed.push(mergeBatchItems(currentBatch))
-  }
-
-  return compressed
-}
-
-// 合并批次项目
-const mergeBatchItems = (items: HistoryItem[]): HistoryItem => {
-  if (items.length === 1) return items[0]
-
-  const first = items[0]
-  const last = items[items.length - 1]
-
-  return {
-    id: first.id,
-    type: 'batch_operation',
-    description: `批量操作 (${items.length} 个操作)`,
-    timestamp: first.timestamp,
-    componentIds: items.map(item => item.componentId).filter(Boolean) as string[],
-    beforeState: first.beforeState,
-    afterState: last.afterState,
-    metadata: {
-      ...first.metadata,
-      batchId: generateId(),
-      originalOperations: items.length,
-    },
-  }
-}
-
+/**
+ * 页面设计器历史管理器
+ * 负责管理设计操作的历史记录，支持撤销和重做功能
+ */
 export class HistoryManager {
-  private history: HistoryItem[] = []
+  private history: HistoryState[] = []
   private currentIndex: number = -1
-  private config: Required<HistoryManagerConfig>
-  private events: HistoryManagerEvents = {}
-  private isDirty: boolean = false
+  private options: Required<HistoryManagerOptions>
+  private sessionId: string
+  private memoryUsage: number = 0
 
-  constructor(config: HistoryManagerConfig = {}, events: HistoryManagerEvents = {}) {
-    this.config = {
-      maxHistorySize: config.maxHistorySize || 50,
-      enableAutoCleanup: config.enableAutoCleanup !== false,
-      compressionThreshold: config.compressionThreshold || 20,
-      enablePersistence: config.enablePersistence || false,
-      persistenceKey: config.persistenceKey || 'page-designer-history',
+  constructor(options: HistoryManagerOptions = {}) {
+    this.options = {
+      maxHistorySize: 50,
+      maxMemoryUsage: 10, // 10MB
+      enablePersistence: true,
+      compressionEnabled: true,
+      ...options,
     }
 
-    this.events = events
+    this.sessionId = this.generateSessionId()
 
-    // 从持久化存储加载历史记录
-    if (this.config.enablePersistence) {
-      this.loadFromPersistence()
+    // 从本地存储加载历史记录
+    if (this.options.enablePersistence && typeof window !== 'undefined') {
+      this.loadFromStorage()
     }
   }
 
-  // 添加历史记录
-  addHistoryItem(
-    type: HistoryActionType,
+  /**
+   * 添加新的历史记录
+   */
+  push(
+    action: HistoryAction,
     description: string,
-    beforeState: HistoryItem['beforeState'],
-    afterState: HistoryItem['afterState'],
-    componentId?: string,
-    componentIds?: string[],
-    metadata?: HistoryItem['metadata']
+    beforeState: DesignerStateSnapshot,
+    afterState: DesignerStateSnapshot,
+    affectedComponents: string[] = []
   ): void {
-    const item: HistoryItem = {
-      id: generateId(),
-      type,
-      description,
-      timestamp: new Date(),
-      componentId,
-      componentIds,
-      beforeState: deepClone(beforeState),
-      afterState: deepClone(afterState),
-      metadata,
-    }
-
     // 如果当前不在历史记录的末尾，删除后续记录
     if (this.currentIndex < this.history.length - 1) {
       this.history = this.history.slice(0, this.currentIndex + 1)
     }
 
-    // 添加新记录
-    this.history.push(item)
+    const historyState: HistoryState = {
+      id: this.generateId(),
+      timestamp: new Date().toISOString(),
+      action,
+      description,
+      beforeState: this.compressState(beforeState),
+      afterState: this.compressState(afterState),
+      affectedComponents,
+      sessionId: this.sessionId,
+    }
+
+    this.history.push(historyState)
     this.currentIndex = this.history.length - 1
-    this.isDirty = true
 
-    // 自动清理
-    if (this.config.enableAutoCleanup) {
-      this.autoCleanup()
-    }
+    // 检查历史记录大小限制
+    this.enforceSizeLimit()
 
-    // 触发事件
-    this.events.onHistoryChange?.(this.history, this.currentIndex)
+    // 检查内存使用限制
+    this.enforceMemoryLimit()
 
-    // 持久化
-    if (this.config.enablePersistence) {
-      this.saveToPersistence()
+    // 持久化到本地存储
+    if (this.options.enablePersistence && typeof window !== 'undefined') {
+      this.saveToStorage()
     }
   }
 
-  // 撤销操作
-  undo(): HistoryItem | null {
-    if (!this.canUndo()) return null
+  /**
+   * 撤销操作
+   */
+  undo(): DesignerStateSnapshot | null {
+    if (this.canUndo()) {
+      const currentState = this.history[this.currentIndex]
+      this.currentIndex--
 
-    const item = this.history[this.currentIndex]
-    this.currentIndex--
-    this.isDirty = true
+      const state = this.decompressState(currentState.beforeState)
 
-    // 触发事件
-    this.events.onUndo?.(item)
-    this.events.onHistoryChange?.(this.history, this.currentIndex)
+      // 记录撤销操作
+      this.push(
+        'undo',
+        `撤销: ${currentState.description}`,
+        currentState.afterState,
+        state,
+        currentState.affectedComponents
+      )
 
-    // 持久化
-    if (this.config.enablePersistence) {
-      this.saveToPersistence()
+      return state
     }
-
-    return item
+    return null
   }
 
-  // 重做操作
-  redo(): HistoryItem | null {
-    if (!this.canRedo()) return null
+  /**
+   * 重做操作
+   */
+  redo(): DesignerStateSnapshot | null {
+    if (this.canRedo()) {
+      this.currentIndex++
+      const nextState = this.history[this.currentIndex]
 
-    this.currentIndex++
-    const item = this.history[this.currentIndex]
-    this.isDirty = true
+      const state = this.decompressState(nextState.afterState)
 
-    // 触发事件
-    this.events.onRedo?.(item)
-    this.events.onHistoryChange?.(this.history, this.currentIndex)
+      // 记录重做操作
+      this.push(
+        'redo',
+        `重做: ${nextState.description}`,
+        nextState.beforeState,
+        state,
+        nextState.affectedComponents
+      )
 
-    // 持久化
-    if (this.config.enablePersistence) {
-      this.saveToPersistence()
+      return state
     }
-
-    return item
+    return null
   }
 
-  // 检查是否可以撤销
+  /**
+   * 检查是否可以撤销
+   */
   canUndo(): boolean {
     return this.currentIndex >= 0
   }
 
-  // 检查是否可以重做
+  /**
+   * 检查是否可以重做
+   */
   canRedo(): boolean {
     return this.currentIndex < this.history.length - 1
   }
 
-  // 获取当前状态
-  getCurrentState(): HistoryItem['afterState'] | null {
-    if (this.currentIndex < 0) return null
-    return deepClone(this.history[this.currentIndex].afterState)
+  /**
+   * 获取历史记录列表
+   */
+  getHistory(): HistoryState[] {
+    return [...this.history]
   }
 
-  // 获取历史记录列表
-  getHistory(): HistoryItem[] {
-    return deepClone(this.history)
+  /**
+   * 获取当前历史状态
+   */
+  getCurrentState(): DesignerStateSnapshot | null {
+    if (this.currentIndex >= 0 && this.currentIndex < this.history.length) {
+      return this.decompressState(this.history[this.currentIndex].afterState)
+    }
+    return null
   }
 
-  // 获取当前位置之后的历史记录
-  getFutureHistory(): HistoryItem[] {
-    return deepClone(this.history.slice(this.currentIndex + 1))
-  }
-
-  // 获取当前位置之前的历史记录
-  getPastHistory(): HistoryItem[] {
-    return deepClone(this.history.slice(0, this.currentIndex + 1))
-  }
-
-  // 清空历史记录
-  clearHistory(): void {
+  /**
+   * 清空历史记录
+   */
+  clear(): void {
     this.history = []
     this.currentIndex = -1
-    this.isDirty = true
+    this.memoryUsage = 0
 
-    // 触发事件
-    this.events.onHistoryCleared?.()
-    this.events.onHistoryChange?.(this.history, this.currentIndex)
-
-    // 持久化
-    if (this.config.enablePersistence) {
-      this.saveToPersistence()
+    if (this.options.enablePersistence && typeof window !== 'undefined') {
+      this.clearStorage()
     }
   }
 
-  // 跳转到指定历史记录
-  jumpToHistory(index: number): HistoryItem | null {
-    if (index < 0 || index >= this.history.length) return null
-
-    this.currentIndex = index
-    this.isDirty = true
-
-    const item = this.history[index]
-
-    // 触发事件
-    this.events.onHistoryChange?.(this.history, this.currentIndex)
-
-    // 持久化
-    if (this.config.enablePersistence) {
-      this.saveToPersistence()
-    }
-
-    return item
+  /**
+   * 获取特定组件的历史记录
+   */
+  getComponentHistory(componentId: string): HistoryState[] {
+    return this.history.filter(state => state.affectedComponents.includes(componentId))
   }
 
-  // 自动清理历史记录
-  private autoCleanup(): void {
-    if (this.history.length <= this.config.maxHistorySize) return
-
-    // 压缩历史记录
-    if (this.history.length > this.config.compressionThreshold) {
-      const beforeCount = this.history.length
-      this.history = compressHistory(this.history)
-      const afterCount = this.history.length
-
-      // 调整当前索引
-      this.currentIndex = Math.min(this.currentIndex, this.history.length - 1)
-
-      // 触发压缩事件
-      this.events.onHistoryCompressed?.(beforeCount, afterCount)
-    }
-
-    // 截断历史记录
-    if (this.history.length > this.config.maxHistorySize) {
-      const excess = this.history.length - this.config.maxHistorySize
-      this.history = this.history.slice(excess)
-      this.currentIndex = Math.max(0, this.currentIndex - excess)
-    }
+  /**
+   * 获取会话历史记录
+   */
+  getSessionHistory(sessionId?: string): HistoryState[] {
+    const targetSessionId = sessionId || this.sessionId
+    return this.history.filter(state => state.sessionId === targetSessionId)
   }
 
-  // 从持久化存储加载
-  private loadFromPersistence(): void {
+  /**
+   * 导出历史记录
+   */
+  export(): string {
+    const exportData = {
+      version: '1.0',
+      exportTime: new Date().toISOString(),
+      sessionId: this.sessionId,
+      history: this.history,
+      currentIndex: this.currentIndex,
+    }
+
+    return JSON.stringify(exportData, null, 2)
+  }
+
+  /**
+   * 导入历史记录
+   */
+  import(data: string): boolean {
     try {
-      const stored = localStorage.getItem(this.config.persistenceKey)
-      if (stored) {
-        const data = JSON.parse(stored)
-        this.history = data.history || []
-        this.currentIndex = data.currentIndex || -1
-        this.isDirty = false
+      const importData = JSON.parse(data)
+
+      if (!importData.version || !importData.history) {
+        throw new Error('无效的历史记录格式')
       }
+
+      this.history = importData.history
+      this.currentIndex = importData.currentIndex
+      this.sessionId = importData.sessionId || this.generateSessionId()
+
+      if (this.options.enablePersistence && typeof window !== 'undefined') {
+        this.saveToStorage()
+      }
+
+      return true
     } catch (error) {
-      console.warn('Failed to load history from persistence:', error)
+      console.error('导入历史记录失败:', error)
+      return false
     }
   }
 
-  // 保存到持久化存储
-  private saveToPersistence(): void {
-    if (!this.isDirty) return
+  // 私有方法
+
+  private generateId(): string {
+    return `hist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  }
+
+  private generateSessionId(): string {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  }
+
+  /**
+   * 压缩状态数据以减少内存使用
+   */
+  private compressState(state: DesignerStateSnapshot): DesignerStateSnapshot {
+    if (!this.options.compressionEnabled) {
+      return state
+    }
 
     try {
+      // 深度克隆状态
+      const compressed = JSON.parse(JSON.stringify(state))
+
+      // 移除不必要的字段以节省空间
+      Object.keys(compressed.components).forEach(id => {
+        const component = compressed.components[id]
+        // 移除大型的样式对象缓存
+        if (component.styles?.__cache) {
+          delete component.styles.__cache
+        }
+        // 移除临时数据
+        if (component._temp) {
+          delete component._temp
+        }
+      })
+
+      return compressed
+    } catch (error) {
+      console.warn('状态压缩失败，使用原始状态:', error)
+      return state
+    }
+  }
+
+  /**
+   * 解压缩状态数据
+   */
+  private decompressState(state: DesignerStateSnapshot): DesignerStateSnapshot {
+    if (!this.options.compressionEnabled) {
+      return state
+    }
+
+    try {
+      return JSON.parse(JSON.stringify(state))
+    } catch (error) {
+      console.warn('状态解压缩失败:', error)
+      return state
+    }
+  }
+
+  /**
+   * 强制执行历史记录大小限制
+   */
+  private enforceSizeLimit(): void {
+    if (this.history.length > this.options.maxHistorySize) {
+      const excess = this.history.length - this.options.maxHistorySize
+      this.history.splice(0, excess)
+      this.currentIndex = Math.max(-1, this.currentIndex - excess)
+    }
+  }
+
+  /**
+   * 强制执行内存使用限制
+   */
+  private enforceMemoryLimit(): void {
+    // 估算内存使用量（简单估算）
+    const estimatedSize = JSON.stringify(this.history).length / 1024 / 1024 // MB
+    this.memoryUsage = estimatedSize
+
+    if (this.memoryUsage > this.options.maxMemoryUsage) {
+      // 移除最旧的历史记录直到内存使用在限制内
+      while (this.history.length > 10 && this.memoryUsage > this.options.maxMemoryUsage) {
+        this.history.shift()
+        this.currentIndex = Math.max(-1, this.currentIndex - 1)
+        this.memoryUsage = JSON.stringify(this.history).length / 1024 / 1024
+      }
+    }
+  }
+
+  /**
+   * 保存到本地存储
+   */
+  private saveToStorage(): void {
+    try {
+      const storageKey = `page-designer-history-${this.sessionId}`
       const data = {
         history: this.history,
         currentIndex: this.currentIndex,
         timestamp: new Date().toISOString(),
       }
-      localStorage.setItem(this.config.persistenceKey, JSON.stringify(data))
-      this.isDirty = false
+      localStorage.setItem(storageKey, JSON.stringify(data))
     } catch (error) {
-      console.warn('Failed to save history to persistence:', error)
+      console.warn('保存历史记录到本地存储失败:', error)
     }
   }
 
-  // 获取历史统计信息
-  getHistoryStats(): {
-    total: number
-    canUndo: boolean
-    canRedo: boolean
-    current: number
-    oldest?: Date
-    newest?: Date
-    memoryUsage?: number
-  } {
-    const total = this.history.length
-    const canUndo = this.canUndo()
-    const canRedo = this.canRedo()
-    const current = this.currentIndex
-
-    let oldest: Date | undefined
-    let newest: Date | undefined
-
-    if (total > 0) {
-      oldest = this.history[0].timestamp
-      newest = this.history[total - 1].timestamp
-    }
-
-    // 估算内存使用量
-    const memoryUsage = JSON.stringify(this.history).length
-
-    return {
-      total,
-      canUndo,
-      canRedo,
-      current,
-      oldest,
-      newest,
-      memoryUsage,
-    }
-  }
-
-  // 搜索历史记录
-  searchHistory(query: string): HistoryItem[] {
-    const lowerQuery = query.toLowerCase()
-    return this.history.filter(
-      item =>
-        item.description.toLowerCase().includes(lowerQuery) ||
-        item.type.toLowerCase().includes(lowerQuery) ||
-        (item.componentId && item.componentId.toLowerCase().includes(lowerQuery))
-    )
-  }
-
-  // 按类型过滤历史记录
-  filterByType(type: HistoryActionType): HistoryItem[] {
-    return this.history.filter(item => item.type === type)
-  }
-
-  // 按时间范围过滤历史记录
-  filterByTimeRange(start: Date, end: Date): HistoryItem[] {
-    return this.history.filter(item => item.timestamp >= start && item.timestamp <= end)
-  }
-
-  // 导出历史记录
-  exportHistory(): string {
-    return JSON.stringify({
-      history: this.history,
-      currentIndex: this.currentIndex,
-      exportedAt: new Date().toISOString(),
-      version: '1.0.0',
-    })
-  }
-
-  // 导入历史记录
-  importHistory(data: string): boolean {
+  /**
+   * 从本地存储加载
+   */
+  private loadFromStorage(): void {
     try {
-      const parsed = JSON.parse(data)
-      if (parsed.history && Array.isArray(parsed.history)) {
-        this.history = parsed.history
-        this.currentIndex = parsed.currentIndex || this.history.length - 1
-        this.isDirty = true
+      const storageKey = `page-designer-history-${this.sessionId}`
+      const data = localStorage.getItem(storageKey)
 
-        // 触发事件
-        this.events.onHistoryChange?.(this.history, this.currentIndex)
+      if (data) {
+        const parsedData = JSON.parse(data)
 
-        // 持久化
-        if (this.config.enablePersistence) {
-          this.saveToPersistence()
+        // 检查数据是否过期（超过24小时）
+        const timestamp = new Date(parsedData.timestamp)
+        const now = new Date()
+        const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60)
+
+        if (hoursDiff < 24) {
+          this.history = parsedData.history || []
+          this.currentIndex = parsedData.currentIndex || -1
+        } else {
+          // 清理过期的历史记录
+          localStorage.removeItem(storageKey)
         }
-
-        return true
       }
     } catch (error) {
-      console.warn('Failed to import history:', error)
+      console.warn('从本地存储加载历史记录失败:', error)
     }
-    return false
   }
 
-  // 销毁历史管理器
-  destroy(): void {
-    this.clearHistory()
-    this.events = {}
+  /**
+   * 清理本地存储
+   */
+  private clearStorage(): void {
+    try {
+      const storageKey = `page-designer-history-${this.sessionId}`
+      localStorage.removeItem(storageKey)
+    } catch (error) {
+      console.warn('清理本地存储失败:', error)
+    }
+  }
+
+  /**
+   * 清理所有过期的历史记录
+   */
+  static cleanupExpiredHistory(): void {
+    if (typeof window === 'undefined') return
+
+    try {
+      const keys = Object.keys(localStorage).filter(key => key.startsWith('page-designer-history-'))
+
+      keys.forEach(key => {
+        try {
+          const data = localStorage.getItem(key)
+          if (data) {
+            const parsedData = JSON.parse(data)
+            const timestamp = new Date(parsedData.timestamp)
+            const now = new Date()
+            const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60)
+
+            // 清理超过24小时的历史记录
+            if (hoursDiff > 24) {
+              localStorage.removeItem(key)
+            }
+          }
+        } catch (error) {
+          // 如果解析失败，直接删除该记录
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (error) {
+      console.warn('清理过期历史记录失败:', error)
+    }
   }
 }
 
-// 便捷Hook创建函数
-export const createHistoryManager = (
-  config?: HistoryManagerConfig,
-  events?: HistoryManagerEvents
-): HistoryManager => {
-  return new HistoryManager(config, events)
+// 创建全局历史管理器实例
+let globalHistoryManager: HistoryManager | null = null
+
+export function getHistoryManager(options?: HistoryManagerOptions): HistoryManager {
+  if (!globalHistoryManager) {
+    globalHistoryManager = new HistoryManager(options)
+  }
+  return globalHistoryManager
 }
 
-// 默认历史管理器实例
-export const defaultHistoryManager = new HistoryManager()
-
-export default HistoryManager
+// 页面卸载时清理过期历史记录
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    HistoryManager.cleanupExpiredHistory()
+  })
+}

@@ -214,3 +214,176 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '服务器内部错误' }, { status: 500 })
   }
 }
+
+// PUT - 更新组件
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const body = await request.json()
+
+    if (!body.id) {
+      return NextResponse.json({ error: '缺少组件ID' }, { status: 400 })
+    }
+
+    // 验证请求数据
+    const validationResult = UpdateComponentInstanceSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: '请求数据无效',
+          details: validationResult.error.issues,
+        },
+        { status: 400 }
+      )
+    }
+
+    // 验证用户身份
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 })
+    }
+
+    const { id } = body
+    const updateData = validationResult.data
+
+    // 检查组件权限
+    const { data: existingComponent, error: checkError } = await supabase
+      .from('component_instances')
+      .select(
+        `
+        id,
+        page_design_id,
+        page_design:page_designs(
+          id,
+          user_id,
+          shared_with
+        )
+      `
+      )
+      .eq('id', id)
+      .single()
+
+    if (checkError || !existingComponent) {
+      return NextResponse.json({ error: '组件不存在' }, { status: 404 })
+    }
+
+    const pageDesign = Array.isArray(existingComponent.page_design)
+      ? existingComponent.page_design[0]
+      : existingComponent.page_design
+    const hasAccess =
+      pageDesign.user_id === user.id ||
+      (pageDesign.shared_with && pageDesign.shared_with.includes(user.id))
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: '无权限修改此组件' }, { status: 403 })
+    }
+
+    // 更新组件
+    const { data: component, error } = await supabase
+      .from('component_instances')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString(),
+        version: await getNextVersion(supabase, id),
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('更新组件失败:', error)
+      return NextResponse.json({ error: '更新组件失败' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      data: component,
+      message: '组件更新成功',
+    })
+  } catch (error) {
+    console.error('API错误:', error)
+    return NextResponse.json({ error: '服务器内部错误' }, { status: 500 })
+  }
+}
+
+// DELETE - 删除组件
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: '缺少组件ID' }, { status: 400 })
+    }
+
+    // 验证用户身份
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 })
+    }
+
+    // 检查组件权限
+    const { data: existingComponent, error: checkError } = await supabase
+      .from('component_instances')
+      .select(
+        `
+        id,
+        page_design_id,
+        page_design:page_designs(
+          id,
+          user_id,
+          shared_with
+        )
+      `
+      )
+      .eq('id', id)
+      .single()
+
+    if (checkError || !existingComponent) {
+      return NextResponse.json({ error: '组件不存在' }, { status: 404 })
+    }
+
+    const pageDesign = Array.isArray(existingComponent.page_design)
+      ? existingComponent.page_design[0]
+      : existingComponent.page_design
+    const hasAccess =
+      pageDesign.user_id === user.id ||
+      (pageDesign.shared_with && pageDesign.shared_with.includes(user.id))
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: '无权限删除此组件' }, { status: 403 })
+    }
+
+    // 删除组件（级联删除子组件）
+    const { error } = await supabase.from('component_instances').delete().eq('id', id)
+
+    if (error) {
+      console.error('删除组件失败:', error)
+      return NextResponse.json({ error: '删除组件失败' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      message: '组件删除成功',
+    })
+  } catch (error) {
+    console.error('API错误:', error)
+    return NextResponse.json({ error: '服务器内部错误' }, { status: 500 })
+  }
+}
+
+// 辅助函数：获取下一个版本号
+async function getNextVersion(supabase: any, componentId: string): Promise<number> {
+  const { data } = await supabase
+    .from('component_instances')
+    .select('version')
+    .eq('id', componentId)
+    .single()
+
+  return (data?.version || 0) + 1
+}

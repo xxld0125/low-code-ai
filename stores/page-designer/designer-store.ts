@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
+import { getHistoryManager, type HistoryManager } from '@/lib/page-designer/history-manager'
 import type {
   ComponentInstance as TypeComponentInstance,
   ComponentType,
@@ -76,10 +77,12 @@ export interface SelectionState {
 }
 
 export interface HistoryState {
-  past: Partial<DesignerState>[]
-  present: Partial<DesignerState>
-  future: Partial<DesignerState>[]
-  maxSize: number
+  historyManager: HistoryManager | null
+  canUndo: boolean
+  canRedo: boolean
+  isRecordingHistory: boolean
+  past: any[]
+  future: any[]
 }
 
 export interface DesignerState {
@@ -165,8 +168,10 @@ export interface DesignerActions {
   // 历史操作
   undo: () => void
   redo: () => void
-  saveToHistory: () => void
+  saveToHistory: (action?: string, description?: string, affectedComponents?: string[]) => void
   clearHistory: () => void
+  initializeHistory: () => void
+  setHistoryRecording: (recording: boolean) => void
 
   // UI操作
   setLeftPanelWidth: (width: number) => void
@@ -196,6 +201,33 @@ export interface DesignerActions {
 }
 
 export type DesignerStore = DesignerState & DesignerActions
+
+// 辅助函数：创建设计器状态快照
+function createDesignerStateSnapshot(state: DesignerState) {
+  return {
+    currentPageId: state.currentPageId,
+    pageDesigns: JSON.parse(JSON.stringify(state.pageDesigns)),
+    components: JSON.parse(JSON.stringify(state.components)),
+    selectedComponentIds: [...state.selectionState.selectedComponentIds],
+    canvas: { ...state.canvas },
+  }
+}
+
+// 辅助函数：应用设计器状态快照
+function applyDesignerStateSnapshot(snapshot: any): Partial<DesignerState> {
+  return {
+    currentPageId: snapshot.currentPageId,
+    pageDesigns: snapshot.pageDesigns,
+    components: snapshot.components,
+    selectionState: {
+      selectedComponentIds: snapshot.selectedComponentIds || [],
+      hoveredComponentId: null,
+      copiedComponent: null,
+      selectionRect: null,
+    },
+    canvas: snapshot.canvas,
+  }
+}
 
 // 创建设计器状态
 export const useDesignerStore = create<DesignerStore>()(
@@ -229,10 +261,10 @@ export const useDesignerStore = create<DesignerStore>()(
           selectionRect: null,
         },
         historyState: {
-          past: [],
-          present: {},
-          future: [],
-          maxSize: 50,
+          historyManager: null,
+          canUndo: false,
+          canRedo: false,
+          isRecordingHistory: true,
         },
         uiState: {
           leftPanelWidth: 280,
@@ -359,12 +391,37 @@ export const useDesignerStore = create<DesignerStore>()(
 
         // 组件操作
         addComponent: component =>
-          set(state => ({
-            components: {
-              ...state.components,
-              [component.id]: component,
-            },
-          })),
+          set(state => {
+            const newState = {
+              components: {
+                ...state.components,
+                [component.id]: component,
+              },
+            }
+
+            // 保存到历史记录
+            if (state.historyState.historyManager && state.historyState.isRecordingHistory) {
+              const beforeState = createDesignerStateSnapshot(state)
+              const afterState = createDesignerStateSnapshot({ ...state, ...newState })
+
+              state.historyState.historyManager.push(
+                'create_component',
+                `添加组件: ${component.component_type}`,
+                beforeState,
+                afterState,
+                [component.id]
+              )
+            }
+
+            return {
+              ...newState,
+              historyState: {
+                ...state.historyState,
+                canUndo: state.historyState.historyManager?.canUndo() || false,
+                canRedo: state.historyState.historyManager?.canRedo() || false,
+              },
+            }
+          }),
 
         // 新增：从组件类型添加组件（用于拖拽）
         addComponentFromType: (type, parentId, position) => {
@@ -646,71 +703,122 @@ export const useDesignerStore = create<DesignerStore>()(
         // 历史操作
         undo: () =>
           set(state => {
-            const { past, present, future } = state.historyState
-            if (past.length === 0) return state
+            const { historyManager, isRecordingHistory } = state.historyState
+            if (!historyManager || !historyManager.canUndo()) return state
 
-            const previous = past[past.length - 1]
-            const newPast = past.slice(0, past.length - 1)
+            const currentStateSnapshot = createDesignerStateSnapshot(state)
+            const previousState = historyManager.undo()
 
-            return {
-              historyState: {
-                past: newPast,
-                present: previous,
-                future: [present, ...future],
-                maxSize: state.historyState.maxSize,
-              },
-              ...previous,
+            if (previousState) {
+              return {
+                ...applyDesignerStateSnapshot(previousState),
+                historyState: {
+                  ...state.historyState,
+                  canUndo: historyManager.canUndo(),
+                  canRedo: historyManager.canRedo(),
+                },
+              }
             }
+
+            return state
           }),
 
         redo: () =>
           set(state => {
-            const { past, present, future } = state.historyState
-            if (future.length === 0) return state
+            const { historyManager, isRecordingHistory } = state.historyState
+            if (!historyManager || !historyManager.canRedo()) return state
 
-            const next = future[0]
-            const newFuture = future.slice(1)
+            const currentStateSnapshot = createDesignerStateSnapshot(state)
+            const nextState = historyManager.redo()
 
-            return {
-              historyState: {
-                past: [...past, present],
-                present: next,
-                future: newFuture,
-                maxSize: state.historyState.maxSize,
-              },
-              ...next,
+            if (nextState) {
+              return {
+                ...applyDesignerStateSnapshot(nextState),
+                historyState: {
+                  ...state.historyState,
+                  canUndo: historyManager.canUndo(),
+                  canRedo: historyManager.canRedo(),
+                },
+              }
             }
+
+            return state
           }),
 
-        saveToHistory: () =>
+        saveToHistory: (
+          action = '操作',
+          description = '用户操作',
+          affectedComponents: string[] = []
+        ) =>
           set(state => {
-            const { past, maxSize } = state.historyState
+            const { historyManager, isRecordingHistory } = state.historyState
 
-            // 创建当前状态快照
-            const currentState = {
-              components: state.components,
-              pageDesigns: state.pageDesigns,
+            if (!historyManager || !isRecordingHistory) return state
+
+            const currentState = createDesignerStateSnapshot(state)
+
+            // 如果有当前状态，先保存到历史
+            if (state.historyState.canUndo !== undefined) {
+              historyManager.push(
+                action as any,
+                description,
+                currentState,
+                currentState,
+                affectedComponents
+              )
             }
-
-            const newPast = [...past, currentState].slice(-maxSize)
 
             return {
               historyState: {
-                past: newPast,
-                present: currentState,
-                future: [],
-                maxSize,
+                ...state.historyState,
+                canUndo: historyManager.canUndo(),
+                canRedo: historyManager.canRedo(),
               },
             }
           }),
 
         clearHistory: () =>
+          set(state => {
+            const { historyManager } = state.historyState
+            if (historyManager) {
+              historyManager.clear()
+            }
+
+            return {
+              historyState: {
+                ...state.historyState,
+                canUndo: false,
+                canRedo: false,
+              },
+            }
+          }),
+
+        // 初始化历史管理器
+        initializeHistory: () =>
+          set(state => {
+            const historyManager = getHistoryManager({
+              maxHistorySize: 50,
+              maxMemoryUsage: 10, // 10MB
+              enablePersistence: true,
+              compressionEnabled: true,
+            })
+
+            return {
+              historyState: {
+                ...state.historyState,
+                historyManager,
+                canUndo: historyManager.canUndo(),
+                canRedo: historyManager.canRedo(),
+              },
+            }
+          }),
+
+        // 暂停/恢复历史记录
+        setHistoryRecording: (recording: boolean) =>
           set(state => ({
             historyState: {
-              past: [],
-              present: {},
-              future: [],
-              maxSize: state.historyState.maxSize,
+              ...state.historyState,
+              isRecordingHistory: recording,
             },
           })),
 
