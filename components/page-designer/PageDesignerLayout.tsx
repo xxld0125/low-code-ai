@@ -36,20 +36,7 @@ const DragTrail: React.FC<{
     </svg>
   )
 }
-// 暂时移除 Zustand 依赖以避免无限循环
-// import { useDesignerStore } from '@/stores/page-designer/designer-store'
-// import {
-//   useComponents,
-//   useSelectedComponents,
-//   useCanvasState,
-//   useDragState,
-//   useSelectionOperations,
-//   useComponentOperations,
-//   useCanvasOperations,
-//   useDragOperations,
-//   useDesignerStats,
-//   useDesignerHistory,
-// } from '@/stores/page-designer/hooks'
+import { useDesignerStore } from '@/stores/page-designer/designer-store'
 import type { DragItem, ComponentInstance, ComponentType } from '@/types/page-designer/component'
 import type { CanvasState as PageDesignerCanvasState } from '@/types/page-designer'
 
@@ -201,106 +188,80 @@ export interface PageDesignerLayoutProps {
 }
 
 export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ className }) => {
-  // 最小化状态管理 - 使用基本 React 状态来避免 Zustand 循环
-  const [components, setComponents] = useState<ComponentInstance[]>([])
-  const [selectedComponents, setSelectedComponents] = useState<ComponentInstance[]>([])
-  const [canvasState, setCanvasStateInternal] = useState({
-    zoom: 1,
-    pan: { x: 0, y: 0 },
-    gridSize: 8,
-    showGrid: true,
-    canvasWidth: 1200,
-    canvasHeight: 800,
-  })
-  const [dragState, setDragState] = useState({
-    isDragging: false,
-    draggedComponentType: null as ComponentType | null,
-    draggedComponentId: undefined,
-    dropZoneId: undefined,
-    dragPosition: null,
-    isValidDrop: false,
-  })
+  // 使用 Zustand store 进行状态管理
+  const {
+    components,
+    selectionState,
+    canvas,
+    dragState,
+    addComponentFromType,
+    selectComponent,
+    updateComponent,
+    deleteComponent,
+    setCanvasSize,
+    startDrag,
+    endDrag,
+    updateDrag,
+    undo,
+    redo,
+  } = useDesignerStore()
 
-  // 简化的统计信息
+  // 转换为数组格式以兼容现有组件
+  const componentsArray = Object.values(components)
+  const selectedComponentsArray = selectionState.selectedComponentIds.map(id => components[id]).filter(Boolean)
+
+  // 统计信息
   const stats = {
-    componentCount: components.length,
-    selectedCount: selectedComponents.length,
+    componentCount: componentsArray.length,
+    selectedCount: selectedComponentsArray.length,
     maxComponents: 50,
-    currentZoom: canvasState.zoom,
-    isMaxComponentsReached: components.length >= 50,
+    currentZoom: canvas.zoom,
+    isMaxComponentsReached: componentsArray.length >= 50,
   }
 
   // 基本的操作函数
   const handleUndo = useCallback(() => {
-    // 暂时禁用撤销功能
-    console.log('Undo function temporarily disabled')
-  }, [])
+    undo()
+  }, [undo])
 
   const handleRedo = useCallback(() => {
-    // 暂时禁用重做功能
-    console.log('Redo function temporarily disabled')
-  }, [])
+    redo()
+  }, [redo])
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('确定要清空画布吗？此操作无法撤销。')) {
-      setComponents([])
-      setSelectedComponents([])
+      // 清空所有组件
+      Object.keys(components).forEach(id => deleteComponent(id))
     }
-  }, [])
+  }, [components, deleteComponent])
 
   const handleComponentSelect = useCallback(
     (id: string) => {
-      const component = components.find(c => c.id === id)
-      if (component) {
-        setSelectedComponents([component])
-      }
+      selectComponent(id)
     },
-    [components]
+    [selectComponent]
   )
 
   const handleComponentUpdate = useCallback((id: string, updates: Partial<ComponentInstance>) => {
-    setComponents(prev => {
-      const newComponents = prev.map(comp => (comp.id === id ? { ...comp, ...updates } : comp))
-
-      // 如果更新包含 order 属性，重新排序整个组件列表
-      if (updates.position?.order !== undefined) {
-        return newComponents.sort((a, b) => a.position.order - b.position.order)
-      }
-
-      return newComponents
-    })
-  }, [])
+    updateComponent(id, updates)
+  }, [updateComponent])
 
   const handleComponentDelete = useCallback((id: string) => {
-    setComponents(prev => prev.filter(comp => comp.id !== id))
-    setSelectedComponents(prev => prev.filter(comp => comp.id !== id))
-  }, [])
+    deleteComponent(id)
+  }, [deleteComponent])
 
   const handleComponentAdd = useCallback(
     (component: ComponentInstance) => {
-      if (components.length < 50) {
-        const newComponent = {
-          ...component,
-          id: `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-        setComponents(prev => [...prev, newComponent])
+      if (componentsArray.length < 50) {
+        addComponentFromType(component.component_type as any, component.parent_id || undefined)
       }
     },
-    [components.length]
+    [componentsArray.length, addComponentFromType]
   )
 
   const handleDragStart = useCallback((dragData: DragItem) => {
-    setDragState({
-      isDragging: true,
-      draggedComponentType: dragData.type,
-      draggedComponentId: dragData.id,
-      dropZoneId: undefined,
-      dragPosition: null,
-      isValidDrop: false,
-    })
-  }, [])
+    startDrag('component', dragData.type as ComponentType, dragData.id)
+  }, [startDrag])
 
   const handleDragEnd = useCallback(
     (dragData: DragItem | null, dropData: any) => {
@@ -309,54 +270,17 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
         dragData &&
         (dropData?.id === 'canvas' || dropData === null || dropData?.accepts?.includes('component'))
       ) {
-        const defaultProps = getDefaultProps(dragData.type)
-        const defaultStyles = getDefaultStyles(dragData.type)
-
-        // 创建新组件
-        const newComponent = {
-          id: `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          page_design_id: 'current-page',
-          component_type: dragData.type as any,
-          props: defaultProps,
-          styles: defaultStyles,
-          events: {},
-          responsive: {},
-          position: {
-            z_index: components.length,
-            order: components.length,
-          },
-          meta: {
-            locked: false,
-            hidden: false,
-            custom_name: dragData.type,
-            version: '1.0.0',
-            category: 'basic',
-          },
-          parent_id: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          version: 1,
-        }
-
-        // 直接设置组件状态，避免可能的异步问题
-        setComponents(prev => [...prev, newComponent as ComponentInstance])
+        addComponentFromType(dragData.type as ComponentType)
       }
 
-      setDragState({
-        isDragging: false,
-        draggedComponentType: null,
-        draggedComponentId: undefined,
-        dropZoneId: undefined,
-        dragPosition: null,
-        isValidDrop: false,
-      })
+      endDrag()
     },
-    [handleComponentAdd, components.length]
+    [addComponentFromType, endDrag]
   )
 
   const handleDragOver = useCallback((dragData: DragItem, dropData: any) => {
-    // 暂时简化处理
-  }, [])
+    updateDrag({ x: 0, y: 0 }, dropData?.id)
+  }, [updateDrag])
 
   // 获取默认组件属性
   const getDefaultProps = (type: string) => {
@@ -399,8 +323,11 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
 
   // 处理画布状态变化
   const handleCanvasStateChange = useCallback((updates: Partial<PageDesignerCanvasState>) => {
-    setCanvasStateInternal(prev => ({ ...prev, ...updates }))
-  }, [])
+    // 这里可以根据需要更新 canvas 状态
+    if (updates.width && updates.height) {
+      setCanvasSize(updates.width, updates.height)
+    }
+  }, [setCanvasSize])
 
   // 拖拽轨迹状态
   const [dragTrail, setDragTrail] = useState<Array<{ x: number; y: number; timestamp: number }>>([])
@@ -422,9 +349,9 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
       }
 
       // Delete 或 Backspace: 删除选中组件
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedComponents.length > 0) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedComponentsArray.length > 0) {
         e.preventDefault()
-        selectedComponents.forEach(component => {
+        selectedComponentsArray.forEach(component => {
           handleComponentDelete(component.id)
         })
       }
@@ -432,13 +359,14 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
       // Escape: 清除选择
       if (e.key === 'Escape') {
         e.preventDefault()
-        setSelectedComponents([])
+        const { clearSelection } = useDesignerStore.getState()
+        clearSelection() // 清除选择
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handleUndo, handleRedo, selectedComponents, handleComponentDelete])
+  }, [handleUndo, handleRedo, selectedComponentsArray, handleComponentDelete, selectComponent])
 
   return (
     <PageDesignerProvider
@@ -494,9 +422,16 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
             {/* 中央画布区域 */}
             <ResizablePanel defaultSize={60} minSize={40}>
               <PageCanvas
-                components={components as unknown as any[]}
-                selectedComponentIds={selectedComponents.map(c => c.id)}
-                canvasState={canvasState}
+                components={componentsArray as unknown as any[]}
+                selectedComponentIds={selectionState.selectedComponentIds}
+                canvasState={{
+                  zoom: canvas.zoom,
+                  pan: canvas.pan,
+                  gridSize: canvas.gridSize,
+                  showGrid: true,
+                  canvasWidth: canvas.canvasWidth,
+                  canvasHeight: canvas.canvasHeight,
+                }}
                 dragState={
                   {
                     isDragging: dragState.isDragging,
@@ -505,7 +440,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
                     dropZoneId: dragState.dropZoneId || null,
                     dragPosition: dragState.dragPosition,
                     isValidDrop: dragState.isValidDrop,
-                    activeId: (dragState as any).draggedComponentId || null,
+                    activeId: dragState.draggedComponentId || null,
                   } as any
                 }
                 onComponentSelect={handleComponentSelect}
@@ -521,7 +456,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
             {/* 右侧属性面板 */}
             <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
               <PropertiesPanelPlaceholder
-                selectedComponents={selectedComponents}
+                selectedComponents={selectedComponentsArray}
                 onComponentUpdate={handleComponentUpdate}
               />
             </ResizablePanel>
@@ -529,7 +464,17 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
         </div>
 
         {/* 状态栏 */}
-        <DesignerStatusBar canvasState={canvasState} stats={stats} />
+        <DesignerStatusBar
+          canvasState={{
+            zoom: canvas.zoom,
+            pan: canvas.pan,
+            gridSize: canvas.gridSize,
+            showGrid: true,
+            canvasWidth: canvas.canvasWidth,
+            canvasHeight: canvas.canvasHeight,
+          }}
+          stats={stats}
+        />
       </div>
 
       {/* 拖拽视觉反馈 */}

@@ -28,6 +28,32 @@ interface ComponentHierarchy {
   styles: Record<string, unknown>
 }
 
+// 安全序列化组件数据，移除不可序列化的内容
+const serializeComponents = (components: Record<string, ComponentInstance>): Record<string, any> => {
+  const serialized: Record<string, any> = {}
+
+  Object.entries(components).forEach(([id, component]) => {
+    serialized[id] = {
+      id: component.id,
+      page_design_id: component.page_design_id,
+      component_type: component.component_type,
+      parent_id: component.parent_id,
+      position: component.position,
+      props: component.props,
+      styles: component.styles,
+      events: {}, // 不序列化事件处理器
+      responsive: component.responsive,
+      layout_props: component.layout_props,
+      created_at: component.created_at,
+      updated_at: component.updated_at,
+      version: component.version,
+      meta: component.meta,
+    }
+  })
+
+  return serialized
+}
+
 /**
  * 页面设计器自动保存Hook
  * 监听页面设计状态变化，自动保存到后端
@@ -68,7 +94,8 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
 
-      // 准备保存数据
+      // 准备保存数据 - 安全序列化组件数据
+      const safeComponents = serializeComponents(components)
       const saveData = {
         ...pageDesign,
         updated_at: new Date().toISOString(),
@@ -77,8 +104,8 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
         component_tree: {
           version: '1.0',
           root_id: pageDesign.root_component_id,
-          components: components,
-          hierarchy: buildHierarchy(components),
+          components: safeComponents,
+          hierarchy: buildHierarchy(safeComponents),
         },
       }
 
@@ -152,7 +179,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
   }, [debouncedSave])
 
   // 构建组件层级结构
-  const buildHierarchy = (components: Record<string, ComponentInstance>): ComponentHierarchy[] => {
+  const buildHierarchy = (components: Record<string, any>): ComponentHierarchy[] => {
     const componentMap = new Map(Object.entries(components))
 
     // 找到根组件
@@ -161,7 +188,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     )
 
     // 递归构建层级结构
-    const buildComponentHierarchy = (component: ComponentInstance): ComponentHierarchy => {
+    const buildComponentHierarchy = (component: any): ComponentHierarchy => {
       const children = Array.from(componentMap.values())
         .filter(child => child.parent_id === component.id)
         .map(buildComponentHierarchy)
@@ -170,8 +197,8 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
         id: component.id,
         type: component.component_type,
         children,
-        props: component.props,
-        styles: component.styles as Record<string, unknown>,
+        props: component.props || {},
+        styles: component.styles || {},
       }
     }
 

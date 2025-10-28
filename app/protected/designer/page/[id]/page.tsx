@@ -12,6 +12,60 @@ import { dataSerializer } from '@/lib/page-designer/serializer'
 import { dataSaver } from '@/lib/page-designer/data-saver'
 import { useDesignerStore } from '@/stores/page-designer/designer-store'
 import { useAutoSave } from '@/hooks/use-auto-save'
+import type { ComponentInstance } from '@/types/page-designer/component'
+
+// 安全序列化组件数据
+const serializeComponents = (components: Record<string, ComponentInstance>): Record<string, any> => {
+  const serialized: Record<string, any> = {}
+
+  Object.entries(components).forEach(([id, component]) => {
+    serialized[id] = {
+      id: component.id,
+      page_design_id: component.page_design_id,
+      component_type: component.component_type,
+      parent_id: component.parent_id,
+      position: component.position,
+      props: component.props,
+      styles: component.styles,
+      events: {}, // 不序列化事件处理器
+      responsive: component.responsive,
+      layout_props: component.layout_props,
+      created_at: component.created_at,
+      updated_at: component.updated_at,
+      version: component.version,
+      meta: component.meta,
+    }
+  })
+
+  return serialized
+}
+
+// 构建组件层级结构
+const buildComponentHierarchy = (components: Record<string, any>): any[] => {
+  const componentMap = new Map(Object.entries(components))
+
+  // 找到根组件
+  const rootComponents = Array.from(componentMap.values()).filter(
+    component => !component.parent_id
+  )
+
+  // 递归构建层级结构
+  const buildComponentHierarchy = (component: any): any => {
+    const children = Array.from(componentMap.values())
+      .filter(child => child.parent_id === component.id)
+      .map(buildComponentHierarchy)
+
+    return {
+      id: component.id,
+      type: component.component_type,
+      children,
+      props: component.props || {},
+      styles: component.styles || {},
+    }
+  }
+
+  return rootComponents.map(buildComponentHierarchy)
+}
 
 export default function PageDesignerEditor() {
   const params = useParams()
@@ -25,8 +79,8 @@ export default function PageDesignerEditor() {
   const {
     currentPageId,
     setPageDesign,
-    // loadPageDesign, // 暂时未使用
-    // components, // 暂时未使用
+    components,
+    loadPageDesign,
     // savePageDesign // 暂时未使用
   } = useDesignerStore()
 
@@ -61,8 +115,33 @@ export default function PageDesignerEditor() {
         // 设置到状态管理
         setPageDesign(designData.pageDesign)
 
-        // 这里可以添加组件数据的加载
-        // setComponents(designData.components)
+        // 设置当前页面ID
+        useDesignerStore.setState({
+          currentPageId: pageDesignId
+        })
+
+        // 从 component_tree 恢复组件数据
+        if (designData.pageDesign?.component_tree?.components) {
+          const treeComponents = designData.pageDesign.component_tree.components
+
+          // 转换为 Zustand store 需要的格式
+          const componentsRecord: Record<string, any> = {}
+          Object.entries(treeComponents).forEach(([id, component]) => {
+            componentsRecord[id] = {
+              ...component,
+              // 确保必要字段存在
+              page_design_id: pageDesignId,
+              events: component.events || {},
+              responsive: component.responsive || {},
+              meta: component.meta || { locked: false, hidden: false },
+            }
+          })
+
+          // 直接设置到 store 的 components 状态
+          useDesignerStore.setState({
+            components: componentsRecord
+          })
+        }
       } catch (err) {
         console.error('加载页面设计失败:', err)
         setError(err instanceof Error ? err.message : '加载失败，请重试')
@@ -84,12 +163,23 @@ export default function PageDesignerEditor() {
       // 获取当前状态
       const currentState = useDesignerStore.getState()
 
+      // 安全序列化组件数据
+      const serializedComponents = serializeComponents(currentState.components)
+
+      // 构建组件层级结构
+      const hierarchy = buildComponentHierarchy(serializedComponents)
+
+      // 动态计算根组件ID
+      const componentArray = Object.values(serializedComponents)
+      const rootComponent = componentArray.find(comp => !comp.parent_id)
+      const rootId = rootComponent?.id || ''
+
       // 序列化组件树
       const componentTree = {
         version: '1.0',
-        root_id: currentState.pageDesigns[pageDesignId]?.root_component_id || '',
-        components: currentState.components,
-        hierarchy: [], // 这里需要实现层级计算
+        root_id: rootId,
+        components: serializedComponents,
+        hierarchy,
       }
 
       const result = await dataSaver.autoSave(pageDesignId, componentTree)
