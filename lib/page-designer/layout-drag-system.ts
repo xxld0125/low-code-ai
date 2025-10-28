@@ -14,6 +14,7 @@ import {
 import { LayoutComponentType } from '@/types/page-designer/layout'
 import { layoutConstraintsValidator } from './constraints'
 import { hierarchyManager } from './hierarchy-manager'
+import { dragPerformanceOptimizer } from './performance/drag-optimization'
 
 // 拖拽区域类型
 export type DropZoneType = 'canvas' | 'component' | 'panel'
@@ -95,6 +96,9 @@ export class LayoutDragSystem {
 
   // 开始拖拽
   public startDrag(dragItem: DragItem, startPosition: { x: number; y: number }): void {
+    // 启动性能优化
+    dragPerformanceOptimizer.startDragOptimization()
+
     this.dragState = {
       isDragging: true,
       activeId: dragItem.id,
@@ -118,30 +122,33 @@ export class LayoutDragSystem {
   ): void {
     if (!this.dragState.isDragging) return
 
-    // 应用网格对齐
-    let alignedPosition = position
-    if (this.config.enableSnapToGrid) {
-      alignedPosition = this.snapToGrid(position)
-    }
+    // 使用性能优化器处理拖拽移动
+    dragPerformanceOptimizer.optimizeDragMove(() => {
+      // 应用网格对齐
+      let alignedPosition = position
+      if (this.config.enableSnapToGrid) {
+        alignedPosition = this.snapToGrid(position)
+      }
 
-    this.dragState.position = alignedPosition
+      this.dragState.position = alignedPosition
 
-    // 更新拖拽区域
-    this.updateDropZones(components, alignedPosition)
+      // 更新拖拽区域
+      this.updateDropZones(components, alignedPosition)
 
-    // 查找最佳拖拽区域
-    const bestDropZone = this.findBestDropZone(alignedPosition)
+      // 查找最佳拖拽区域
+      const bestDropZone = this.findBestDropZone(alignedPosition)
 
-    this.emitEvent({
-      type: 'drag_move',
-      dragItem: {
-        type: this.dragState.draggedComponentType!,
-        id: this.dragState.activeId!,
-        isFromPanel: this.isFromPanel(this.dragState.activeId!),
-      },
-      dropZone: bestDropZone,
-      position: alignedPosition,
-      timestamp: Date.now(),
+      this.emitEvent({
+        type: 'drag_move',
+        dragItem: {
+          type: this.dragState.draggedComponentType!,
+          id: this.dragState.activeId!,
+          isFromPanel: this.isFromPanel(this.dragState.activeId!),
+        },
+        dropZone: bestDropZone,
+        position: alignedPosition,
+        timestamp: Date.now(),
+      })
     })
   }
 
