@@ -3,6 +3,7 @@ import { useDesignerStore } from '@/stores/page-designer/designer-store'
 import type { ComponentInstance } from '@/types/page-designer/component'
 
 interface AutoSaveOptions {
+  pageDesignId?: string // 页面设计ID
   interval?: number // 自动保存间隔（毫秒）
   enabled?: boolean // 是否启用自动保存
   onSaveStart?: () => void // 开始保存时的回调
@@ -33,6 +34,7 @@ interface ComponentHierarchy {
  */
 export function useAutoSave(options: AutoSaveOptions = {}) {
   const {
+    pageDesignId: optionPageDesignId,
     interval = 30000, // 默认30秒自动保存一次
     enabled = true,
     onSaveStart,
@@ -49,11 +51,12 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
 
   // 防抖的保存函数
   const debouncedSave = useCallback(async (): Promise<SaveResult> => {
-    if (!enabled || !currentPageId || isSavingRef.current) {
+    const pageId = optionPageDesignId || currentPageId
+    if (!enabled || !pageId || isSavingRef.current) {
       return { success: false, timestamp: new Date().toISOString() }
     }
 
-    const pageDesign = pageDesigns[currentPageId]
+    const pageDesign = pageDesigns[pageId]
     if (!pageDesign) {
       return { success: false, timestamp: new Date().toISOString(), error: '页面设计不存在' }
     }
@@ -83,7 +86,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
       const { error } = await supabase
         .from('page_designs')
         .update(saveData)
-        .eq('id', currentPageId)
+        .eq('id', pageId)
         .single()
 
       if (error) {
@@ -93,7 +96,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
       const result: SaveResult = {
         success: true,
         timestamp: new Date().toISOString(),
-        pageDesignId: currentPageId,
+        pageDesignId: pageId,
       }
 
       hasUnsavedChangesRef.current = false
@@ -116,7 +119,16 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     } finally {
       isSavingRef.current = false
     }
-  }, [enabled, currentPageId, pageDesigns, components, onSaveStart, onSaveSuccess, onSaveError])
+  }, [
+    enabled,
+    optionPageDesignId,
+    currentPageId,
+    pageDesigns,
+    components,
+    onSaveStart,
+    onSaveSuccess,
+    onSaveError,
+  ])
 
   // 触发防抖保存
   const triggerSave = useCallback(() => {
@@ -168,15 +180,24 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
 
   // 监听状态变化，触发自动保存
   useEffect(() => {
-    if (currentPageId) {
+    const pageId = optionPageDesignId || currentPageId
+    if (pageId) {
       hasUnsavedChangesRef.current = true
       triggerSave()
     }
-  }, [components, selectionState.selectedComponentIds, canvas, currentPageId, triggerSave])
+  }, [
+    components,
+    selectionState.selectedComponentIds,
+    canvas,
+    optionPageDesignId,
+    currentPageId,
+    triggerSave,
+  ])
 
   // 定时自动保存
   useEffect(() => {
-    if (!enabled || !currentPageId) return
+    const pageId = optionPageDesignId || currentPageId
+    if (!enabled || !pageId) return
 
     const timer = setInterval(() => {
       if (hasUnsavedChangesRef.current && !isSavingRef.current) {
@@ -185,17 +206,18 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     }, interval)
 
     return () => clearInterval(timer)
-  }, [enabled, currentPageId, interval, debouncedSave])
+  }, [enabled, optionPageDesignId, currentPageId, interval, debouncedSave])
 
   // 页面卸载时保存
   useEffect(() => {
+    const pageId = optionPageDesignId || currentPageId
     const handleBeforeUnload = () => {
       if (hasUnsavedChangesRef.current && !isSavingRef.current) {
         // 使用同步保存（如果支持）
         navigator.sendBeacon(
           '/api/auto-save',
           JSON.stringify({
-            pageDesignId: currentPageId,
+            pageDesignId: pageId,
             timestamp: new Date().toISOString(),
           })
         )
@@ -209,10 +231,11 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
         clearTimeout(debounceTimerRef.current)
       }
     }
-  }, [currentPageId])
+  }, [optionPageDesignId, currentPageId])
 
   return {
     save: manualSave,
+    saveNow: manualSave,
     isSaving: isSavingRef.current,
     lastSaveTime: lastSaveTimeRef.current,
     hasUnsavedChanges: hasUnsavedChangesRef.current,

@@ -26,12 +26,12 @@ export const PageInput: React.FC<ComponentRendererProps> = ({
       type: 'text',
       required: false,
       disabled: false,
-      readonly: false,
+      readOnly: false,
     }
     return props.input || defaultInput
   }, [props.input])
 
-  const [value, setValue] = useState(inputProps.value || '')
+  const [value, setValue] = useState(inputProps?.value || '')
   const [isFocused, setIsFocused] = useState(false)
 
   const handleChange = useCallback(
@@ -44,7 +44,7 @@ export const PageInput: React.FC<ComponentRendererProps> = ({
         props: {
           ...props,
           input: {
-            ...inputProps,
+            ...inputProps!,
             value: newValue,
           } as ComponentProps['input'],
         },
@@ -138,15 +138,15 @@ export const PageInput: React.FC<ComponentRendererProps> = ({
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="group"
-      aria-label={inputProps.label || '输入框'}
+      aria-label={inputProps?.label || '输入框'}
     >
-      {inputProps.label && (
+      {inputProps?.label && (
         <Label
           htmlFor={`input-${id}`}
           className={cn(
             'text-sm font-medium',
-            inputProps.required && 'after:ml-1 after:text-red-500 after:content-["*"]',
-            inputProps.disabled && 'text-gray-500'
+            inputProps?.required && 'after:ml-1 after:text-red-500 after:content-["*"]',
+            inputProps?.disabled && 'text-gray-500'
           )}
         >
           {inputProps.label}
@@ -155,37 +155,37 @@ export const PageInput: React.FC<ComponentRendererProps> = ({
 
       <Input
         id={`input-${id}`}
-        type={inputProps.type}
-        placeholder={inputProps.placeholder}
+        type={inputProps?.type}
+        placeholder={inputProps?.placeholder}
         value={value}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        disabled={inputProps.disabled}
-        readOnly={inputProps.readonly}
-        required={inputProps.required}
-        maxLength={inputProps.maxlength}
-        minLength={inputProps.minlength}
-        pattern={inputProps.pattern}
+        disabled={inputProps?.disabled}
+        readOnly={inputProps?.readOnly}
+        required={inputProps?.required}
+        maxLength={inputProps?.maxlength}
+        minLength={inputProps?.minlength}
+        pattern={inputProps?.pattern}
         className={cn(
           'transition-all duration-200',
           isFocused && 'ring-2 ring-blue-500',
-          inputProps.error && 'border-red-500 focus:ring-red-500',
-          inputProps.disabled && 'cursor-not-allowed bg-gray-100'
+          inputProps?.error && 'border-red-500 focus:ring-red-500',
+          inputProps?.disabled && 'cursor-not-allowed bg-gray-100'
         )}
-        aria-invalid={!!inputProps.error}
+        aria-invalid={!!inputProps?.error}
         aria-describedby={
-          inputProps.error ? `error-${id}` : inputProps.helper ? `helper-${id}` : undefined
+          inputProps?.error ? `error-${id}` : inputProps?.helper ? `helper-${id}` : undefined
         }
       />
 
-      {inputProps.error && (
+      {inputProps?.error && (
         <p id={`error-${id}`} className="text-sm text-red-600" role="alert">
           {inputProps.error}
         </p>
       )}
 
-      {inputProps.helper && !inputProps.error && (
+      {inputProps?.helper && !inputProps?.error && (
         <p id={`helper-${id}`} className="text-sm text-gray-500">
           {inputProps.helper}
         </p>

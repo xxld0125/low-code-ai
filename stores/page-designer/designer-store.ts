@@ -133,6 +133,7 @@ export interface DesignerActions {
   updatePageDesign: (id: string, updates: Partial<PageDesign>) => void
   deletePageDesign: (id: string) => void
   loadPageDesign: (id: string) => Promise<void>
+  savePageDesign: (id?: string) => Promise<{ success: boolean; error?: string }>
 
   // 组件操作
   addComponent: (component: ComponentInstance) => void
@@ -386,6 +387,54 @@ export const useDesignerStore = create<DesignerStore>()(
               },
             }))
             throw error
+          }
+        },
+
+        savePageDesign: async id => {
+          const pageId = id || 'current-page'
+          let currentState: DesignerState
+
+          set(state => {
+            currentState = state
+            return {
+              loadingState: { ...state.loadingState, isSaving: true, error: null },
+            }
+          })
+
+          try {
+            const response = await fetch(`/api/page-designer/save/${pageId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                components: Object.values(currentState!.components),
+                pageDesign: currentState!.pageDesigns[pageId],
+              }),
+            })
+
+            if (!response.ok) throw new Error('保存页面设计失败')
+
+            const { data } = await response.json()
+
+            set(state => ({
+              loadingState: {
+                ...state.loadingState,
+                isSaving: false,
+                lastSaved: new Date().toISOString(),
+              },
+            }))
+
+            return { success: true }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '保存失败'
+            set(state => ({
+              loadingState: {
+                ...state.loadingState,
+                isSaving: false,
+                error: errorMessage,
+              },
+            }))
+
+            return { success: false, error: errorMessage }
           }
         },
 

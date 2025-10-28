@@ -205,16 +205,16 @@ description: 'Task list for 基础页面设计器 implementation'
 
 **Purpose**: 实现自动保存、历史管理、API集成等高级功能
 
-- [ ] T064 [P] 实现自动保存Hook在 /hooks/use-auto-save.ts
-- [ ] T065 [P] 创建历史管理器在 /lib/page-designer/history-manager.ts
-- [ ] T066 [P] 实现撤销/重做功能在状态管理
-- [ ] T067 [P] 创建页面设计API路由在 /app/api/page-designer/page-designs/route.ts
-- [ ] T068 [P] 创建组件实例API路由在 /app/api/page-designer/components/route.ts
-- [ ] T069 [P] 实现布局API路由在 /app/api/page-designer/layout/route.ts
-- [ ] T070 实现页面设计数据加载和保存逻辑
-- [ ] T071 实现组件树结构的序列化和反序列化
-- [ ] T072 添加错误边界和异常处理
-- [ ] T073 实现加载状态和骨架屏
+- [x] T064 [P] 实现自动保存Hook在 /hooks/use-auto-save.ts
+- [x] T065 [P] 创建历史管理器在 /lib/page-designer/history-manager.ts
+- [x] T066 [P] 实现撤销/重做功能在状态管理
+- [x] T067 [P] 创建页面设计API路由在 /app/api/page-designer/page-designs/route.ts
+- [x] T068 [P] 创建组件实例API路由在 /app/api/page-designer/components/route.ts
+- [x] T069 [P] 实现布局API路由在 /app/api/page-designer/layout/route.ts
+- [x] T070 实现页面设计数据加载和保存逻辑
+- [x] T071 实现组件树结构的序列化和反序列化
+- [x] T072 添加错误边界和异常处理
+- [x] T073 实现加载状态和骨架屏
 
 ---
 
@@ -222,14 +222,14 @@ description: 'Task list for 基础页面设计器 implementation'
 
 **Purpose**: 创建页面设计器的路由结构和导航
 
-- [ ] T074 [P] 创建设计器列表页面在 /app/protected/designer/list/page.tsx
-- [ ] T075 [P] 创建新页面创建页面在 /app/protected/designer/create/page.tsx
-- [ ] T076 [P] 创建设计器编辑页面布局在 /app/protected/designer/page/[id]/layout.tsx
-- [ ] T077 [P] 创建设计器编辑主页面在 /app/protected/designer/page/[id]/page.tsx
-- [ ] T078 实现页面设计列表的CRUD操作
-- [ ] T079 添加页面设计分享和权限管理
-- [ ] T080 实现页面设计预览功能
-- [ ] T081 添加页面设计导出功能
+- [x] T074 [P] 创建设计器列表页面在 /app/protected/designer/list/page.tsx
+- [x] T075 [P] 创建新页面创建页面在 /app/protected/designer/create/page.tsx
+- [x] T076 [P] 创建设计器编辑页面布局在 /app/protected/designer/page/[id]/layout.tsx
+- [x] T077 [P] 创建设计器编辑主页面在 /app/protected/designer/page/[id]/page.tsx
+- [x] T078 实现页面设计列表的CRUD操作
+- [x] T079 添加页面设计分享和权限管理
+- [x] T080 实现页面设计预览功能
+- [x] T081 添加页面设计导出功能
 
 ---
 

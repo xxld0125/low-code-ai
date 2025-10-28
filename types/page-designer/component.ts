@@ -91,6 +91,8 @@ export interface ComponentProps {
     icon?: string
     icon_position?: 'left' | 'right'
     onClick?: string
+    type?: 'button' | 'submit' | 'reset'
+    className?: string
   }
 
   // Input属性
@@ -100,13 +102,24 @@ export interface ComponentProps {
     type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url'
     required?: boolean
     disabled?: boolean
-    readonly?: boolean
+    readOnly?: boolean
     maxlength?: number
     minlength?: number
     pattern?: string
     label?: string
     error?: string
     helper?: string
+    className?: string
+  }
+
+  // Link属性
+  link?: {
+    text: string
+    href: string
+    target?: '_self' | '_blank' | '_parent' | '_top'
+    rel?: string
+    download?: string
+    className?: string
   }
 
   // Text属性
@@ -118,6 +131,8 @@ export interface ComponentProps {
     color?: string
     align?: 'left' | 'center' | 'right' | 'justify'
     decoration?: 'none' | 'underline' | 'line-through'
+    tag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'div'
+    className?: string
   }
 
   // Image属性
@@ -130,6 +145,7 @@ export interface ComponentProps {
     rounded?: boolean
     shadow?: boolean
     loading?: 'lazy' | 'eager'
+    className?: string
   }
 
   // Container属性
@@ -145,6 +161,8 @@ export interface ComponentProps {
     border?: BorderValue
     shadow?: ShadowValue
     rounded?: RoundedValue
+    tag?: 'div' | 'section' | 'article' | 'main' | 'header' | 'footer' | 'nav' | 'aside'
+    className?: string
   }
 
   // Row属性
