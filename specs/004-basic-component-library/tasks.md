@@ -7,7 +7,7 @@ description: 'Task list for 基础组件库 implementation'
 **Input**: Design documents from `/specs/004-basic-component-library/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: Tests are included as this specification requires 90% test coverage.
+**Tests**: 单元测试已包含，确保组件功能正确性。
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -30,9 +30,7 @@ description: 'Task list for 基础组件库 implementation'
 - [ ] T001 创建基础组件库目录结构 per implementation plan
 - [ ] T002 [P] 配置TypeScript严格模式和类型定义文件 in `types/lowcode/`
 - [ ] T003 [P] 配置测试框架 (Jest + React Testing Library) with coverage reporting in `jest.config.js`
-- [ ] T004 [P] 配置可访问性测试工具和CI集成 in `.github/workflows/`
-- [ ] T005 [P] 配置性能监控和Core Web Vitals跟踪 in `lib/lowcode/performance/`
-- [ ] T006 [P] 创建组件库基础类型定义 in `types/lowcode/index.ts`
+- [ ] T004 [P] 创建组件库基础类型定义 in `types/lowcode/index.ts`
 
 ---
 
@@ -42,16 +40,15 @@ description: 'Task list for 基础组件库 implementation'
 
 **⚠️ CRITICAL**: 基础阶段未完成前，无法开始任何用户故事工作
 
-- [ ] T007 实现组件注册系统核心类 in `components/lowcode/registry/component-registry.ts`
-- [ ] T008 [P] 实现属性定义和验证系统 in `components/lowcode/registry/property-definitions.ts`
-- [ ] T009 [P] 实现验证规则引擎 in `components/lowcode/registry/validation-rules.ts`
-- [ ] T010 [P] 配置shadcn/ui设计系统集成 in `lib/lowcode/design-system/`
-- [ ] T011 [P] 设置响应式设计断点和可访问性标准 in `lib/lowcode/responsive/`
-- [ ] T012 [P] 实现性能监控和包大小控制 in `lib/lowcode/performance/`
-- [ ] T013 [P] 创建样式引擎和主题系统 in `lib/lowcode/style-engine/`
-- [ ] T014 [P] 实现组件渲染器和画布集成 in `components/lowcode/ComponentRenderer.tsx`
-- [ ] T015 [P] 创建属性编辑器基础框架 in `components/lowcode/editors/`
-- [ ] T016 [P] 设置API路由和中间件结构 in `app/api/components/`
+- [ ] T005 实现组件注册系统核心类 in `components/lowcode/registry/component-registry.ts`
+- [ ] T006 [P] 实现属性定义和验证系统 in `components/lowcode/registry/property-definitions.ts`
+- [ ] T007 [P] 实现验证规则引擎 in `components/lowcode/registry/validation-rules.ts`
+- [ ] T008 [P] 配置shadcn/ui设计系统集成 in `lib/lowcode/design-system/`
+- [ ] T009 [P] 设置响应式设计断点和可访问性标准 in `lib/lowcode/responsive/`
+- [ ] T010 [P] 创建样式引擎和主题系统 in `lib/lowcode/style-engine/`
+- [ ] T011 [P] 实现组件渲染器和画布集成 in `components/lowcode/ComponentRenderer.tsx`
+- [ ] T012 [P] 创建属性编辑器基础框架 in `components/lowcode/editors/`
+- [ ] T013 [P] 设置API路由和中间件结构 in `app/api/components/`
 
 **Checkpoint**: 基础设施完成 - 用户故事实现现在可以并行开始
 
@@ -67,46 +64,43 @@ description: 'Task list for 基础组件库 implementation'
 
 **NOTE: 先编写这些测试，确保它们在实现前失败**
 
-- [ ] T017 [P] [US1] Contract test for /api/components GET endpoint in tests/contract/components-api.test.ts
-- [ ] T018 [P] [US1] Integration test for 表单组件拖拽流程 in tests/integration/form-components.test.tsx
-- [ ] T019 [P] [US1] Unit test suite for Button组件 in tests/components/basic/Button.test.tsx
-- [ ] T020 [P] [US1] Unit test suite for Input组件 in tests/components/basic/Input.test.tsx
-- [ ] T021 [P] [US1] Unit test suite for Textarea组件 in tests/components/basic/Textarea.test.tsx
-- [ ] T022 [P] [US1] Unit test suite for Select组件 in tests/components/basic/Select.test.tsx
-- [ ] T023 [P] [US1] Unit test suite for Checkbox组件 in tests/components/basic/Checkbox.test.tsx
-- [ ] T024 [P] [US1] Unit test suite for Radio组件 in tests/components/basic/Radio.test.tsx
+- [ ] T014 [P] [US1] Unit test suite for Button组件 in tests/components/basic/Button.test.tsx
+- [ ] T015 [P] [US1] Unit test suite for Input组件 in tests/components/basic/Input.test.tsx
+- [ ] T016 [P] [US1] Unit test suite for Textarea组件 in tests/components/basic/Textarea.test.tsx
+- [ ] T017 [P] [US1] Unit test suite for Select组件 in tests/components/basic/Select.test.tsx
+- [ ] T018 [P] [US1] Unit test suite for Checkbox组件 in tests/components/basic/Checkbox.test.tsx
+- [ ] T019 [P] [US1] Unit test suite for Radio组件 in tests/components/basic/Radio.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T025 [P] [US1] Create Button组件定义 in `components/lowcode/basic/Button/definition.ts`
-- [ ] T026 [P] [US1] Create Button React组件 in `components/lowcode/basic/Button/Button.tsx`
-- [ ] T027 [P] [US1] Create Button预览组件 in `components/lowcode/basic/Button/Preview.tsx`
-- [ ] T028 [P] [US1] Create Button图标组件 in `components/lowcode/basic/Button/Icon.tsx`
-- [ ] T029 [P] [US1] Create Input组件定义 in `components/lowcode/basic/Input/definition.ts`
-- [ ] T030 [P] [US1] Create Input React组件 in `components/lowcode/basic/Input/Input.tsx`
-- [ ] T031 [P] [US1] Create Input预览组件 in `components/lowcode/basic/Input/Preview.tsx`
-- [ ] T032 [P] [US1] Create Input图标组件 in `components/lowcode/basic/Input/Icon.tsx`
-- [ ] T033 [P] [US1] Create Textarea组件定义 in `components/lowcode/basic/Textarea/definition.ts`
-- [ ] T034 [P] [US1] Create Textarea React组件 in `components/lowcode/basic/Textarea/Textarea.tsx`
-- [ ] T035 [P] [US1] Create Textarea预览组件 in `components/lowcode/basic/Textarea/Preview.tsx`
-- [ ] T036 [P] [US1] Create Textarea图标组件 in `components/lowcode/basic/Textarea/Icon.tsx`
-- [ ] T037 [P] [US1] Create Select组件定义 in `components/lowcode/basic/Select/definition.ts`
-- [ ] T038 [P] [US1] Create Select React组件 in `components/lowcode/basic/Select/Select.tsx`
-- [ ] T039 [P] [US1] Create Select预览组件 in `components/lowcode/basic/Select/Preview.tsx`
-- [ ] T040 [P] [US1] Create Select图标组件 in `components/lowcode/basic/Select/Icon.tsx`
-- [ ] T041 [P] [US1] Create Checkbox组件定义 in `components/lowcode/basic/Checkbox/definition.ts`
-- [ ] T042 [P] [US1] Create Checkbox React组件 in `components/lowcode/basic/Checkbox/Checkbox.tsx`
-- [ ] T043 [P] [US1] Create Checkbox预览组件 in `components/lowcode/basic/Checkbox/Preview.tsx`
-- [ ] T044 [P] [US1] Create Checkbox图标组件 in `components/lowcode/basic/Checkbox/Icon.tsx`
-- [ ] T045 [P] [US1] Create Radio组件定义 in `components/lowcode/basic/Radio/definition.ts`
-- [ ] T046 [P] [US1] Create Radio React组件 in `components/lowcode/basic/Radio/Radio.tsx`
-- [ ] T047 [P] [US1] Create Radio预览组件 in `components/lowcode/basic/Radio/Preview.tsx`
-- [ ] T048 [P] [US1] Create Radio图标组件 in `components/lowcode/basic/Radio/Icon.tsx`
-- [ ] T049 [P] [US1] Create 基础组件导出文件 in `components/lowcode/basic/*/index.ts`
-- [ ] T050 [US1] Register all form components in registry in `components/lowcode/registry/index.ts`
-- [ ] T051 [US1] Integrate form components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
-- [ ] T052 [US1] Add validation and error handling for form components in `lib/lowcode/validation/`
-- [ ] T053 [US1] Add logging for user story 1 operations in `lib/lowcode/logging/`
+- [ ] T020 [P] [US1] Create Button组件定义 in `components/lowcode/basic/Button/definition.ts`
+- [ ] T021 [P] [US1] Create Button React组件 in `components/lowcode/basic/Button/Button.tsx`
+- [ ] T022 [P] [US1] Create Button预览组件 in `components/lowcode/basic/Button/Preview.tsx`
+- [ ] T023 [P] [US1] Create Button图标组件 in `components/lowcode/basic/Button/Icon.tsx`
+- [ ] T024 [P] [US1] Create Input组件定义 in `components/lowcode/basic/Input/definition.ts`
+- [ ] T025 [P] [US1] Create Input React组件 in `components/lowcode/basic/Input/Input.tsx`
+- [ ] T026 [P] [US1] Create Input预览组件 in `components/lowcode/basic/Input/Preview.tsx`
+- [ ] T027 [P] [US1] Create Input图标组件 in `components/lowcode/basic/Input/Icon.tsx`
+- [ ] T028 [P] [US1] Create Textarea组件定义 in `components/lowcode/basic/Textarea/definition.ts`
+- [ ] T029 [P] [US1] Create Textarea React组件 in `components/lowcode/basic/Textarea/Textarea.tsx`
+- [ ] T030 [P] [US1] Create Textarea预览组件 in `components/lowcode/basic/Textarea/Preview.tsx`
+- [ ] T031 [P] [US1] Create Textarea图标组件 in `components/lowcode/basic/Textarea/Icon.tsx`
+- [ ] T032 [P] [US1] Create Select组件定义 in `components/lowcode/basic/Select/definition.ts`
+- [ ] T033 [P] [US1] Create Select React组件 in `components/lowcode/basic/Select/Select.tsx`
+- [ ] T034 [P] [US1] Create Select预览组件 in `components/lowcode/basic/Select/Preview.tsx`
+- [ ] T035 [P] [US1] Create Select图标组件 in `components/lowcode/basic/Select/Icon.tsx`
+- [ ] T036 [P] [US1] Create Checkbox组件定义 in `components/lowcode/basic/Checkbox/definition.ts`
+- [ ] T037 [P] [US1] Create Checkbox React组件 in `components/lowcode/basic/Checkbox/Checkbox.tsx`
+- [ ] T038 [P] [US1] Create Checkbox预览组件 in `components/lowcode/basic/Checkbox/Preview.tsx`
+- [ ] T039 [P] [US1] Create Checkbox图标组件 in `components/lowcode/basic/Checkbox/Icon.tsx`
+- [ ] T040 [P] [US1] Create Radio组件定义 in `components/lowcode/basic/Radio/definition.ts`
+- [ ] T041 [P] [US1] Create Radio React组件 in `components/lowcode/basic/Radio/Radio.tsx`
+- [ ] T042 [P] [US1] Create Radio预览组件 in `components/lowcode/basic/Radio/Preview.tsx`
+- [ ] T043 [P] [US1] Create Radio图标组件 in `components/lowcode/basic/Radio/Icon.tsx`
+- [ ] T044 [P] [US1] Create 基础组件导出文件 in `components/lowcode/basic/*/index.ts`
+- [ ] T045 [US1] Register all form components in registry in `components/lowcode/registry/index.ts`
+- [ ] T046 [US1] Integrate form components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
+- [ ] T047 [US1] Add validation and error handling for form components in `lib/lowcode/validation/`
 
 **Checkpoint**: 此时用户故事1应该完全功能化且可独立测试
 
@@ -120,38 +114,37 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T054 [P] [US2] Integration test for 展示组件渲染流程 in tests/integration/display-components.test.tsx
-- [ ] T055 [P] [US2] Unit test suite for Text组件 in tests/components/display/Text.test.tsx
-- [ ] T056 [P] [US2] Unit test suite for Heading组件 in tests/components/display/Heading.test.tsx
-- [ ] T057 [P] [US2] Unit test suite for Image组件 in tests/components/display/Image.test.tsx
-- [ ] T058 [P] [US2] Unit test suite for Card组件 in tests/components/display/Card.test.tsx
-- [ ] T059 [P] [US2] Unit test suite for Badge组件 in tests/components/display/Badge.test.tsx
+- [ ] T048 [P] [US2] Unit test suite for Text组件 in tests/components/display/Text.test.tsx
+- [ ] T049 [P] [US2] Unit test suite for Heading组件 in tests/components/display/Heading.test.tsx
+- [ ] T050 [P] [US2] Unit test suite for Image组件 in tests/components/display/Image.test.tsx
+- [ ] T051 [P] [US2] Unit test suite for Card组件 in tests/components/display/Card.test.tsx
+- [ ] T052 [P] [US2] Unit test suite for Badge组件 in tests/components/display/Badge.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T060 [P] [US2] Create Text组件定义 in `components/lowcode/display/Text/definition.ts`
-- [ ] T061 [P] [US2] Create Text React组件 in `components/lowcode/display/Text/Text.tsx`
-- [ ] T062 [P] [US2] Create Text预览组件 in `components/lowcode/display/Text/Preview.tsx`
-- [ ] T063 [P] [US2] Create Text图标组件 in `components/lowcode/display/Text/Icon.tsx`
-- [ ] T064 [P] [US2] Create Heading组件定义 in `components/lowcode/display/Heading/definition.ts`
-- [ ] T065 [P] [US2] Create Heading React组件 in `components/lowcode/display/Heading/Heading.tsx`
-- [ ] T066 [P] [US2] Create Heading预览组件 in `components/lowcode/display/Heading/Preview.tsx`
-- [ ] T067 [P] [US2] Create Heading图标组件 in `components/lowcode/display/Heading/Icon.tsx`
-- [ ] T068 [P] [US2] Create Image组件定义 in `components/lowcode/display/Image/definition.ts`
-- [ ] T069 [P] [US2] Create Image React组件 in `components/lowcode/display/Image/Image.tsx`
-- [ ] T070 [P] [US2] Create Image预览组件 in `components/lowcode/display/Image/Preview.tsx`
-- [ ] T071 [P] [US2] Create Image图标组件 in `components/lowcode/display/Image/Icon.tsx`
-- [ ] T072 [P] [US2] Create Card组件定义 in `components/lowcode/display/Card/definition.ts`
-- [ ] T073 [P] [US2] Create Card React组件 in `components/lowcode/display/Card/Card.tsx`
-- [ ] T074 [P] [US2] Create Card预览组件 in `components/lowcode/display/Card/Preview.tsx`
-- [ ] T075 [P] [US2] Create Card图标组件 in `components/lowcode/display/Card/Icon.tsx`
-- [ ] T076 [P] [US2] Create Badge组件定义 in `components/lowcode/display/Badge/definition.ts`
-- [ ] T077 [P] [US2] Create Badge React组件 in `components/lowcode/display/Badge/Badge.tsx`
-- [ ] T078 [P] [US2] Create Badge预览组件 in `components/lowcode/display/Badge/Preview.tsx`
-- [ ] T079 [P] [US2] Create Badge图标组件 in `components/lowcode/display/Badge/Icon.tsx`
-- [ ] T080 [P] [US2] Create 展示组件导出文件 in `components/lowcode/display/*/index.ts`
-- [ ] T081 [US2] Register all display components in registry in `components/lowcode/registry/index.ts`
-- [ ] T082 [US2] Integrate display components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
+- [ ] T053 [P] [US2] Create Text组件定义 in `components/lowcode/display/Text/definition.ts`
+- [ ] T054 [P] [US2] Create Text React组件 in `components/lowcode/display/Text/Text.tsx`
+- [ ] T055 [P] [US2] Create Text预览组件 in `components/lowcode/display/Text/Preview.tsx`
+- [ ] T056 [P] [US2] Create Text图标组件 in `components/lowcode/display/Text/Icon.tsx`
+- [ ] T057 [P] [US2] Create Heading组件定义 in `components/lowcode/display/Heading/definition.ts`
+- [ ] T058 [P] [US2] Create Heading React组件 in `components/lowcode/display/Heading/Heading.tsx`
+- [ ] T059 [P] [US2] Create Heading预览组件 in `components/lowcode/display/Heading/Preview.tsx`
+- [ ] T060 [P] [US2] Create Heading图标组件 in `components/lowcode/display/Heading/Icon.tsx`
+- [ ] T061 [P] [US2] Create Image组件定义 in `components/lowcode/display/Image/definition.ts`
+- [ ] T062 [P] [US2] Create Image React组件 in `components/lowcode/display/Image/Image.tsx`
+- [ ] T063 [P] [US2] Create Image预览组件 in `components/lowcode/display/Image/Preview.tsx`
+- [ ] T064 [P] [US2] Create Image图标组件 in `components/lowcode/display/Image/Icon.tsx`
+- [ ] T065 [P] [US2] Create Card组件定义 in `components/lowcode/display/Card/definition.ts`
+- [ ] T066 [P] [US2] Create Card React组件 in `components/lowcode/display/Card/Card.tsx`
+- [ ] T067 [P] [US2] Create Card预览组件 in `components/lowcode/display/Card/Preview.tsx`
+- [ ] T068 [P] [US2] Create Card图标组件 in `components/lowcode/display/Card/Icon.tsx`
+- [ ] T069 [P] [US2] Create Badge组件定义 in `components/lowcode/display/Badge/definition.ts`
+- [ ] T070 [P] [US2] Create Badge React组件 in `components/lowcode/display/Badge/Badge.tsx`
+- [ ] T071 [P] [US2] Create Badge预览组件 in `components/lowcode/display/Badge/Preview.tsx`
+- [ ] T072 [P] [US2] Create Badge图标组件 in `components/lowcode/display/Badge/Icon.tsx`
+- [ ] T073 [P] [US2] Create 展示组件导出文件 in `components/lowcode/display/*/index.ts`
+- [ ] T074 [US2] Register all display components in registry in `components/lowcode/registry/index.ts`
+- [ ] T075 [US2] Integrate display components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
 
 **Checkpoint**: 此时用户故事1和2都应该独立工作
 
@@ -165,39 +158,38 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T083 [P] [US3] Integration test for 响应式布局流程 in tests/integration/layout-components.test.tsx
-- [ ] T084 [P] [US3] Unit test suite for Container组件 in tests/components/layout/Container.test.tsx
-- [ ] T085 [P] [US3] Unit test suite for Row组件 in tests/components/layout/Row.test.tsx
-- [ ] T086 [P] [US3] Unit test suite for Col组件 in tests/components/layout/Col.test.tsx
-- [ ] T087 [P] [US3] Unit test suite for Divider组件 in tests/components/layout/Divider.test.tsx
-- [ ] T088 [P] [US3] Unit test suite for Spacer组件 in tests/components/layout/Spacer.test.tsx
+- [ ] T076 [P] [US3] Unit test suite for Container组件 in tests/components/layout/Container.test.tsx
+- [ ] T077 [P] [US3] Unit test suite for Row组件 in tests/components/layout/Row.test.tsx
+- [ ] T078 [P] [US3] Unit test suite for Col组件 in tests/components/layout/Col.test.tsx
+- [ ] T079 [P] [US3] Unit test suite for Divider组件 in tests/components/layout/Divider.test.tsx
+- [ ] T080 [P] [US3] Unit test suite for Spacer组件 in tests/components/layout/Spacer.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T089 [P] [US3] Create Container组件定义 in `components/lowcode/layout/Container/definition.ts`
-- [ ] T090 [P] [US3] Create Container React组件 in `components/lowcode/layout/Container/Container.tsx`
-- [ ] T091 [P] [US3] Create Container预览组件 in `components/lowcode/layout/Container/Preview.tsx`
-- [ ] T092 [P] [US3] Create Container图标组件 in `components/lowcode/layout/Container/Icon.tsx`
-- [ ] T093 [P] [US3] Create Row组件定义 in `components/lowcode/layout/Row/definition.ts`
-- [ ] T094 [P] [US3] Create Row React组件 in `components/lowcode/layout/Row/Row.tsx`
-- [ ] T095 [P] [US3] Create Row预览组件 in `components/lowcode/layout/Row/Preview.tsx`
-- [ ] T096 [P] [US3] Create Row图标组件 in `components/lowcode/layout/Row/Icon.tsx`
-- [ ] T097 [P] [US3] Create Col组件定义 in `components/lowcode/layout/Col/definition.ts`
-- [ ] T098 [P] [US3] Create Col React组件 in `components/lowcode/layout/Col/Col.tsx`
-- [ ] T099 [P] [US3] Create Col预览组件 in `components/lowcode/layout/Col/Preview.tsx`
-- [ ] T100 [P] [US3] Create Col图标组件 in `components/lowcode/layout/Col/Icon.tsx`
-- [ ] T101 [P] [US3] Create Divider组件定义 in `components/lowcode/layout/Divider/definition.ts`
-- [ ] T102 [P] [US3] Create Divider React组件 in `components/lowcode/layout/Divider/Divider.tsx`
-- [ ] T103 [P] [US3] Create Divider预览组件 in `components/lowcode/layout/Divider/Preview.tsx`
-- [ ] T104 [P] [US3] Create Divider图标组件 in `components/lowcode/layout/Divider/Icon.tsx`
-- [ ] T105 [P] [US3] Create Spacer组件定义 in `components/lowcode/layout/Spacer/definition.ts`
-- [ ] T106 [P] [US3] Create Spacer React组件 in `components/lowcode/layout/Spacer/Spacer.tsx`
-- [ ] T107 [P] [US3] Create Spacer预览组件 in `components/lowcode/layout/Spacer/Preview.tsx`
-- [ ] T108 [P] [US3] Create Spacer图标组件 in `components/lowcode/layout/Spacer/Icon.tsx`
-- [ ] T109 [P] [US3] Create 布局组件导出文件 in `components/lowcode/layout/*/index.ts`
-- [ ] T110 [US3] Register all layout components in registry in `components/lowcode/registry/index.ts`
-- [ ] T111 [US3] Integrate layout components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
-- [ ] T112 [US3] Implement responsive layout system in `lib/lowcode/responsive/grid-system.ts`
+- [ ] T081 [P] [US3] Create Container组件定义 in `components/lowcode/layout/Container/definition.ts`
+- [ ] T082 [P] [US3] Create Container React组件 in `components/lowcode/layout/Container/Container.tsx`
+- [ ] T083 [P] [US3] Create Container预览组件 in `components/lowcode/layout/Container/Preview.tsx`
+- [ ] T084 [P] [US3] Create Container图标组件 in `components/lowcode/layout/Container/Icon.tsx`
+- [ ] T085 [P] [US3] Create Row组件定义 in `components/lowcode/layout/Row/definition.ts`
+- [ ] T086 [P] [US3] Create Row React组件 in `components/lowcode/layout/Row/Row.tsx`
+- [ ] T087 [P] [US3] Create Row预览组件 in `components/lowcode/layout/Row/Preview.tsx`
+- [ ] T088 [P] [US3] Create Row图标组件 in `components/lowcode/layout/Row/Icon.tsx`
+- [ ] T089 [P] [US3] Create Col组件定义 in `components/lowcode/layout/Col/definition.ts`
+- [ ] T090 [P] [US3] Create Col React组件 in `components/lowcode/layout/Col/Col.tsx`
+- [ ] T091 [P] [US3] Create Col预览组件 in `components/lowcode/layout/Col/Preview.tsx`
+- [ ] T092 [P] [US3] Create Col图标组件 in `components/lowcode/layout/Col/Icon.tsx`
+- [ ] T093 [P] [US3] Create Divider组件定义 in `components/lowcode/layout/Divider/definition.ts`
+- [ ] T094 [P] [US3] Create Divider React组件 in `components/lowcode/layout/Divider/Divider.tsx`
+- [ ] T095 [P] [US3] Create Divider预览组件 in `components/lowcode/layout/Divider/Preview.tsx`
+- [ ] T096 [P] [US3] Create Divider图标组件 in `components/lowcode/layout/Divider/Icon.tsx`
+- [ ] T097 [P] [US3] Create Spacer组件定义 in `components/lowcode/layout/Spacer/definition.ts`
+- [ ] T098 [P] [US3] Create Spacer React组件 in `components/lowcode/layout/Spacer/Spacer.tsx`
+- [ ] T099 [P] [US3] Create Spacer预览组件 in `components/lowcode/layout/Spacer/Preview.tsx`
+- [ ] T100 [P] [US3] Create Spacer图标组件 in `components/lowcode/layout/Spacer/Icon.tsx`
+- [ ] T101 [P] [US3] Create 布局组件导出文件 in `components/lowcode/layout/*/index.ts`
+- [ ] T102 [US3] Register all layout components in registry in `components/lowcode/registry/index.ts`
+- [ ] T103 [US3] Integrate layout components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
+- [ ] T104 [US3] Implement responsive layout system in `lib/lowcode/responsive/grid-system.ts`
 
 **Checkpoint**: 所有用户故事现在应该独立功能化
 
@@ -211,18 +203,17 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T113 [P] [US4] Integration test for 样式配置流程 in tests/integration/style-configuration.test.tsx
-- [ ] T114 [P] [US4] Unit test suite for PropertyEditor in tests/components/editors/PropertyEditor.test.tsx
-- [ ] T115 [P] [US4] Unit test suite for StyleEditor in tests/components/editors/StyleEditor.test.tsx
+- [ ] T105 [P] [US4] Unit test suite for PropertyEditor in tests/components/editors/PropertyEditor.test.tsx
+- [ ] T106 [P] [US4] Unit test suite for StyleEditor in tests/components/editors/StyleEditor.test.tsx
 
 ### Implementation for User Story 4
 
-- [ ] T116 [P] [US4] Create PropertyEditor组件 in `components/lowcode/editors/PropertyEditor/PropertyEditor.tsx`
-- [ ] T117 [P] [US4] Create StyleEditor组件 in `components/lowcode/editors/StyleEditor/StyleEditor.tsx`
-- [ ] T118 [P] [US4] Create ValidationEditor组件 in `components/lowcode/editors/ValidationEditor/ValidationEditor.tsx`
-- [ ] T119 [US4] Implement style configuration panel integration in `components/page-designer/PropertiesPanel.tsx`
-- [ ] T120 [US4] Add real-time style preview functionality in `lib/lowcode/style-engine/preview.ts`
-- [ ] T121 [US4] Implement style validation and error handling in `lib/lowcode/validation/style-validator.ts`
+- [ ] T107 [P] [US4] Create PropertyEditor组件 in `components/lowcode/editors/PropertyEditor/PropertyEditor.tsx`
+- [ ] T108 [P] [US4] Create StyleEditor组件 in `components/lowcode/editors/StyleEditor/StyleEditor.tsx`
+- [ ] T109 [P] [US4] Create ValidationEditor组件 in `components/lowcode/editors/ValidationEditor/ValidationEditor.tsx`
+- [ ] T110 [US4] Implement style configuration panel integration in `components/page-designer/PropertiesPanel.tsx`
+- [ ] T111 [US4] Add real-time style preview functionality in `lib/lowcode/style-engine/preview.ts`
+- [ ] T112 [US4] Implement style validation and error handling in `lib/lowcode/validation/style-validator.ts`
 
 **Checkpoint**: 所有用户故事和样式配置功能完成
 
@@ -232,19 +223,14 @@ description: 'Task list for 基础组件库 implementation'
 
 **Purpose**: 影响多个用户故事的改进
 
-- [ ] T122 [P] Update 组件库文档 in `docs/components/`
-- [ ] T123 Code cleanup and refactoring across all components
-- [ ] T124 Performance optimization across all stories in `lib/lowcode/performance/`
-- [ ] T125 [P] Additional integration tests in `tests/integration/`
-- [ ] T126 Security hardening for component inputs and validation
-- [ ] T127 Run quickstart.md validation测试
-- [ ] T128 [P] Accessibility audit and WCAG 2.1 AA compliance verification
-- [ ] T129 [P] Performance regression testing and Core Web Vitals validation
-- [ ] T130 [P] Bundle size analysis and optimization (<200KB requirement)
-- [ ] T131 [P] Cross-browser and responsive design testing
-- [ ] T132 Code quality metrics review and technical debt assessment
-- [ ] T133 Create 组件库构建和部署脚本 in `scripts/build-components.sh`
-- [ ] T134 [P] E2E testing for complete user workflows in tests/e2e/
+- [ ] T113 [P] Update 组件库文档 in `docs/components/`
+- [ ] T114 Code cleanup and refactoring across all components
+- [ ] T115 Security hardening for component inputs and validation
+- [ ] T116 Run quickstart.md validation测试
+- [ ] T117 [P] Accessibility audit and WCAG 2.1 AA compliance verification
+- [ ] T118 [P] Cross-browser and responsive design testing
+- [ ] T119 Code quality metrics review and technical debt assessment
+- [ ] T120 Create 组件库构建和部署脚本 in `scripts/build-components.sh`
 
 ---
 
@@ -288,10 +274,10 @@ description: 'Task list for 基础组件库 implementation'
 ## Parallel Example: User Story 1
 
 ```bash
-# 一起启动User Story 1的所有测试（如果请求测试）:
-Task: "Contract test for /api/components GET endpoint in tests/contract/components-api.test.ts"
-Task: "Integration test for 表单组件拖拽流程 in tests/integration/form-components.test.tsx"
+# 一起启动User Story 1的所有单元测试:
 Task: "Unit test suite for Button组件 in tests/components/basic/Button.test.tsx"
+Task: "Unit test suite for Input组件 in tests/components/basic/Input.test.tsx"
+Task: "Unit test suite for Textarea组件 in tests/components/basic/Textarea.test.tsx"
 
 # 一起启动User Story 1的所有组件定义:
 Task: "Create Button组件定义 in components/lowcode/basic/Button/definition.ts"
@@ -351,7 +337,7 @@ Task: "Create Textarea React组件 in components/lowcode/basic/Textarea/Textarea
 
 **Quality Gates**:
 
-- 90%测试覆盖率（规格要求）
+- 单元测试确保组件功能正确性
 - 组件属性配置响应时间 <100ms
 - 拖拽操作延迟 <50ms
 - JavaScript包大小 <200KB
