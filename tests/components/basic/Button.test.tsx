@@ -2,57 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Button } from '@/components/lowcode/basic/Button'
 
-// Mock Button组件（将在实现后替换）
-jest.mock('@/components/lowcode/basic/Button', () => ({
-  Button: jest.fn(allProps => {
-    // 支持简化props（用于测试）和完整ComponentRendererProps格式
-    const isSimpleProps = allProps.text !== undefined || allProps.variant !== undefined
-
-    let buttonProps
-    if (isSimpleProps) {
-      // 简化的props格式（用于测试）
-      buttonProps = {
-        text: allProps.text || '按钮',
-        variant: allProps.variant || 'primary',
-        size: allProps.size || 'md',
-        disabled: allProps.disabled || false,
-        loading: allProps.loading || false,
-        onClick: allProps.onClick,
-        className: allProps.className,
-      }
-    } else {
-      // 完整的ComponentRendererProps格式
-      buttonProps = allProps.props?.button || {
-        text: '按钮',
-        variant: 'primary',
-        size: 'md',
-        disabled: false,
-      }
-    }
-
-    return (
-      <button
-        data-testid="button"
-        data-variant={buttonProps.variant}
-        data-size={buttonProps.size}
-        data-disabled={buttonProps.disabled}
-        data-loading={buttonProps.loading}
-        data-component-id={allProps.id}
-        data-component-type={allProps.type}
-        disabled={buttonProps.disabled || buttonProps.loading}
-        onClick={() => {
-          if (buttonProps.onClick) buttonProps.onClick()
-          if (allProps.onSelect) allProps.onSelect(allProps.id)
-        }}
-        className={buttonProps.className}
-        {...allProps}
-      >
-        {buttonProps.text}
-      </button>
-    )
-  }),
-}))
-
 describe('Button组件', () => {
   const user = userEvent.setup()
 
@@ -127,14 +76,14 @@ describe('Button组件', () => {
 
   describe('尺寸变化', () => {
     test('正确渲染small尺寸', () => {
-      render(<Button text="小按钮" size="small" />)
+      render(<Button text="小按钮" size="sm" />)
 
       const button = screen.getByTestId('button')
       expect(button).toHaveAttribute('data-size', 'small')
     })
 
     test('正确渲染large尺寸', () => {
-      render(<Button text="大按钮" size="large" />)
+      render(<Button text="大按钮" size="lg" />)
 
       const button = screen.getByTestId('button')
       expect(button).toHaveAttribute('data-size', 'large')

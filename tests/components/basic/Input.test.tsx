@@ -2,66 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Input } from '@/components/lowcode/basic/Input'
 
-// Mock Input组件（将在实现后替换）
-jest.mock('@/components/lowcode/basic/Input', () => ({
-  Input: jest.fn(allProps => {
-    // 支持简化props（用于测试）和完整ComponentRendererProps格式
-    const isSimpleProps = allProps.placeholder !== undefined || allProps.type !== undefined
-
-    let inputProps
-    if (isSimpleProps) {
-      // 简化的props格式（用于测试）
-      inputProps = {
-        type: allProps.type || 'text',
-        placeholder: allProps.placeholder,
-        value: allProps.value,
-        defaultValue: allProps.defaultValue,
-        disabled: allProps.disabled || false,
-        required: allProps.required || false,
-        readOnly: allProps.readOnly || false,
-        error: allProps.error,
-        helper: allProps.helperText,
-        className: allProps.className,
-        onChange: allProps.onChange,
-        onFocus: allProps.onFocus,
-        onBlur: allProps.onBlur,
-      }
-    } else {
-      // 完整的ComponentRendererProps格式
-      inputProps = allProps.props?.input || {
-        type: 'text',
-        placeholder: '请输入文本',
-        disabled: false,
-      }
-    }
-
-    return (
-      <div>
-        <input
-          data-testid="input"
-          data-component-id={allProps.id}
-          data-component-type={allProps.type}
-          type={inputProps.type}
-          placeholder={inputProps.placeholder}
-          value={inputProps.value}
-          defaultValue={inputProps.defaultValue}
-          disabled={inputProps.disabled}
-          required={inputProps.required}
-          readOnly={inputProps.readOnly}
-          aria-invalid={inputProps.error}
-          className={inputProps.className}
-          onChange={inputProps.onChange}
-          onFocus={inputProps.onFocus}
-          onBlur={inputProps.onBlur}
-          {...allProps}
-        />
-        {inputProps.error && <span data-testid="error-message">{inputProps.error}</span>}
-        {inputProps.helper && <span data-testid="helper-text">{inputProps.helper}</span>}
-      </div>
-    )
-  }),
-}))
-
 describe('Input组件', () => {
   const user = userEvent.setup()
 
@@ -84,8 +24,8 @@ describe('Input组件', () => {
     test('支持自定义className', () => {
       render(<Input className="custom-input" />)
 
-      const input = screen.getByTestId('input')
-      expect(input).toHaveClass('custom-input')
+      const container = screen.getByTestId('input').closest('.space-y-2')
+      expect(container).toHaveClass('custom-input')
     })
 
     test('支持HTML属性透传', () => {
@@ -210,7 +150,7 @@ describe('Input组件', () => {
     })
 
     test('helperText正确显示', () => {
-      render(<Input helperText="请输入有效的邮箱地址" />)
+      render(<Input helper="请输入有效的邮箱地址" />)
 
       const helperText = screen.getByTestId('helper-text')
       expect(helperText).toBeInTheDocument()
@@ -218,10 +158,10 @@ describe('Input组件', () => {
     })
 
     test('同时存在错误和helperText时优先显示错误', () => {
-      render(<Input error="错误信息" helperText="帮助信息" />)
+      render(<Input error="错误信息" helper="帮助信息" />)
 
       expect(screen.getByTestId('error-message')).toBeInTheDocument()
-      expect(screen.getByTestId('helper-text')).toBeInTheDocument()
+      expect(screen.queryByTestId('helper-text')).not.toBeInTheDocument()
     })
   })
 

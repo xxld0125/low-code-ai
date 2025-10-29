@@ -26,15 +26,35 @@ import type { ComponentType, ComponentCategory } from '@/types/page-designer/com
 // 基础组件导入
 import { ButtonPreview } from '@/components/lowcode/basic/Button/Preview'
 import { InputPreview } from '@/components/lowcode/basic/Input/Preview'
+import { TextareaPreview } from '@/components/lowcode/basic/Textarea/Preview'
+import { SelectPreview } from '@/components/lowcode/basic/Select/Preview'
+import { CheckboxPreview } from '@/components/lowcode/basic/Checkbox/Preview'
+import { RadioPreview } from '@/components/lowcode/basic/Radio/Preview'
+
+// 创建适配器组件以匹配期望的类型
+const createPreviewAdapter = (PreviewComponent: React.FC<any>) => {
+  const AdapterComponent = (props: { onClick?: () => void }) => {
+    return <PreviewComponent />
+  }
+  AdapterComponent.displayName = `PreviewAdapter(${PreviewComponent.displayName || PreviewComponent.name})`
+  return AdapterComponent
+}
 import { TextPreview } from '@/components/lowcode/display/Text'
 import { ImagePreview } from '@/components/lowcode/display/Image'
 
 // 组件分类配置
 const COMPONENT_CATEGORIES = [
   {
-    id: 'basic',
-    name: '基础组件',
-    description: '常用的基础UI组件',
+    id: 'form',
+    name: '表单组件',
+    description: '表单输入和验证组件',
+    icon: List,
+    color: 'bg-purple-500',
+  },
+  {
+    id: 'display',
+    name: '展示组件',
+    description: '内容展示和显示组件',
     icon: LayoutGrid,
     color: 'bg-blue-500',
   },
@@ -44,13 +64,6 @@ const COMPONENT_CATEGORIES = [
     description: '页面布局和容器组件',
     icon: Settings,
     color: 'bg-green-500',
-  },
-  {
-    id: 'form',
-    name: '表单组件',
-    description: '表单输入和验证组件',
-    icon: List,
-    color: 'bg-purple-500',
   },
   {
     id: 'business',
@@ -63,30 +76,68 @@ const COMPONENT_CATEGORIES = [
 
 // 基础组件配置
 const BASIC_COMPONENTS = [
+  // 表单组件
   {
     type: 'button',
     name: '按钮',
     description: '可点击的按钮组件',
-    category: 'basic',
+    category: 'form',
     icon: '🔘',
-    preview: ButtonPreview,
+    preview: createPreviewAdapter(ButtonPreview),
     keywords: ['button', 'btn', '按钮', '点击'],
   },
   {
     type: 'input',
     name: '输入框',
     description: '文本输入组件',
-    category: 'basic',
+    category: 'form',
     icon: '📝',
-    preview: InputPreview,
+    preview: createPreviewAdapter(InputPreview),
     keywords: ['input', 'text', '输入', '文本框'],
   },
+  {
+    type: 'textarea',
+    name: '文本域',
+    description: '多行文本输入组件',
+    category: 'form',
+    icon: '📄',
+    preview: createPreviewAdapter(TextareaPreview),
+    keywords: ['textarea', 'text', '文本域', '多行输入'],
+  },
+  {
+    type: 'select',
+    name: '选择器',
+    description: '下拉选择组件',
+    category: 'form',
+    icon: '📋',
+    preview: createPreviewAdapter(SelectPreview),
+    keywords: ['select', 'dropdown', '选择器', '下拉'],
+  },
+  {
+    type: 'checkbox',
+    name: '复选框',
+    description: '多选框组件',
+    category: 'form',
+    icon: '☑️',
+    preview: createPreviewAdapter(CheckboxPreview),
+    keywords: ['checkbox', '多选', '复选框', '勾选'],
+  },
+  {
+    type: 'radio',
+    name: '单选框',
+    description: '单选框组件',
+    category: 'form',
+    icon: '⚪',
+    preview: createPreviewAdapter(RadioPreview),
+    keywords: ['radio', '单选', '单选框', '选择'],
+  },
+  // 展示组件
   {
     type: 'text',
     name: '文本',
     description: '文本显示组件',
-    category: 'basic',
-    icon: '📄',
+    category: 'display',
+    icon: '📝',
     preview: TextPreview,
     keywords: ['text', 'paragraph', '文本', '段落'],
   },
@@ -94,7 +145,7 @@ const BASIC_COMPONENTS = [
     type: 'image',
     name: '图片',
     description: '图片显示组件',
-    category: 'basic',
+    category: 'display',
     icon: '🖼️',
     preview: ImagePreview,
     keywords: ['image', 'img', '图片', '图像'],
@@ -288,7 +339,9 @@ export const ComponentPanel: React.FC<{
   onComponentSelect?: (type: string) => void
 }> = ({ className, onComponentSelect }) => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['basic']))
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(['form', 'display'])
+  )
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const toggleCategory = (categoryId: string) => {

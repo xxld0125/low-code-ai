@@ -4,7 +4,34 @@
  * 创建日期: 2025-10-29
  */
 
-import { PageCheckbox } from './Checkbox'
-import { CheckboxPreview } from './Preview'
+// 主要组件
+export type { LowcodeCheckboxProps } from './Checkbox'
 
-export { PageCheckbox as Checkbox, PageCheckbox, CheckboxPreview }
+// 组件定义
+export { CheckboxDefinition } from './definition'
+
+// 预览组件
+export {
+  CheckboxPreview,
+  CheckboxVariantPreview,
+  CheckboxStatePreview,
+  CheckboxInteractivePreview,
+  CheckboxDragPreview,
+} from './Preview'
+export type { CheckboxPreviewProps } from './Preview'
+
+// 图标组件
+export {
+  CheckboxIcon,
+  CheckboxUncheckedIcon,
+  CheckboxCheckedIcon,
+  CheckboxIndeterminateIcon,
+  CheckboxSimpleIcon,
+  CheckboxAnimatedIcon,
+  CheckboxErrorIcon,
+  CheckboxDisabledIcon,
+} from './Icon'
+export type { CheckboxIconProps } from './Icon'
+
+// 默认导出
+export { Checkbox } from './Checkbox'

@@ -4,7 +4,8 @@
  * 创建日期: 2025-10-29
  */
 
-import { PageRadio } from './Radio'
+import { Radio } from './Radio'
 import { RadioPreview } from './Preview'
 
-export { PageRadio as Radio, PageRadio, RadioPreview }
+export { Radio, RadioPreview }
+export type { LowcodeRadioProps } from './Radio'

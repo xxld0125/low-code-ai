@@ -1,156 +1,119 @@
 /**
- * 页面设计器复选框组件
+ * Checkbox 基础组件
  * 功能模块: 基础组件库 (004-basic-component-library)
  * 创建日期: 2025-10-29
  */
 
 import React from 'react'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ComponentRendererProps } from '@/types/page-designer/component'
+import { Checkbox as ShadcnCheckbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import type { CheckboxProps } from '@/types/lowcode/component'
 
-export const PageCheckbox: React.FC<ComponentRendererProps> = ({
-  id,
-  props,
-  styles,
-  isSelected,
-  isDragging,
-  onSelect,
-  onDelete,
-}) => {
-  const checkboxProps = props.checkbox || {
-    checked: false,
-    disabled: false,
-    label: '复选框选项',
-  }
-
-  const handleChange = (checked: boolean) => {
-    if (checkboxProps.onChange) {
-      checkboxProps.onChange(checked)
-    }
-    onSelect?.(id)
-  }
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onSelect?.(id)
-  }
-
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // 双击编辑或其他操作
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      e.stopPropagation()
-      onDelete?.(id)
-    }
-  }
-
-  // 合并默认样式和自定义样式
-  const mergedStyles: React.CSSProperties = {
-    width: styles.width || 'auto',
-    height: styles.height || 'auto',
-    cursor: isDragging ? 'grabbing' : 'pointer',
-    transition: styles.transition || 'all 0.2s ease-in-out',
-    userSelect: 'none',
-    // 过滤掉不兼容的样式属性
-    boxShadow:
-      styles.boxShadow && typeof styles.boxShadow === 'string' ? styles.boxShadow : undefined,
-    background:
-      styles.background && typeof styles.background === 'string' ? styles.background : undefined,
-    border: styles.border && typeof styles.border === 'string' ? styles.border : undefined,
-    borderRadius:
-      styles.borderRadius && typeof styles.borderRadius !== 'boolean'
-        ? styles.borderRadius
-        : undefined,
-    margin: styles.margin && typeof styles.margin === 'string' ? styles.margin : undefined,
-    padding: styles.padding && typeof styles.padding === 'string' ? styles.padding : undefined,
-    // 直接支持的标准CSS属性
-    color: styles.color,
-    fontSize: styles.fontSize,
-    fontWeight: styles.fontWeight,
-    fontFamily: styles.fontFamily,
-    textAlign: styles.textAlign,
-    textDecoration: styles.textDecoration,
-    textTransform: styles.textTransform,
-    lineHeight: styles.lineHeight,
-    opacity: styles.opacity,
-    position: styles.position,
-    top: styles.top,
-    right: styles.right,
-    bottom: styles.bottom,
-    left: styles.left,
-    zIndex: styles.zIndex,
-    display: styles.display,
-    minWidth: styles.minWidth,
-    minHeight: styles.minHeight,
-    maxWidth: styles.maxWidth,
-    maxHeight: styles.maxHeight,
-  }
-
-  return (
-    <div
-      data-component-id={id}
-      data-component-type="checkbox"
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      onKeyDown={handleKeyDown}
-      style={mergedStyles}
-      className={cn(
-        'page-designer-checkbox',
-        'flex items-center space-x-2',
-        'transition-all duration-200',
-        isSelected && 'ring-2 ring-blue-500 ring-offset-2',
-        isDragging && 'opacity-75',
-        'hover:shadow-md',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-        props.className
-      )}
-      tabIndex={0}
-      role="group"
-      aria-label={checkboxProps.label || '复选框'}
-    >
-      <Checkbox
-        checked={checkboxProps.checked}
-        disabled={checkboxProps.disabled}
-        onCheckedChange={handleChange}
-        id={`${id}-checkbox`}
-      />
-      {checkboxProps.label && (
-        <label
-          htmlFor={`${id}-checkbox`}
-          className="cursor-pointer select-none"
-          onClick={e => e.stopPropagation()}
-        >
-          {checkboxProps.label}
-        </label>
-      )}
-    </div>
-  )
+export interface LowcodeCheckboxProps extends CheckboxProps {
+  className?: string
+  id?: string
+  onChange?: (checked: boolean) => void
+  autoFocus?: boolean
 }
 
-// 复选框预览组件（用于组件面板）
-export const PageCheckboxPreview: React.FC<{
-  onClick?: () => void
-}> = ({ onClick }) => {
-  return (
-    <div
-      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          onClick?.()
-        }
-      }}
-    >
-      <div className="flex items-center space-x-2">
-        <div className="h-4 w-4 rounded border border-gray-300"></div>
-        <span className="text-sm text-gray-600">复选框</span>
+export const Checkbox = React.forwardRef<HTMLButtonElement, LowcodeCheckboxProps>(
+  (
+    {
+      label,
+      checked = false,
+      indeterminate = false,
+      disabled = false,
+      required = false,
+      error,
+      helper,
+      className,
+      id,
+      onChange,
+      autoFocus = false,
+      ...props
+    },
+    ref
+  ) => {
+    // 生成唯一ID - 必须无条件调用Hook
+    const generatedId = React.useId()
+    const checkboxId = id || `checkbox-${generatedId}`
+
+    // 处理变更
+    const handleChange = (checked: boolean) => {
+      if (onChange) {
+        onChange(checked)
+      }
+    }
+
+    // 处理键盘事件 - shadcn组件已经处理了键盘事件，这里只处理特殊情况
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      // 如果需要额外的键盘处理逻辑，可以在这里添加
+      // shadcn的Checkbox组件已经处理了空格键和Enter键
+    }
+
+    return (
+      <div className={cn('space-y-2', className)}>
+        <div className="flex items-start space-x-2">
+          <ShadcnCheckbox
+            id={checkboxId}
+            checked={checked}
+            ref={ref}
+            disabled={disabled}
+            onCheckedChange={handleChange}
+            autoFocus={autoFocus}
+            data-testid="checkbox-input"
+            aria-checked={checked ? 'true' : 'false'}
+            aria-invalid={error ? 'true' : 'false'}
+            aria-required={required}
+            aria-disabled={disabled}
+            className={cn(
+              'mt-0.5',
+              error && 'border-destructive',
+              indeterminate && 'data-[state=indeterminate]:bg-muted'
+            )}
+            {...props}
+          />
+
+          {label && (
+            <Label
+              htmlFor={checkboxId}
+              data-testid="checkbox-label"
+              className={cn(
+                'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+                required && 'after:ml-0.5 after:text-red-500 after:content-["*"]',
+                disabled && 'cursor-not-allowed opacity-50',
+                error && 'text-destructive',
+                !disabled && 'cursor-pointer'
+              )}
+            >
+              {label}
+            </Label>
+          )}
+        </div>
+
+        {/* 辅助文本 */}
+        {(error || helper) && (
+          <div className="ml-6 space-y-1">
+            {error && (
+              <p className="flex items-center gap-1 text-sm text-destructive">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {error}
+              </p>
+            )}
+            {!error && helper && <p className="text-sm text-muted-foreground">{helper}</p>}
+          </div>
+        )}
       </div>
-    </div>
-  )
-}
+    )
+  }
+)
+
+Checkbox.displayName = 'LowcodeCheckbox'

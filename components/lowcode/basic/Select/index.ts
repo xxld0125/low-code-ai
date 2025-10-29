@@ -4,7 +4,29 @@
  * 创建日期: 2025-10-29
  */
 
-import { PageSelect } from './Select'
-import { SelectPreview } from './Preview'
+// 主要组件
+export type { LowcodeSelectProps } from './Select'
+export { useSelectSearch, useSelectValidation } from './Select'
 
-export { PageSelect as Select, PageSelect, SelectPreview }
+// 组件定义
+export { SelectDefinition } from './definition'
+
+// 预览组件
+export { SelectPreview, SelectVariantPreview, SelectStatePreview } from './Preview'
+export type { SelectPreviewProps } from './Preview'
+
+// 图标组件
+export {
+  SelectIcon,
+  SelectOpenIcon,
+  SelectMultipleIcon,
+  SelectSimpleIcon,
+  SelectAnimatedIcon,
+  SelectSelectedIcon,
+  SelectErrorIcon,
+  SelectDisabledIcon,
+} from './Icon'
+export type { SelectIconProps } from './Icon'
+
+// 默认导出
+export { Select } from './Select'

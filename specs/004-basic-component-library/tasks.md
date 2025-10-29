@@ -73,34 +73,34 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Create Button组件定义 in `components/lowcode/basic/Button/definition.ts`
-- [ ] T021 [P] [US1] Create Button React组件 in `components/lowcode/basic/Button/Button.tsx`
-- [ ] T022 [P] [US1] Create Button预览组件 in `components/lowcode/basic/Button/Preview.tsx`
-- [ ] T023 [P] [US1] Create Button图标组件 in `components/lowcode/basic/Button/Icon.tsx`
-- [ ] T024 [P] [US1] Create Input组件定义 in `components/lowcode/basic/Input/definition.ts`
-- [ ] T025 [P] [US1] Create Input React组件 in `components/lowcode/basic/Input/Input.tsx`
-- [ ] T026 [P] [US1] Create Input预览组件 in `components/lowcode/basic/Input/Preview.tsx`
-- [ ] T027 [P] [US1] Create Input图标组件 in `components/lowcode/basic/Input/Icon.tsx`
-- [ ] T028 [P] [US1] Create Textarea组件定义 in `components/lowcode/basic/Textarea/definition.ts`
-- [ ] T029 [P] [US1] Create Textarea React组件 in `components/lowcode/basic/Textarea/Textarea.tsx`
-- [ ] T030 [P] [US1] Create Textarea预览组件 in `components/lowcode/basic/Textarea/Preview.tsx`
-- [ ] T031 [P] [US1] Create Textarea图标组件 in `components/lowcode/basic/Textarea/Icon.tsx`
-- [ ] T032 [P] [US1] Create Select组件定义 in `components/lowcode/basic/Select/definition.ts`
-- [ ] T033 [P] [US1] Create Select React组件 in `components/lowcode/basic/Select/Select.tsx`
-- [ ] T034 [P] [US1] Create Select预览组件 in `components/lowcode/basic/Select/Preview.tsx`
-- [ ] T035 [P] [US1] Create Select图标组件 in `components/lowcode/basic/Select/Icon.tsx`
-- [ ] T036 [P] [US1] Create Checkbox组件定义 in `components/lowcode/basic/Checkbox/definition.ts`
-- [ ] T037 [P] [US1] Create Checkbox React组件 in `components/lowcode/basic/Checkbox/Checkbox.tsx`
-- [ ] T038 [P] [US1] Create Checkbox预览组件 in `components/lowcode/basic/Checkbox/Preview.tsx`
-- [ ] T039 [P] [US1] Create Checkbox图标组件 in `components/lowcode/basic/Checkbox/Icon.tsx`
-- [ ] T040 [P] [US1] Create Radio组件定义 in `components/lowcode/basic/Radio/definition.ts`
-- [ ] T041 [P] [US1] Create Radio React组件 in `components/lowcode/basic/Radio/Radio.tsx`
-- [ ] T042 [P] [US1] Create Radio预览组件 in `components/lowcode/basic/Radio/Preview.tsx`
-- [ ] T043 [P] [US1] Create Radio图标组件 in `components/lowcode/basic/Radio/Icon.tsx`
-- [ ] T044 [P] [US1] Create 基础组件导出文件 in `components/lowcode/basic/*/index.ts`
-- [ ] T045 [US1] Register all form components in registry in `components/lowcode/registry/index.ts`
-- [ ] T046 [US1] Integrate form components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
-- [ ] T047 [US1] Add validation and error handling for form components in `lib/lowcode/validation/`
+- [x] T020 [P] [US1] Create Button组件定义 in `components/lowcode/basic/Button/definition.ts`
+- [x] T021 [P] [US1] Create Button React组件 in `components/lowcode/basic/Button/Button.tsx`
+- [x] T022 [P] [US1] Create Button预览组件 in `components/lowcode/basic/Button/Preview.tsx`
+- [x] T023 [P] [US1] Create Button图标组件 in `components/lowcode/basic/Button/Icon.tsx`
+- [x] T024 [P] [US1] Create Input组件定义 in `components/lowcode/basic/Input/definition.ts`
+- [x] T025 [P] [US1] Create Input React组件 in `components/lowcode/basic/Input/Input.tsx`
+- [x] T026 [P] [US1] Create Input预览组件 in `components/lowcode/basic/Input/Preview.tsx`
+- [x] T027 [P] [US1] Create Input图标组件 in `components/lowcode/basic/Input/Icon.tsx`
+- [x] T028 [P] [US1] Create Textarea组件定义 in `components/lowcode/basic/Textarea/definition.ts`
+- [x] T029 [P] [US1] Create Textarea React组件 in `components/lowcode/basic/Textarea/Textarea.tsx`
+- [x] T030 [P] [US1] Create Textarea预览组件 in `components/lowcode/basic/Textarea/Preview.tsx`
+- [x] T031 [P] [US1] Create Textarea图标组件 in `components/lowcode/basic/Textarea/Icon.tsx`
+- [x] T032 [P] [US1] Create Select组件定义 in `components/lowcode/basic/Select/definition.ts`
+- [x] T033 [P] [US1] Create Select React组件 in `components/lowcode/basic/Select/Select.tsx`
+- [x] T034 [P] [US1] Create Select预览组件 in `components/lowcode/basic/Select/Preview.tsx`
+- [x] T035 [P] [US1] Create Select图标组件 in `components/lowcode/basic/Select/Icon.tsx`
+- [x] T036 [P] [US1] Create Checkbox组件定义 in `components/lowcode/basic/Checkbox/definition.ts`
+- [x] T037 [P] [US1] Create Checkbox React组件 in `components/lowcode/basic/Checkbox/Checkbox.tsx`
+- [x] T038 [P] [US1] Create Checkbox预览组件 in `components/lowcode/basic/Checkbox/Preview.tsx`
+- [x] T039 [P] [US1] Create Checkbox图标组件 in `components/lowcode/basic/Checkbox/Icon.tsx`
+- [x] T040 [P] [US1] Create Radio组件定义 in `components/lowcode/basic/Radio/definition.ts`
+- [x] T041 [P] [US1] Create Radio React组件 in `components/lowcode/basic/Radio/Radio.tsx`
+- [x] T042 [P] [US1] Create Radio预览组件 in `components/lowcode/basic/Radio/Preview.tsx`
+- [x] T043 [P] [US1] Create Radio图标组件 in `components/lowcode/basic/Radio/Icon.tsx`
+- [x] T044 [P] [US1] Create 基础组件导出文件 in `components/lowcode/basic/*/index.ts`
+- [x] T045 [US1] Register all form components in registry in `components/lowcode/registry/index.ts`
+- [x] T046 [US1] Integrate form components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
+- [x] T047 [US1] Add validation and error handling for form components in `lib/lowcode/validation/`
 
 **Checkpoint**: 此时用户故事1应该完全功能化且可独立测试
 
@@ -114,8 +114,8 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T048 [P] [US2] Unit test suite for Text组件 in tests/components/display/Text.test.tsx
-- [ ] T049 [P] [US2] Unit test suite for Heading组件 in tests/components/display/Heading.test.tsx
+- [x] T048 [P] [US2] Unit test suite for Text组件 in tests/components/display/Text.test.tsx
+- [x] T049 [P] [US2] Unit test suite for Heading组件 in tests/components/display/Heading.test.tsx
 - [ ] T050 [P] [US2] Unit test suite for Image组件 in tests/components/display/Image.test.tsx
 - [ ] T051 [P] [US2] Unit test suite for Card组件 in tests/components/display/Card.test.tsx
 - [ ] T052 [P] [US2] Unit test suite for Badge组件 in tests/components/display/Badge.test.tsx

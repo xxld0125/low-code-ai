@@ -66,23 +66,28 @@ export type ValidationType =
   | 'max_length'
   | 'min_value'
   | 'max_value'
+  | 'min_items'
+  | 'max_items'
+  | 'min'
+  | 'max'
   | 'pattern'
   | 'email'
   | 'url'
   | 'custom'
 
 // 组件定义
-export interface ComponentDefinition {
+export interface ComponentDefinition<TProps = Record<string, unknown>, TPreviewProps = TProps> {
   type: string
   name: string
   category: 'basic' | 'display' | 'layout'
   description: string
   icon: string
-  component?: React.ComponentType<ComponentProps>
+  component?: React.ComponentType<TProps>
+  preview?: React.ComponentType<TPreviewProps>
   properties: PropertyDefinition[]
-  default_props: ComponentProps
-  preview_props?: ComponentProps
-  examples?: ComponentProps[]
+  default_props: Record<string, unknown>
+  preview_props?: Record<string, unknown>
+  examples?: Record<string, unknown>[]
 }
 
 // 属性编辑器状态

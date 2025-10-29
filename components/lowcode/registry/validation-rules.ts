@@ -5,6 +5,8 @@
  * 创建日期: 2025-10-29
  */
 
+import { PropType } from './types'
+
 // ============================================================================
 // 基础类型定义
 // ============================================================================
@@ -19,17 +21,6 @@ export enum ValidationRuleType {
   EMAIL = 'email',
   PATTERN = 'pattern',
   CUSTOM = 'custom',
-}
-
-/**
- * 属性类型枚举
- */
-export enum PropType {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  EMAIL = 'email',
-  ARRAY = 'array',
 }
 
 /**
