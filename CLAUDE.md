@@ -174,3 +174,70 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 - **ESLint** configured with Next.js rules
 - **shadcn/ui** components ready for customization
 - Cookie-based auth works across Client Components, Server Components, Route Handlers, and Middleware
+
+## TypeScript 编码规范
+
+### 严格类型要求
+
+**🚫 禁止使用 `any` 类型**
+
+```typescript
+// ❌ 错误：使用 any 类型
+const data: any = response.data;
+function handleSubmit(data: any) { ... }
+
+// ✅ 正确：使用明确类型定义
+interface ApiResponse {
+  code: number;
+  data: UserData;
+  message: string;
+}
+
+const data: ApiResponse = response.data;
+function handleSubmit(data: FormDataType) { ... }
+
+// ✅ 正确：必要时使用 unknown 并进行类型守卫
+function processUnknownData(data: unknown) {
+  if (typeof data === 'string') {
+    return data.toUpperCase();
+  }
+  return null;
+}
+```
+
+### 类型定义最佳实践
+
+1. **接口优先**: 使用 `interface` 而非 `type` 定义对象类型
+2. **联合类型**: 明确所有可能的类型值，避免泛泛的 `any`
+3. **泛型约束**: 使用泛型参数约束，而非 `any`
+4. **类型守卫**: 对于不确定类型，使用类型守卫进行运行时检查
+
+```typescript
+// ✅ 推荐：定义明确的接口
+interface ComponentProps {
+  title: string
+  variant: 'primary' | 'secondary' | 'outline'
+  onClick: (event: MouseEvent) => void
+  children?: React.ReactNode
+}
+
+// ✅ 推荐：使用泛型约束
+interface ApiResponse<T extends object> {
+  data: T
+  status: 'success' | 'error'
+}
+```
+
+### 错误处理模式
+
+```typescript
+// ✅ 推荐：明确的错误类型
+interface AppError {
+  code: string
+  message: string
+  details?: Record<string, unknown>
+}
+
+// ✅ 推荐：Result 模式避免异常
+type Result<T, E = AppError> = { success: true; data: T } | { success: false; error: E }
+```
