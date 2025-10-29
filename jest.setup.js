@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import '../jest.types'
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -60,7 +61,10 @@ jest.mock('@supabase/supabase-js', () => ({
 
 // Mock Next.js Image component
 jest.mock('next/image', () => {
-  const MockedImage = ({ src, alt, ...props }) => <img src={src} alt={alt} {...props} />
+  const MockedImage = ({ src, alt, ...props }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} {...props} />
+  )
   MockedImage.displayName = 'MockedImage'
   return MockedImage
 })

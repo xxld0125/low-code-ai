@@ -4,6 +4,8 @@
  * 创建日期: 2025-10-28
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { render, screen } from '../components/utils/test-utils'
 import { describe, it, expect } from '@jest/globals'
 import '@testing-library/jest-dom'
@@ -23,28 +25,28 @@ describe('向后兼容性测试', () => {
       expect(PageButton).toBeDefined()
       expect(PageButtonPreview).toBeDefined()
       render(<PageButtonPreview />)
-      expect(screen.getByText('按钮')).toBeInTheDocument()
+      ;(expect(screen.getByText('按钮')) as any).toBeInTheDocument()
     })
 
     it('应该能够通过旧路径导入PageInput组件', () => {
       expect(PageInput).toBeDefined()
       expect(PageInputPreview).toBeDefined()
       render(<PageInputPreview />)
-      expect(screen.getByPlaceholderText('输入框')).toBeInTheDocument()
+      ;(expect(screen.getByPlaceholderText('输入框')) as any).toBeInTheDocument()
     })
 
     it('应该能够通过旧路径导入PageText组件', () => {
       expect(PageText).toBeDefined()
       expect(PageTextPreview).toBeDefined()
       render(<PageTextPreview />)
-      expect(screen.getByText('文本')).toBeInTheDocument()
+      ;(expect(screen.getByText('文本')) as any).toBeInTheDocument()
     })
 
     it('应该能够通过旧路径导入PageImage组件', () => {
       expect(PageImage).toBeDefined()
       expect(PageImagePreview).toBeDefined()
       render(<PageImagePreview />)
-      expect(screen.getByText('图片')).toBeInTheDocument()
+      ;(expect(screen.getByText('图片')) as any).toBeInTheDocument()
     })
   })
 

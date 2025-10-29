@@ -26,6 +26,9 @@ declare global {
       toBeRequired(): R
       toBeValid(): R
       toHaveValue(value: string | string[]): R
+      // 自定义匹配器
+      toHaveComponent(componentType: string): R
+      toHaveComponentWithProps(componentType: string, props: Record<string, unknown>): R
     }
   }
 }

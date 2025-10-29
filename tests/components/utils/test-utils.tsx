@@ -20,15 +20,15 @@ const AllTheProviders = ({ children }: AllTheProvidersProps) => {
 const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
   render(ui, { wrapper: AllTheProviders, ...options })
 
-// 重新导出所有测试工具
-export * from '@testing-library/react'
-export { default as userEvent } from '@testing-library/user-event'
-
 // 手动导入 jest-dom 的匹配器，避免类型问题
 import '@testing-library/jest-dom'
 
 // 导出自定义渲染函数
 export { customRender as render }
+export { default as userEvent } from '@testing-library/user-event'
+
+// 重新导出其他必要的测试工具
+export { screen, fireEvent, waitFor } from '@testing-library/react'
 
 // 测试用的mock数据
 export const mockComponentProps = {

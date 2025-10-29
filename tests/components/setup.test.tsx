@@ -4,6 +4,8 @@
  * 创建日期: 2025-10-28
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { render, screen } from '../components/utils/test-utils'
 import { describe, it, expect } from '@jest/globals'
 import '@testing-library/jest-dom'
@@ -19,9 +21,8 @@ describe('基础组件库设置', () => {
     )
 
     render(<TestComponent />)
-
-    expect(screen.getByTestId('test-component')).toBeInTheDocument()
-    expect(screen.getByText('基础组件库测试')).toBeInTheDocument()
+    ;(expect(screen.getByTestId('test-component')) as any).toBeInTheDocument()
+    ;(expect(screen.getByText('基础组件库测试')) as any).toBeInTheDocument()
   })
 
   it('应该能够导入和使用类型定义', () => {
@@ -48,6 +49,6 @@ describe('基础组件库设置', () => {
       props: { className: 'test-class' },
     }
 
-    expect(testComponent).toHaveComponent('div')
+    ;(expect(testComponent) as any).toHaveComponent('div')
   })
 })

@@ -4,7 +4,9 @@
  * 创建日期: 2025-10-28
  */
 
-import { render, screen } from '../components/utils/test-utils'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from '@jest/globals'
 import '@testing-library/jest-dom'
 
@@ -61,38 +63,43 @@ describe('组件库迁移测试', () => {
 
   describe('组件渲染测试', () => {
     it('应该能够渲染Button预览组件', () => {
-      render(<ButtonPreview />)
-      expect(screen.getByText('按钮')).toBeInTheDocument()
+      ;(render as any)(<ButtonPreview />)(
+        expect(screen.getByText('按钮')) as any
+      ).toBeInTheDocument()
     })
 
     it('应该能够渲染Input预览组件', () => {
-      render(<InputPreview />)
-      expect(screen.getByPlaceholderText('输入框')).toBeInTheDocument()
+      ;(render as any)(<InputPreview />)(
+        expect(screen.getByPlaceholderText('输入框')) as any
+      ).toBeInTheDocument()
     })
 
     it('应该能够渲染Text预览组件', () => {
-      render(<TextPreview />)
-      expect(screen.getByText('文本')).toBeInTheDocument()
+      ;(render as any)(<TextPreview />)(expect(screen.getByText('文本')) as any).toBeInTheDocument()
     })
 
     it('应该能够渲染Image预览组件', () => {
-      render(<ImagePreview />)
-      expect(screen.getByText('图片')).toBeInTheDocument()
+      ;(render as any)(<ImagePreview />)(
+        expect(screen.getByText('图片')) as any
+      ).toBeInTheDocument()
     })
 
     it('应该能够渲染Container预览组件', () => {
-      render(<ContainerPreview />)
-      expect(screen.getByRole('button')).toBeInTheDocument()
+      ;(render as any)(<ContainerPreview />)(
+        expect(screen.getByRole('button')) as any
+      ).toBeInTheDocument()
     })
 
     it('应该能够渲染Row预览组件', () => {
-      render(<RowPreview />)
-      expect(screen.getByRole('button')).toBeInTheDocument()
+      ;(render as any)(<RowPreview />)(
+        expect(screen.getByRole('button')) as any
+      ).toBeInTheDocument()
     })
 
     it('应该能够渲染Col预览组件', () => {
-      render(<ColPreview />)
-      expect(screen.getByRole('button')).toBeInTheDocument()
+      ;(render as any)(<ColPreview />)(
+        expect(screen.getByRole('button')) as any
+      ).toBeInTheDocument()
     })
   })
 })
