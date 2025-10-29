@@ -62,6 +62,12 @@ const eslintConfig = [
       ".cache/**",
       "temp/**",
       ".tmp/**",
+      "*.tmp",
+      "*.temp",
+      "*.pem",
+      "designer-temp/**",
+      "designer-exports/**",
+      "designer-thumbnails/**",
     ],
   },
   {

@@ -18,16 +18,16 @@ import {
 } from '@/types/page-designer/component'
 import { LayoutConstraints } from '@/types/page-designer/layout'
 
-// 基础组件导入
-import { PageButton, PageButtonPreview } from '@/components/lowcode/page-basic/PageButton'
-import { PageInput, PageInputPreview } from '@/components/lowcode/page-basic/PageInput'
-import { PageText, PageTextPreview } from '@/components/lowcode/page-basic/PageText'
-import { PageImage, PageImagePreview } from '@/components/lowcode/page-basic/PageImage'
+// 基础组件导入 - 从新的组件库导入
+import { Button } from '@/components/lowcode/basic/Button'
+import { Input } from '@/components/lowcode/basic/Input'
+import { Text } from '@/components/lowcode/display/Text'
+import { Image } from '@/components/lowcode/display/Image'
 
-// 布局组件导入
-import { PageContainer, PageContainerPreview } from '@/components/lowcode/page-layout/Container'
-import { PageRow, PageRowPreview } from '@/components/lowcode/page-layout/Row'
-import { PageCol, PageColPreview } from '@/components/lowcode/page-layout/Col'
+// 布局组件导入 - 从新的组件库导入
+import { Container } from '@/components/lowcode/layout/Container'
+import { Row } from '@/components/lowcode/layout/Row'
+import { Col } from '@/components/lowcode/layout/Col'
 
 // 组件图标（简单的SVG图标）
 const ButtonIcon = () => (
@@ -546,7 +546,7 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { button: { text: '点击按钮', variant: 'primary', size: 'md' } },
     defaultStyles: {},
     configurableProps: buttonProps,
-    render: props => <PageButton {...props} />,
+    render: props => <Button {...props} />,
     constraints: basicComponentConstraints,
     examples: [
       {
@@ -571,7 +571,7 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { input: { type: 'text', placeholder: '请输入内容' } },
     defaultStyles: {},
     configurableProps: inputProps,
-    render: props => <PageInput {...props} />,
+    render: props => <Input {...props} />,
     constraints: basicComponentConstraints,
   },
 
@@ -584,7 +584,7 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { text: { content: '这是一段文本', variant: 'body' } },
     defaultStyles: {},
     configurableProps: textProps,
-    render: props => <PageText {...props} />,
+    render: props => <Text {...props} />,
     constraints: basicComponentConstraints,
   },
 
@@ -597,7 +597,8 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { image: { src: 'https://via.placeholder.com/300x200', alt: '示例图片' } },
     defaultStyles: {},
     configurableProps: imageProps,
-    render: props => <PageImage {...props} />,
+    // eslint-disable-next-line jsx-a11y/alt-text
+    render: props => <Image {...props} />,
     constraints: basicComponentConstraints,
   },
 
@@ -611,7 +612,7 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { container: { direction: 'column', gap: 0 } },
     defaultStyles: { width: '100%' },
     configurableProps: containerProps,
-    render: props => <PageContainer {...props} />,
+    render: props => <Container {...props} />,
     constraints: layoutComponentConstraints,
     examples: [
       {
@@ -636,7 +637,7 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { row: { gap: 16, justify: 'start' } },
     defaultStyles: { width: '100%' },
     configurableProps: rowProps,
-    render: props => <PageRow {...props} />,
+    render: props => <Row {...props} />,
     constraints: layoutComponentConstraints,
   },
 
@@ -649,22 +650,87 @@ const COMPONENT_REGISTRY: Partial<
     defaultProps: { col: { span: 12 } },
     defaultStyles: {},
     configurableProps: colProps,
-    render: props => <PageCol {...props} />,
+    render: props => <Col {...props} />,
     constraints: layoutComponentConstraints,
   },
 }
+
+// 预览组件包装器
+const ButtonWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <Button
+    id="preview"
+    type="button"
+    props={{ button: { text: '按钮', variant: 'primary', size: 'md' } }}
+    styles={{}}
+    events={{}}
+    onSelect={() => onClick?.()}
+  />
+)
+
+const InputWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <Input
+    id="preview"
+    type="input"
+    props={{ input: { placeholder: '输入框', type: 'text' } }}
+    styles={{}}
+    events={{}}
+    onSelect={() => onClick?.()}
+  />
+)
+
+const TextWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <Text
+    id="preview"
+    type="text"
+    props={{ text: { content: '文本', variant: 'body' } }}
+    styles={{}}
+    events={{}}
+    onSelect={() => onClick?.()}
+  />
+)
+
+const ImageWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  // eslint-disable-next-line jsx-a11y/alt-text
+  <Image
+    id="preview"
+    type="image"
+    props={{ image: { src: '', alt: '图片' } }}
+    styles={{}}
+    events={{}}
+    onSelect={() => onClick?.()}
+  />
+)
+
+const ContainerWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <Container
+    id="preview"
+    type="container"
+    props={{}}
+    styles={{}}
+    events={{}}
+    onSelect={() => onClick?.()}
+  />
+)
+
+const RowWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <Row id="preview" type="row" props={{}} styles={{}} events={{}} onSelect={() => onClick?.()} />
+)
+
+const ColWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <Col id="preview" type="col" props={{}} styles={{}} events={{}} onSelect={() => onClick?.()} />
+)
 
 // 预览组件注册表
 const PREVIEW_REGISTRY: Partial<
   Record<ComponentType | LayoutComponentType, React.FC<{ onClick?: () => void }>>
 > = {
-  button: PageButtonPreview,
-  input: PageInputPreview,
-  text: PageTextPreview,
-  image: PageImagePreview,
-  container: PageContainerPreview,
-  row: PageRowPreview,
-  col: PageColPreview,
+  button: ButtonWrapper,
+  input: InputWrapper,
+  text: TextWrapper,
+  image: ImageWrapper,
+  container: ContainerWrapper,
+  row: RowWrapper,
+  col: ColWrapper,
 }
 
 // 组件注册表类

@@ -4,7 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
-import { PageInput as Input } from './Input'
+import { PageInput } from './Input'
 import { InputPreview } from './Preview'
 
-export { Input, InputPreview }
+export { PageInput as Input, InputPreview, PageInput }

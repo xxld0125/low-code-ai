@@ -4,6 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
+import React from 'react'
 import { ComponentProps } from './component'
 
 // 属性编辑器配置
@@ -41,6 +42,7 @@ export type PropertyType =
 export interface PropertyOption {
   value: string | number | boolean
   label: string
+  description?: string
   disabled?: boolean
   group?: string
 }
@@ -76,6 +78,7 @@ export interface ComponentDefinition {
   category: 'basic' | 'display' | 'layout'
   description: string
   icon: string
+  component?: React.ComponentType<ComponentProps>
   properties: PropertyDefinition[]
   default_props: ComponentProps
   preview_props?: ComponentProps

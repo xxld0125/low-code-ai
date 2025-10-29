@@ -24,12 +24,10 @@ import { cn } from '@/lib/utils'
 import type { ComponentType, ComponentCategory } from '@/types/page-designer/component'
 
 // 基础组件导入
-import {
-  PageButtonPreview,
-  PageInputPreview,
-  PageTextPreview,
-  PageImagePreview,
-} from '@/components/lowcode/page-basic'
+import { ButtonPreview } from '@/components/lowcode/basic/Button'
+import { InputPreview } from '@/components/lowcode/basic/Input'
+import { TextPreview } from '@/components/lowcode/display/Text'
+import { ImagePreview } from '@/components/lowcode/display/Image'
 
 // 组件分类配置
 const COMPONENT_CATEGORIES = [
@@ -71,7 +69,7 @@ const BASIC_COMPONENTS = [
     description: '可点击的按钮组件',
     category: 'basic',
     icon: '🔘',
-    preview: PageButtonPreview,
+    preview: ButtonPreview,
     keywords: ['button', 'btn', '按钮', '点击'],
   },
   {
@@ -80,7 +78,7 @@ const BASIC_COMPONENTS = [
     description: '文本输入组件',
     category: 'basic',
     icon: '📝',
-    preview: PageInputPreview,
+    preview: InputPreview,
     keywords: ['input', 'text', '输入', '文本框'],
   },
   {
@@ -89,7 +87,7 @@ const BASIC_COMPONENTS = [
     description: '文本显示组件',
     category: 'basic',
     icon: '📄',
-    preview: PageTextPreview,
+    preview: TextPreview,
     keywords: ['text', 'paragraph', '文本', '段落'],
   },
   {
@@ -98,7 +96,7 @@ const BASIC_COMPONENTS = [
     description: '图片显示组件',
     category: 'basic',
     icon: '🖼️',
-    preview: PageImagePreview,
+    preview: ImagePreview,
     keywords: ['image', 'img', '图片', '图像'],
   },
 ] as const

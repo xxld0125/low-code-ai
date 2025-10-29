@@ -35,7 +35,10 @@ import { COMPONENT_TYPES, ComponentInstance, DragState } from '@/types/page-desi
 import type { CanvasState } from '@/types/page-designer'
 
 // 导入基础组件
-import { PageButton, PageInput, PageText, PageImage } from '@/components/lowcode/page-basic'
+import { PageButton } from '@/components/lowcode/basic/Button'
+import { PageInput } from '@/components/lowcode/basic/Input'
+import { PageText } from '@/components/lowcode/display/Text'
+import { PageImage } from '@/components/lowcode/display/Image'
 
 // 画布配置
 const CANVAS_CONFIG = {

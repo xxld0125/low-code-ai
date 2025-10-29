@@ -40,15 +40,15 @@ description: 'Task list for 基础组件库 implementation'
 
 **⚠️ CRITICAL**: 基础阶段未完成前，无法开始任何用户故事工作
 
-- [ ] T005 实现组件注册系统核心类 in `components/lowcode/registry/component-registry.ts`
-- [ ] T006 [P] 实现属性定义和验证系统 in `components/lowcode/registry/property-definitions.ts`
-- [ ] T007 [P] 实现验证规则引擎 in `components/lowcode/registry/validation-rules.ts`
-- [ ] T008 [P] 配置shadcn/ui设计系统集成 in `lib/lowcode/design-system/`
-- [ ] T009 [P] 设置响应式设计断点和可访问性标准 in `lib/lowcode/responsive/`
-- [ ] T010 [P] 创建样式引擎和主题系统 in `lib/lowcode/style-engine/`
-- [ ] T011 [P] 实现组件渲染器和画布集成 in `components/lowcode/ComponentRenderer.tsx`
-- [ ] T012 [P] 创建属性编辑器基础框架 in `components/lowcode/editors/`
-- [ ] T013 [P] 设置API路由和中间件结构 in `app/api/components/`
+- [x] T005 实现组件注册系统核心类 in `components/lowcode/registry/component-registry.ts`
+- [x] T006 [P] 实现属性定义和验证系统 in `components/lowcode/registry/property-definitions.ts`
+- [x] T007 [P] 实现验证规则引擎 in `components/lowcode/registry/validation-rules.ts`
+- [x] T008 [P] 配置shadcn/ui设计系统集成 in `lib/lowcode/design-system/`
+- [x] T009 [P] 设置响应式设计断点和可访问性标准 in `lib/lowcode/responsive/`
+- [x] T010 [P] 创建样式引擎和主题系统 in `lib/lowcode/style-engine/`
+- [x] T011 [P] 实现组件渲染器和画布集成 in `components/lowcode/ComponentRenderer.tsx`
+- [x] T012 [P] 创建属性编辑器基础框架 in `components/lowcode/editors/`
+- [x] T013 [P] 设置API路由和中间件结构 in `app/api/components/`
 
 **Checkpoint**: 基础设施完成 - 用户故事实现现在可以并行开始
 

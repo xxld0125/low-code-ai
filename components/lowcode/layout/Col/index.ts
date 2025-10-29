@@ -4,7 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
-import { PageCol as Col } from './Col'
+import { PageCol } from './Col'
 import { ColPreview } from './Preview'
 
-export { Col, ColPreview }
+export { PageCol as Col, ColPreview, PageCol }

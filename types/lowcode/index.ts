@@ -26,6 +26,8 @@ export type { StyleValue as LowcodeStyleValue } from './style'
 // 组件渲染器通用接口
 export interface ComponentRendererProps {
   id: string
+  componentType?: string
+  component?: React.ComponentType<ComponentProps>
   props: ComponentProps
   styles: StyleValue
   isSelected?: boolean

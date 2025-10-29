@@ -4,7 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
-import { PageContainer as Container } from './Container'
+import { PageContainer } from './Container'
 import { ContainerPreview } from './Preview'
 
-export { Container, ContainerPreview }
+export { PageContainer as Container, ContainerPreview, PageContainer }

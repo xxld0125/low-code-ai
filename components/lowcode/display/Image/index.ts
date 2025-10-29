@@ -4,7 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
-import { PageImage as Image } from './Image'
+import { PageImage } from './Image'
 import { ImagePreview } from './Preview'
 
-export { Image, ImagePreview }
+export { PageImage as Image, ImagePreview, PageImage }

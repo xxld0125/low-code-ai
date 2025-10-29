@@ -4,7 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
-import { PageButton as Button } from './Button'
+import { PageButton } from './Button'
 import { ButtonPreview } from './Preview'
 
-export { Button, ButtonPreview }
+export { PageButton as Button, ButtonPreview, PageButton }

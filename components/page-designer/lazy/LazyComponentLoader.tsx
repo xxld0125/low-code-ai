@@ -73,35 +73,31 @@ const ErrorFallback: React.FC<{
 // 基础组件懒加载映射
 const BASIC_COMPONENTS = {
   button: lazy(() =>
-    import('@/components/lowcode/page-basic/PageButton').then(m => ({ default: m.PageButton }))
+    import('@/components/lowcode/basic/Button').then(m => ({ default: m.PageButton }))
   ),
   input: lazy(() =>
-    import('@/components/lowcode/page-basic/PageInput').then(m => ({ default: m.PageInput }))
+    import('@/components/lowcode/basic/Input').then(m => ({ default: m.PageInput }))
   ),
   text: lazy(() =>
-    import('@/components/lowcode/page-basic/PageText').then(m => ({ default: m.PageText }))
+    import('@/components/lowcode/display/Text').then(m => ({ default: m.PageText }))
   ),
   image: lazy(() =>
-    import('@/components/lowcode/page-basic/PageImage').then(m => ({ default: m.PageImage }))
+    import('@/components/lowcode/display/Image').then(m => ({ default: m.PageImage }))
   ),
-  // link: lazy(() => import('@/components/lowcode/page-basic/PageLink')),
-  // heading: lazy(() => import('@/components/lowcode/page-basic/PageHeading')),
-  // paragraph: lazy(() => import('@/components/lowcode/page-basic/PageParagraph')),
-  // divider: lazy(() => import('@/components/lowcode/page-basic/PageDivider')),
-  // spacer: lazy(() => import('@/components/lowcode/page-basic/PageSpacer')),
+  // link: lazy(() => import('@/components/lowcode/basic/Link')),
+  // heading: lazy(() => import('@/components/lowcode/display/Heading')),
+  // paragraph: lazy(() => import('@/components/lowcode/display/Text')),
+  // divider: lazy(() => import('@/components/lowcode/display/Divider')),
+  // spacer: lazy(() => import('@/components/lowcode/layout/Spacer')),
 }
 
 // 布局组件懒加载映射
 const LAYOUT_COMPONENTS = {
   container: lazy(() =>
-    import('@/components/lowcode/page-layout/Container').then(m => ({ default: m.PageContainer }))
+    import('@/components/lowcode/layout/Container').then(m => ({ default: m.PageContainer }))
   ),
-  row: lazy(() =>
-    import('@/components/lowcode/page-layout/Row').then(m => ({ default: m.PageRow }))
-  ),
-  col: lazy(() =>
-    import('@/components/lowcode/page-layout/Col').then(m => ({ default: m.PageCol }))
-  ),
+  row: lazy(() => import('@/components/lowcode/layout/Row').then(m => ({ default: m.PageRow }))),
+  col: lazy(() => import('@/components/lowcode/layout/Col').then(m => ({ default: m.PageCol }))),
 }
 
 // 表单组件懒加载映射（暂时注释，等组件创建后再启用）

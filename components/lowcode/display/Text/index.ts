@@ -4,7 +4,7 @@
  * 创建日期: 2025-10-28
  */
 
-import { PageText as Text } from './Text'
+import { PageText } from './Text'
 import { TextPreview } from './Preview'
 
-export { Text, TextPreview }
+export { PageText as Text, TextPreview, PageText }

@@ -11,6 +11,7 @@ export default {
   ],
   theme: {
     extend: {
+      // 支持高对比度主题的自定义类选择器
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -58,7 +59,26 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      // 响应式断点扩展（兼容现有设计系统）
+      screens: {
+        mobile: { max: '767px' },
+        tablet: { min: '768px', max: '1023px' },
+        desktop: { min: '1024px' },
+      },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [
+    tailwindcssAnimate,
+    // 支持高对比度主题的插件
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function ({ addVariant }: any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      addVariant('high-contrast', ({ modifySelectors }: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        modifySelectors(({ className }: any) => {
+          return `.high-contrast .${className}`
+        })
+      })
+    },
+  ],
 } satisfies Config
