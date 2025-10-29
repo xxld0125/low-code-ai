@@ -58,15 +58,7 @@ describe('新组件库兼容性测试', () => {
     it('应该能够导入Text组件', () => {
       expect(Text).toBeDefined()
 
-      const TextWrapper = () => (
-        <Text
-          id="test"
-          type="text"
-          props={{ text: { content: '测试文本', variant: 'body' } }}
-          styles={{}}
-          events={{}}
-        />
-      )
+      const TextWrapper = () => <Text content="测试文本" />
 
       render(<TextWrapper />)
       expect(document.body).toBeTruthy()
@@ -75,16 +67,7 @@ describe('新组件库兼容性测试', () => {
     it('应该能够导入Image组件', () => {
       expect(Image).toBeDefined()
 
-      const ImageWrapper = () => (
-        // eslint-disable-next-line jsx-a11y/alt-text
-        <Image
-          id="test"
-          type="image"
-          props={{ image: { src: '/test.jpg', alt: '测试图片' } }}
-          styles={{}}
-          events={{}}
-        />
-      )
+      const ImageWrapper = () => <Image src="/test.jpg" alt="测试图片" />
 
       render(<ImageWrapper />)
       expect(document.body).toBeTruthy()

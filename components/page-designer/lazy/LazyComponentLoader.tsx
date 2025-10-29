@@ -78,12 +78,8 @@ const BASIC_COMPONENTS = {
   input: lazy(() =>
     import('@/components/lowcode/basic/Input').then(m => ({ default: m.PageInput }))
   ),
-  text: lazy(() =>
-    import('@/components/lowcode/display/Text').then(m => ({ default: m.PageText }))
-  ),
-  image: lazy(() =>
-    import('@/components/lowcode/display/Image').then(m => ({ default: m.PageImage }))
-  ),
+  text: lazy(() => import('@/components/lowcode/display/Text').then(m => ({ default: m.Text }))),
+  image: lazy(() => import('@/components/lowcode/display/Image').then(m => ({ default: m.Image }))),
   // link: lazy(() => import('@/components/lowcode/basic/Link')),
   // heading: lazy(() => import('@/components/lowcode/display/Heading')),
   // paragraph: lazy(() => import('@/components/lowcode/display/Text')),

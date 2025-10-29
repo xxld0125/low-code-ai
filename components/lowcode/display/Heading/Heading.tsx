@@ -1,5 +1,5 @@
 /**
- * Text 组件
+ * Heading 组件
  * 功能模块: 基础组件库 (004-basic-component-library)
  * 创建日期: 2025-10-30
  */
@@ -7,24 +7,24 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
-export interface LowcodeTextProps {
+export interface LowcodeHeadingProps {
   content?: string
-  variant?: 'body' | 'caption'
-  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl'
+  level?: 1 | 2 | 3 | 4 | 5 | 6
+  size?: 'auto' | 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl'
   weight?: 'normal' | 'medium' | 'semibold' | 'bold'
-  align?: 'left' | 'center' | 'right' | 'justify'
+  align?: 'left' | 'center' | 'right'
   color?: string
-  decoration?: 'none' | 'underline' | 'line-through'
+  decoration?: 'none' | 'underline'
   className?: string
 }
 
-export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
+export const Heading = React.forwardRef<HTMLHeadingElement, LowcodeHeadingProps>(
   (
     {
-      content = '这是一段示例文本',
-      variant = 'body',
-      size = 'base',
-      weight = 'normal',
+      content = '这是标题文本',
+      level = 2,
+      size = 'auto',
+      weight = 'semibold',
       align = 'left',
       color,
       decoration = 'none',
@@ -33,11 +33,35 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
     },
     ref
   ) => {
-    // 根据variant决定使用哪个HTML标签
-    const Tag = variant === 'caption' ? 'span' : 'p'
+    // 根据level决定使用哪个HTML标签
+    const Tag = `h${level}` as React.ElementType
+
+    // 根据level获取默认大小
+    const getDefaultSize = (level: number) => {
+      switch (level) {
+        case 1:
+          return '4xl'
+        case 2:
+          return '3xl'
+        case 3:
+          return '2xl'
+        case 4:
+          return 'xl'
+        case 5:
+          return 'lg'
+        case 6:
+          return 'base'
+        default:
+          return '2xl'
+      }
+    }
 
     // 获取文本大小样式类
-    const getSizeClass = (size: string) => {
+    const getSizeClass = (size: string, level: number) => {
+      if (size === 'auto') {
+        size = getDefaultSize(level)
+      }
+
       switch (size) {
         case 'xs':
           return 'text-xs'
@@ -49,8 +73,18 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
           return 'text-lg'
         case 'xl':
           return 'text-xl'
+        case '2xl':
+          return 'text-2xl'
+        case '3xl':
+          return 'text-3xl'
+        case '4xl':
+          return 'text-4xl'
+        case '5xl':
+          return 'text-5xl'
+        case '6xl':
+          return 'text-6xl'
         default:
-          return 'text-base'
+          return 'text-2xl'
       }
     }
 
@@ -66,7 +100,7 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
         case 'bold':
           return 'font-bold'
         default:
-          return 'font-normal'
+          return 'font-semibold'
       }
     }
 
@@ -79,8 +113,6 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
           return 'text-center'
         case 'right':
           return 'text-right'
-        case 'justify':
-          return 'text-justify'
         default:
           return 'text-left'
       }
@@ -93,8 +125,6 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
           return 'no-underline'
         case 'underline':
           return 'underline'
-        case 'line-through':
-          return 'line-through'
         default:
           return 'no-underline'
       }
@@ -103,16 +133,13 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
     // 构建样式类
     const classes = cn(
       // 基础样式
-      'leading-relaxed',
+      'leading-tight tracking-tight',
 
       // 动态样式
-      getSizeClass(size),
+      getSizeClass(size, level),
       getWeightClass(weight),
       getAlignClass(align),
       getDecorationClass(decoration),
-
-      // variant特定样式
-      variant === 'caption' && 'text-gray-500',
 
       // 自定义样式
       className
@@ -131,4 +158,4 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
   }
 )
 
-Text.displayName = 'Text'
+Heading.displayName = 'Heading'

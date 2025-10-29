@@ -37,8 +37,8 @@ import type { CanvasState } from '@/types/page-designer'
 // 导入基础组件
 import { PageButton } from '@/components/lowcode/basic/Button'
 import { PageInput } from '@/components/lowcode/basic/Input'
-import { PageText } from '@/components/lowcode/display/Text'
-import { PageImage } from '@/components/lowcode/display/Image'
+import { Text } from '@/components/lowcode/display/Text'
+import { Image } from '@/components/lowcode/display/Image'
 
 // 画布配置
 const CANVAS_CONFIG = {
@@ -54,30 +54,30 @@ const CANVAS_CONFIG = {
 const ComponentRenderers: Record<string, React.FC<any>> = {
   button: PageButton,
   input: PageInput,
-  text: PageText,
-  image: PageImage,
+  text: Text,
+  image: Image,
   // 其他组件类型将在后续实现
-  link: PageText,
-  heading: PageText,
-  paragraph: PageText,
-  divider: PageText,
-  spacer: PageText,
-  container: PageText,
-  row: PageText,
-  col: PageText,
-  form: PageText,
-  textarea: PageText,
-  select: PageText,
-  checkbox: PageText,
-  radio: PageText,
-  navbar: PageText,
-  sidebar: PageText,
-  breadcrumb: PageText,
-  tabs: PageText,
-  list: PageText,
-  table: PageText,
-  card: PageText,
-  grid: PageText,
+  link: Text,
+  heading: Text,
+  paragraph: Text,
+  divider: Text,
+  spacer: Text,
+  container: Text,
+  row: Text,
+  col: Text,
+  form: Text,
+  textarea: Text,
+  select: Text,
+  checkbox: Text,
+  radio: Text,
+  navbar: Text,
+  sidebar: Text,
+  breadcrumb: Text,
+  tabs: Text,
+  list: Text,
+  table: Text,
+  card: Text,
+  grid: Text,
 }
 
 export interface PageCanvasProps {

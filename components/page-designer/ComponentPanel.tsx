@@ -31,6 +31,13 @@ import { SelectPreview } from '@/components/lowcode/basic/Select/Preview'
 import { CheckboxPreview } from '@/components/lowcode/basic/Checkbox/Preview'
 import { RadioPreview } from '@/components/lowcode/basic/Radio/Preview'
 
+// 展示组件导入
+import { TextPreview } from '@/components/lowcode/display/Text'
+import { HeadingPreview } from '@/components/lowcode/display/Heading'
+import { ImagePreview } from '@/components/lowcode/display/Image'
+import { CardPreview } from '@/components/lowcode/display/Card'
+import { BadgePreview } from '@/components/lowcode/display/Badge'
+
 // 创建适配器组件以匹配期望的类型
 const createPreviewAdapter = (PreviewComponent: React.FC<any>) => {
   const AdapterComponent = (props: { onClick?: () => void }) => {
@@ -39,8 +46,6 @@ const createPreviewAdapter = (PreviewComponent: React.FC<any>) => {
   AdapterComponent.displayName = `PreviewAdapter(${PreviewComponent.displayName || PreviewComponent.name})`
   return AdapterComponent
 }
-import { TextPreview } from '@/components/lowcode/display/Text'
-import { ImagePreview } from '@/components/lowcode/display/Image'
 
 // 组件分类配置
 const COMPONENT_CATEGORIES = [
@@ -142,6 +147,15 @@ const BASIC_COMPONENTS = [
     keywords: ['text', 'paragraph', '文本', '段落'],
   },
   {
+    type: 'heading',
+    name: '标题',
+    description: '标题显示组件',
+    category: 'display',
+    icon: '📰',
+    preview: HeadingPreview,
+    keywords: ['heading', 'title', '标题', '大标题'],
+  },
+  {
     type: 'image',
     name: '图片',
     description: '图片显示组件',
@@ -149,6 +163,24 @@ const BASIC_COMPONENTS = [
     icon: '🖼️',
     preview: ImagePreview,
     keywords: ['image', 'img', '图片', '图像'],
+  },
+  {
+    type: 'card',
+    name: '卡片',
+    description: '卡片容器组件',
+    category: 'display',
+    icon: '🃏',
+    preview: CardPreview,
+    keywords: ['card', 'container', '卡片', '容器'],
+  },
+  {
+    type: 'badge',
+    name: '徽章',
+    description: '徽章标识组件',
+    category: 'display',
+    icon: '🏷️',
+    preview: BadgePreview,
+    keywords: ['badge', 'label', '徽章', '标签'],
   },
 ] as const
 

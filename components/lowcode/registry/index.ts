@@ -43,6 +43,13 @@ import { SelectDefinition } from '../basic/Select/definition'
 import { CheckboxDefinition } from '../basic/Checkbox/definition'
 import { RadioDefinition } from '../basic/Radio/definition'
 
+// 展示组件定义导入 (T074任务完成)
+import { TextDefinition } from '../display/Text/definition'
+import { HeadingDefinition } from '../display/Heading/definition'
+import { ImageDefinition } from '../display/Image/definition'
+import { CardDefinition } from '../display/Card/definition'
+import { BadgeDefinition } from '../display/Badge/definition'
+
 // 表单组件定义导出
 export {
   ButtonDefinition,
@@ -52,6 +59,9 @@ export {
   CheckboxDefinition,
   RadioDefinition,
 }
+
+// 展示组件定义导出
+export { TextDefinition, HeadingDefinition, ImageDefinition, CardDefinition, BadgeDefinition }
 
 // 表单组件导出
 export { Button, type LowcodeButtonProps } from '../basic/Button'
@@ -97,6 +107,27 @@ export {
 
 // Radio组件图标暂时不导出，因为图标组件尚未实现
 
+// 展示组件导出
+export { Text, type LowcodeTextProps } from '../display/Text'
+export { Heading, type LowcodeHeadingProps } from '../display/Heading'
+export { Image, type LowcodeImageProps } from '../display/Image'
+export { Card, type LowcodeCardProps } from '../display/Card'
+export { Badge, type LowcodeBadgeProps } from '../display/Badge'
+
+// 展示预览组件导出
+export { TextPreview } from '../display/Text'
+export { HeadingPreview } from '../display/Heading'
+export { ImagePreview } from '../display/Image'
+export { CardPreview } from '../display/Card'
+export { BadgePreview } from '../display/Badge'
+
+// 展示图标组件导出
+export { TextIcon } from '../display/Text'
+export { HeadingIcon } from '../display/Heading'
+export { ImageIcon } from '../display/Image'
+export { CardIcon } from '../display/Card'
+export { BadgeIcon } from '../display/Badge'
+
 // 所有表单组件定义数组，用于批量注册
 export const FORM_COMPONENT_DEFINITIONS = [
   ButtonDefinition,
@@ -105,6 +136,21 @@ export const FORM_COMPONENT_DEFINITIONS = [
   SelectDefinition,
   CheckboxDefinition,
   RadioDefinition,
+] as const
+
+// 所有展示组件定义数组，用于批量注册
+export const DISPLAY_COMPONENT_DEFINITIONS = [
+  TextDefinition,
+  HeadingDefinition,
+  ImageDefinition,
+  CardDefinition,
+  BadgeDefinition,
+] as const
+
+// 所有组件定义数组，用于批量注册
+export const ALL_COMPONENT_DEFINITIONS = [
+  ...FORM_COMPONENT_DEFINITIONS,
+  ...DISPLAY_COMPONENT_DEFINITIONS,
 ] as const
 
 // 组件分类常量
@@ -125,4 +171,19 @@ export const FORM_COMPONENT_TYPES = {
   SELECT: 'select',
   CHECKBOX: 'checkbox',
   RADIO: 'radio',
+} as const
+
+// 展示组件类型常量
+export const DISPLAY_COMPONENT_TYPES = {
+  TEXT: 'text',
+  HEADING: 'heading',
+  IMAGE: 'image',
+  CARD: 'card',
+  BADGE: 'badge',
+} as const
+
+// 所有组件类型常量
+export const ALL_COMPONENT_TYPES = {
+  ...FORM_COMPONENT_TYPES,
+  ...DISPLAY_COMPONENT_TYPES,
 } as const

@@ -581,7 +581,7 @@ const COMPONENT_REGISTRY: Partial<
     category: 'basic',
     icon: TextIcon,
     description: '文本显示组件',
-    defaultProps: { text: { content: '这是一段文本', variant: 'body' } },
+    defaultProps: { content: '这是一段文本', variant: 'body', size: 'base' },
     defaultStyles: {},
     configurableProps: textProps,
     render: props => <Text {...props} />,
@@ -594,11 +594,10 @@ const COMPONENT_REGISTRY: Partial<
     category: 'basic',
     icon: ImageIcon,
     description: '图片显示组件',
-    defaultProps: { image: { src: 'https://via.placeholder.com/300x200', alt: '示例图片' } },
+    defaultProps: { src: '/api/placeholder/300/200', alt: '示例图片', width: 300, height: 200 },
     defaultStyles: {},
     configurableProps: imageProps,
-    // eslint-disable-next-line jsx-a11y/alt-text
-    render: props => <Image {...props} />,
+    render: props => <Image {...props} alt={props.alt || '图片'} />,
     constraints: basicComponentConstraints,
   },
 
@@ -679,26 +678,15 @@ const InputWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
 )
 
 const TextWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <Text
-    id="preview"
-    type="text"
-    props={{ text: { content: '文本', variant: 'body' } }}
-    styles={{}}
-    events={{}}
-    onSelect={() => onClick?.()}
-  />
+  <div onClick={onClick} style={{ cursor: 'pointer' }}>
+    <Text content="文本" variant="body" size="base" />
+  </div>
 )
 
 const ImageWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  // eslint-disable-next-line jsx-a11y/alt-text
-  <Image
-    id="preview"
-    type="image"
-    props={{ image: { src: '', alt: '图片' } }}
-    styles={{}}
-    events={{}}
-    onSelect={() => onClick?.()}
-  />
+  <div onClick={onClick} style={{ cursor: 'pointer' }}>
+    <Image src="/api/placeholder/100/100" alt="图片" width={100} height={100} />
+  </div>
 )
 
 const ContainerWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (

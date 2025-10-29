@@ -1,27 +1,31 @@
 /**
- * Text 预览组件
+ * Heading 预览组件
  * 功能模块: 基础组件库 (004-basic-component-library)
  * 创建日期: 2025-10-30
  */
 
 import React from 'react'
-import { Text } from './Text'
-import type { LowcodeTextProps } from './Text'
+import { Heading } from './Heading'
+import type { LowcodeHeadingProps } from './Heading'
 
-export interface TextPreviewProps {
-  props?: Partial<LowcodeTextProps>
+export interface HeadingPreviewProps {
+  props?: Partial<LowcodeHeadingProps>
   styles?: Record<string, any>
   onClick?: () => void
 }
 
-export const TextPreview: React.FC<TextPreviewProps> = ({ props = {}, styles = {}, onClick }) => {
-  const defaultPreviewProps: LowcodeTextProps = {
-    content: '文本预览',
-    variant: 'body',
-    size: 'base',
-    weight: 'normal',
+export const HeadingPreview: React.FC<HeadingPreviewProps> = ({
+  props = {},
+  styles = {},
+  onClick,
+}) => {
+  const defaultPreviewProps: LowcodeHeadingProps = {
+    content: '标题预览',
+    level: 3,
+    size: 'auto',
+    weight: 'semibold',
     align: 'left',
-    color: '#374151',
+    color: '#111827',
     decoration: 'none',
   }
 
@@ -40,16 +44,16 @@ export const TextPreview: React.FC<TextPreviewProps> = ({ props = {}, styles = {
       }}
     >
       <div className="flex items-center space-x-2">
-        <Text
+        <Heading
           content={mergedProps.content}
-          variant={mergedProps.variant}
-          size="sm"
-          weight="medium"
+          level={3}
+          size="base"
+          weight="semibold"
           align="left"
           color="#374151"
           decoration="none"
         />
-        <div className="h-2 w-2 rounded-full bg-blue-400"></div>
+        <div className="h-2 w-2 rounded-full bg-purple-400"></div>
       </div>
     </div>
   )

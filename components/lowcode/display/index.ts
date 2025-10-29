@@ -1,14 +1,19 @@
 /**
  * 展示组件导出
  * 功能模块: 基础组件库 (004-basic-component-library)
- * 创建日期: 2025-10-28
+ * 创建日期: 2025-10-30
  */
 
-// 已实现的组件
+// 展示组件导出
 export * from './Text'
+export * from './Heading'
 export * from './Image'
-export * from './Badge'
 export * from './Card'
+export * from './Badge'
 
-// 将在后续任务中添加导出
-// export * from './Heading'
+// 展示组件定义导出
+export { TextDefinition } from './Text/definition'
+export { HeadingDefinition } from './Heading/definition'
+export { ImageDefinition } from './Image/definition'
+export { CardDefinition } from './Card/definition'
+export { BadgeDefinition } from './Badge/definition'

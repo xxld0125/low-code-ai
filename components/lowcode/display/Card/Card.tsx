@@ -1,215 +1,154 @@
 /**
- * 页面设计器卡片组件
- * 功能模块: 基础页面设计器 (003-page-designer)
+ * Card 组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
  * 创建日期: 2025-10-30
  */
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { ComponentRendererProps } from '@/types/page-designer/component'
 
-export const PageCard: React.FC<ComponentRendererProps> = ({
-  id,
-  props,
-  styles,
-  isSelected,
-  isDragging,
-  onSelect,
-  onDelete,
-}) => {
-  const cardProps = props.card || {
-    title: '卡片标题',
-    description: '卡片描述内容',
-    variant: 'default',
-    padding: 'medium',
-    shadow: true,
-    rounded: true,
-    border: false,
-  }
+export interface LowcodeCardProps {
+  title?: string
+  description?: string
+  footer?: string
+  padding?: 'none' | 'small' | 'medium' | 'large'
+  rounded?: 'none' | 'small' | 'medium' | 'large'
+  shadow?: 'none' | 'small' | 'medium' | 'large'
+  border?: 'none' | 'light' | 'medium' | 'strong'
+  background?: string
+  children?: React.ReactNode
+  className?: string
+}
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onSelect?.(id)
-  }
-
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // 双击编辑或其他操作
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      e.stopPropagation()
-      onDelete?.(id)
+export const Card = React.forwardRef<HTMLDivElement, LowcodeCardProps>(
+  (
+    {
+      title,
+      description,
+      footer,
+      padding = 'medium',
+      rounded = 'medium',
+      shadow = 'medium',
+      border = 'light',
+      background = '#ffffff',
+      children,
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    // 获取内边距样式类
+    const getPaddingClass = (padding: string) => {
+      switch (padding) {
+        case 'none':
+          return 'p-0'
+        case 'small':
+          return 'p-3'
+        case 'medium':
+          return 'p-4'
+        case 'large':
+          return 'p-6'
+        default:
+          return 'p-4'
+      }
     }
-  }
 
-  // 合并默认样式和自定义样式
-  const mergedStyles: React.CSSProperties = {
-    cursor: isDragging ? 'grabbing' : 'pointer',
-    transition: styles.transition || 'all 0.2s ease-in-out',
-    userSelect: 'none',
-    // 过滤掉不兼容的样式属性
-    boxShadow:
-      styles.boxShadow && typeof styles.boxShadow === 'string' ? styles.boxShadow : undefined,
-    background:
-      styles.background && typeof styles.background === 'string' ? styles.background : undefined,
-    border: styles.border && typeof styles.border === 'string' ? styles.border : undefined,
-    borderRadius:
-      styles.borderRadius && typeof styles.borderRadius !== 'boolean'
-        ? styles.borderRadius
-        : undefined,
-    margin: styles.margin && typeof styles.margin === 'string' ? styles.margin : undefined,
-    padding: styles.padding && typeof styles.padding === 'string' ? styles.padding : undefined,
-    // 直接支持的标准CSS属性
-    color: styles.color,
-    fontSize: styles.fontSize,
-    fontWeight: styles.fontWeight,
-    fontFamily: styles.fontFamily,
-    textAlign: styles.textAlign,
-    textDecoration: styles.textDecoration,
-    textTransform: styles.textTransform,
-    lineHeight: styles.lineHeight,
-    opacity: styles.opacity,
-    position: styles.position,
-    top: styles.top,
-    right: styles.right,
-    bottom: styles.bottom,
-    left: styles.left,
-    zIndex: styles.zIndex,
-    display: styles.display,
-    width: styles.width,
-    height: styles.height,
-    minWidth: styles.minWidth,
-    minHeight: styles.minHeight,
-    maxWidth: styles.maxWidth,
-    maxHeight: styles.maxHeight,
-  }
-
-  // 获取变体样式
-  const getVariantClass = (variant: string | undefined) => {
-    switch (variant) {
-      case 'outlined':
-        return 'border border-gray-200 bg-white'
-      case 'filled':
-        return 'bg-gray-50 border-0'
-      case 'elevated':
-        return 'bg-white shadow-lg border-0'
-      default:
-        return 'bg-white border border-gray-200'
+    // 获取圆角样式类
+    const getRoundedClass = (rounded: string) => {
+      switch (rounded) {
+        case 'none':
+          return ''
+        case 'small':
+          return 'rounded-sm'
+        case 'medium':
+          return 'rounded-md'
+        case 'large':
+          return 'rounded-lg'
+        default:
+          return 'rounded-md'
+      }
     }
-  }
 
-  // 获取内边距样式
-  const getPaddingClass = (padding: string | undefined) => {
-    switch (padding) {
-      case 'none':
-        return 'p-0'
-      case 'small':
-        return 'p-3'
-      case 'large':
-        return 'p-6'
-      default:
-        return 'p-4'
+    // 获取阴影样式类
+    const getShadowClass = (shadow: string) => {
+      switch (shadow) {
+        case 'none':
+          return ''
+        case 'small':
+          return 'shadow-sm'
+        case 'medium':
+          return 'shadow-md'
+        case 'large':
+          return 'shadow-lg'
+        default:
+          return 'shadow-md'
+      }
     }
-  }
 
-  // 获取圆角样式
-  const getRoundedClass = (rounded: boolean | string | undefined) => {
-    if (!rounded) return ''
-    if (typeof rounded === 'boolean') {
-      return rounded ? 'rounded-lg' : ''
+    // 获取边框样式类
+    const getBorderClass = (border: string) => {
+      switch (border) {
+        case 'none':
+          return ''
+        case 'light':
+          return 'border border-gray-200'
+        case 'medium':
+          return 'border border-gray-300'
+        case 'strong':
+          return 'border-2 border-gray-400'
+        default:
+          return 'border border-gray-200'
+      }
     }
-    return `rounded-${rounded}`
-  }
 
-  // 获取阴影样式
-  const getShadowClass = (shadow: boolean | string | undefined) => {
-    if (!shadow) return ''
-    if (typeof shadow === 'boolean') {
-      return shadow ? 'shadow-md' : ''
+    // 构建样式类
+    const classes = cn(
+      // 基础样式
+      'relative',
+      'transition-all duration-200',
+      'hover:shadow-lg',
+
+      // 动态样式
+      getPaddingClass(padding),
+      getRoundedClass(rounded),
+      getShadowClass(shadow),
+      getBorderClass(border),
+
+      // 自定义样式
+      className
+    )
+
+    // 构建内联样式
+    const inlineStyles: React.CSSProperties = {
+      backgroundColor: background,
     }
-    return `shadow-${shadow}`
-  }
 
-  return (
-    <div
-      data-component-id={id}
-      data-component-type="card"
-      style={mergedStyles}
-      className={cn(
-        'page-designer-card',
-        'relative',
-        'transition-all duration-200',
-        getVariantClass(cardProps.variant),
-        getPaddingClass(cardProps.padding),
-        getRoundedClass(cardProps.rounded),
-        getShadowClass(cardProps.shadow),
-        isSelected && 'ring-2 ring-blue-500 ring-offset-2',
-        isDragging && 'opacity-75',
-        'hover:shadow-lg',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-        props.className
-      )}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="article"
-      aria-label={cardProps.title || '卡片'}
-    >
-      {/* 卡片头部 */}
-      {cardProps.title && (
-        <div className="mb-3">
-          <h3 className="text-lg font-semibold leading-tight text-gray-900">{cardProps.title}</h3>
-        </div>
-      )}
+    return (
+      <div ref={ref} className={classes} style={inlineStyles} data-testid="card" {...props}>
+        {/* 卡片头部 */}
+        {title && (
+          <div className="mb-3">
+            <h3 className="text-lg font-semibold leading-tight text-gray-900">{title}</h3>
+          </div>
+        )}
 
-      {/* 卡片内容 */}
-      <div className="text-gray-600">
-        {cardProps.description ? (
-          <p className="text-sm leading-relaxed">{cardProps.description}</p>
-        ) : (
-          <div className="text-sm text-gray-400">卡片内容区域</div>
+        {/* 卡片内容 */}
+        {(description || children) && (
+          <div className="text-gray-600">
+            {description && <p className="text-sm leading-relaxed">{description}</p>}
+            {children && <div className="mt-2">{children}</div>}
+          </div>
+        )}
+
+        {/* 卡片底部 */}
+        {footer && (
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            <p className="text-sm text-gray-500">{footer}</p>
+          </div>
         )}
       </div>
+    )
+  }
+)
 
-      {/* 卡片操作区域 */}
-      {props.children && <div className="mt-4 border-t border-gray-100 pt-3">{props.children}</div>}
-
-      {/* 选中状态指示器 */}
-      {isSelected && (
-        <div className="absolute left-2 top-2 rounded bg-blue-500 px-2 py-1 text-xs text-white">
-          卡片
-        </div>
-      )}
-    </div>
-  )
-}
-
-// 卡片预览组件（用于组件面板）
-export const PageCardPreview: React.FC<{
-  onClick?: () => void
-}> = ({ onClick }) => {
-  return (
-    <div
-      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          onClick?.()
-        }
-      }}
-    >
-      <div className="flex items-center space-x-2">
-        <div className="h-4 w-4 rounded-sm bg-gray-300"></div>
-        <div className="flex flex-col">
-          <div className="mb-1 h-2 w-12 rounded bg-gray-400"></div>
-          <div className="h-1 w-8 rounded bg-gray-300"></div>
-        </div>
-      </div>
-    </div>
-  )
-}
+Card.displayName = 'Card'
