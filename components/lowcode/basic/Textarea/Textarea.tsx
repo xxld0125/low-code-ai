@@ -1,15 +1,15 @@
 /**
- * 页面设计器按钮组件
- * 功能模块: 基础页面设计器 (003-page-designer)
- * 创建日期: 2025-10-27
+ * 页面设计器文本域组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
+ * 创建日期: 2025-10-29
  */
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { ComponentRendererProps } from '@/types/page-designer/component'
 import { cn } from '@/lib/utils'
 
-export const PageButton: React.FC<ComponentRendererProps> = ({
+export const PageTextarea: React.FC<ComponentRendererProps> = ({
   id,
   props,
   styles,
@@ -18,19 +18,22 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
 }) => {
-  const buttonProps = props.button || {
-    text: '点击按钮',
-    variant: 'primary',
-    size: 'md',
+  const textareaProps = props.textarea || {
+    placeholder: '请输入文本内容',
+    value: '',
     disabled: false,
+    rows: 4,
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (textareaProps.onChange) {
+      textareaProps.onChange(e.target.value)
+    }
+    onSelect?.(id)
   }
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (buttonProps.onClick) {
-      // 执行自定义事件处理
-      // TODO: 实现自定义事件处理逻辑
-    }
     onSelect?.(id)
   }
 
@@ -50,7 +53,7 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   const mergedStyles: React.CSSProperties = {
     width: styles.width || 'auto',
     height: styles.height || 'auto',
-    cursor: isDragging ? 'grabbing' : 'pointer',
+    cursor: isDragging ? 'grabbing' : 'text',
     transition: styles.transition || 'all 0.2s ease-in-out',
     userSelect: 'none',
     // 过滤掉不兼容的样式属性
@@ -89,18 +92,15 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   }
 
   return (
-    <Button
+    <div
       data-component-id={id}
-      data-component-type="button"
-      variant={buttonProps.variant === 'primary' ? 'default' : buttonProps.variant}
-      size={buttonProps.size === 'md' ? 'default' : buttonProps.size}
-      disabled={buttonProps.disabled}
+      data-component-type="textarea"
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       style={mergedStyles}
       className={cn(
-        'page-designer-button',
+        'page-designer-textarea',
         'transition-all duration-200',
         isSelected && 'ring-2 ring-blue-500 ring-offset-2',
         isDragging && 'opacity-75',
@@ -109,22 +109,47 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
         props.className
       )}
       tabIndex={0}
-      role="button"
-      aria-label={buttonProps.text || '按钮'}
+      role="group"
+      aria-label={textareaProps.label || '文本域'}
     >
-      {buttonProps.loading && (
-        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      )}
+      <Textarea
+        value={textareaProps.value}
+        onChange={handleChange}
+        placeholder={textareaProps.placeholder}
+        disabled={textareaProps.disabled}
+        rows={textareaProps.rows}
+        onClick={e => e.stopPropagation()}
+        onFocus={e => e.stopPropagation()}
+      />
+    </div>
+  )
+}
 
-      {buttonProps.icon && buttonProps.icon_position === 'left' && (
-        <span className="mr-2">{buttonProps.icon}</span>
-      )}
-
-      <span className="select-none">{buttonProps.text}</span>
-
-      {buttonProps.icon && buttonProps.icon_position === 'right' && (
-        <span className="ml-2">{buttonProps.icon}</span>
-      )}
-    </Button>
+// 文本域预览组件（用于组件面板）
+export const PageTextareaPreview: React.FC<{
+  onClick?: () => void
+}> = ({ onClick }) => {
+  return (
+    <div
+      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.()
+        }
+      }}
+    >
+      <div className="flex items-center space-x-2">
+        <div className="h-8 w-16 rounded border border-gray-300 bg-gray-50 p-1">
+          <div className="space-y-1">
+            <div className="h-1 w-full rounded bg-gray-200"></div>
+            <div className="h-1 w-3/4 rounded bg-gray-200"></div>
+          </div>
+        </div>
+        <span className="text-sm text-gray-600">文本域</span>
+      </div>
+    </div>
   )
 }

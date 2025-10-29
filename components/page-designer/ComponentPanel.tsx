@@ -24,8 +24,8 @@ import { cn } from '@/lib/utils'
 import type { ComponentType, ComponentCategory } from '@/types/page-designer/component'
 
 // 基础组件导入
-import { ButtonPreview } from '@/components/lowcode/basic/Button'
-import { InputPreview } from '@/components/lowcode/basic/Input'
+import { ButtonPreview } from '@/components/lowcode/basic/Button/Preview'
+import { InputPreview } from '@/components/lowcode/basic/Input/Preview'
 import { TextPreview } from '@/components/lowcode/display/Text'
 import { ImagePreview } from '@/components/lowcode/display/Image'
 

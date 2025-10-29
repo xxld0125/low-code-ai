@@ -7,4 +7,4 @@
 import { PageButton } from './Button'
 import { ButtonPreview } from './Preview'
 
-export { PageButton as Button, ButtonPreview, PageButton }
+export { PageButton as Button, PageButton, ButtonPreview }

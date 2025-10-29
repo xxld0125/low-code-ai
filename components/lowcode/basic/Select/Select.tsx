@@ -1,15 +1,21 @@
 /**
- * 页面设计器按钮组件
- * 功能模块: 基础页面设计器 (003-page-designer)
- * 创建日期: 2025-10-27
+ * 页面设计器选择框组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
+ * 创建日期: 2025-10-29
  */
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ComponentRendererProps } from '@/types/page-designer/component'
 import { cn } from '@/lib/utils'
 
-export const PageButton: React.FC<ComponentRendererProps> = ({
+export const PageSelect: React.FC<ComponentRendererProps> = ({
   id,
   props,
   styles,
@@ -18,19 +24,26 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
 }) => {
-  const buttonProps = props.button || {
-    text: '点击按钮',
-    variant: 'primary',
-    size: 'md',
+  const selectProps = props.select || {
+    placeholder: '请选择',
+    value: '',
+    options: [
+      { label: '选项 1', value: 'option1' },
+      { label: '选项 2', value: 'option2' },
+      { label: '选项 3', value: 'option3' },
+    ],
     disabled: false,
+  }
+
+  const handleChange = (value: string) => {
+    if (selectProps.onChange) {
+      selectProps.onChange(value)
+    }
+    onSelect?.(id)
   }
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (buttonProps.onClick) {
-      // 执行自定义事件处理
-      // TODO: 实现自定义事件处理逻辑
-    }
     onSelect?.(id)
   }
 
@@ -89,18 +102,15 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   }
 
   return (
-    <Button
+    <div
       data-component-id={id}
-      data-component-type="button"
-      variant={buttonProps.variant === 'primary' ? 'default' : buttonProps.variant}
-      size={buttonProps.size === 'md' ? 'default' : buttonProps.size}
-      disabled={buttonProps.disabled}
+      data-component-type="select"
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       style={mergedStyles}
       className={cn(
-        'page-designer-button',
+        'page-designer-select',
         'transition-all duration-200',
         isSelected && 'ring-2 ring-blue-500 ring-offset-2',
         isDragging && 'opacity-75',
@@ -109,22 +119,53 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
         props.className
       )}
       tabIndex={0}
-      role="button"
-      aria-label={buttonProps.text || '按钮'}
+      role="combobox"
+      aria-label={selectProps.label || '选择框'}
+      aria-controls="select-dropdown"
+      aria-expanded="false"
     >
-      {buttonProps.loading && (
-        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      )}
+      <Select
+        value={selectProps.value}
+        onValueChange={handleChange}
+        disabled={selectProps.disabled}
+      >
+        <SelectTrigger className="w-full" onClick={e => e.stopPropagation()}>
+          <SelectValue placeholder={selectProps.placeholder} />
+        </SelectTrigger>
+        <SelectContent id="select-dropdown" onClick={e => e.stopPropagation()}>
+          {selectProps.options?.map((option: any, index: number) => (
+            <SelectItem key={index} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
 
-      {buttonProps.icon && buttonProps.icon_position === 'left' && (
-        <span className="mr-2">{buttonProps.icon}</span>
-      )}
-
-      <span className="select-none">{buttonProps.text}</span>
-
-      {buttonProps.icon && buttonProps.icon_position === 'right' && (
-        <span className="ml-2">{buttonProps.icon}</span>
-      )}
-    </Button>
+// 选择框预览组件（用于组件面板）
+export const PageSelectPreview: React.FC<{
+  onClick?: () => void
+}> = ({ onClick }) => {
+  return (
+    <div
+      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.()
+        }
+      }}
+    >
+      <div className="flex items-center space-x-2">
+        <div className="h-8 w-16 rounded border border-gray-300 bg-gray-50 px-2 py-1">
+          <div className="h-3 w-8 rounded bg-gray-200"></div>
+        </div>
+        <span className="text-sm text-gray-600">选择框</span>
+      </div>
+    </div>
   )
 }

@@ -1,15 +1,16 @@
 /**
- * 页面设计器按钮组件
- * 功能模块: 基础页面设计器 (003-page-designer)
- * 创建日期: 2025-10-27
+ * 页面设计器单选框组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
+ * 创建日期: 2025-10-29
  */
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 import { ComponentRendererProps } from '@/types/page-designer/component'
 import { cn } from '@/lib/utils'
 
-export const PageButton: React.FC<ComponentRendererProps> = ({
+export const PageRadio: React.FC<ComponentRendererProps> = ({
   id,
   props,
   styles,
@@ -18,19 +19,25 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
 }) => {
-  const buttonProps = props.button || {
-    text: '点击按钮',
-    variant: 'primary',
-    size: 'md',
+  const radioProps = props.radio || {
+    name: 'radio-group',
+    value: '',
+    options: [
+      { label: '选项 1', value: 'option1' },
+      { label: '选项 2', value: 'option2' },
+    ],
     disabled: false,
+  }
+
+  const handleChange = (value: string) => {
+    if (radioProps.onChange) {
+      radioProps.onChange(value)
+    }
+    onSelect?.(id)
   }
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (buttonProps.onClick) {
-      // 执行自定义事件处理
-      // TODO: 实现自定义事件处理逻辑
-    }
     onSelect?.(id)
   }
 
@@ -89,18 +96,16 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   }
 
   return (
-    <Button
+    <div
       data-component-id={id}
-      data-component-type="button"
-      variant={buttonProps.variant === 'primary' ? 'default' : buttonProps.variant}
-      size={buttonProps.size === 'md' ? 'default' : buttonProps.size}
-      disabled={buttonProps.disabled}
+      data-component-type="radio"
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       style={mergedStyles}
       className={cn(
-        'page-designer-button',
+        'page-designer-radio',
+        'space-y-2',
         'transition-all duration-200',
         isSelected && 'ring-2 ring-blue-500 ring-offset-2',
         isDragging && 'opacity-75',
@@ -109,22 +114,48 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
         props.className
       )}
       tabIndex={0}
-      role="button"
-      aria-label={buttonProps.text || '按钮'}
+      role="radiogroup"
+      aria-label={radioProps.label || '单选框组'}
     >
-      {buttonProps.loading && (
-        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      )}
+      <RadioGroup
+        value={radioProps.value}
+        onValueChange={handleChange}
+        disabled={radioProps.disabled}
+        name={radioProps.name}
+      >
+        {radioProps.options?.map((option: any, index: number) => (
+          <div key={index} className="flex items-center space-x-2">
+            <RadioGroupItem value={option.value} id={`${id}-${index}`} />
+            <Label htmlFor={`${id}-${index}`} className="cursor-pointer">
+              {option.label}
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
+    </div>
+  )
+}
 
-      {buttonProps.icon && buttonProps.icon_position === 'left' && (
-        <span className="mr-2">{buttonProps.icon}</span>
-      )}
-
-      <span className="select-none">{buttonProps.text}</span>
-
-      {buttonProps.icon && buttonProps.icon_position === 'right' && (
-        <span className="ml-2">{buttonProps.icon}</span>
-      )}
-    </Button>
+// 单选框预览组件（用于组件面板）
+export const PageRadioPreview: React.FC<{
+  onClick?: () => void
+}> = ({ onClick }) => {
+  return (
+    <div
+      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.()
+        }
+      }}
+    >
+      <div className="flex items-center space-x-2">
+        <div className="h-4 w-4 rounded-full border-2 border-gray-300"></div>
+        <span className="text-sm text-gray-600">单选框</span>
+      </div>
+    </div>
   )
 }

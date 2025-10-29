@@ -4,15 +4,15 @@
  * 创建日期: 2025-10-28
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from '@jest/globals'
 import '@testing-library/jest-dom'
 
 // 测试组件导入
-import { Button, ButtonPreview } from '@/components/lowcode/basic/Button'
-import { Input, InputPreview } from '@/components/lowcode/basic/Input'
+import { Button } from '@/components/lowcode/basic/Button'
+import { ButtonPreview } from '@/components/lowcode/basic/Button/Preview'
+import { Input } from '@/components/lowcode/basic/Input'
+import { InputPreview } from '@/components/lowcode/basic/Input/Preview'
 import { Text, TextPreview } from '@/components/lowcode/display/Text'
 import { Image, ImagePreview } from '@/components/lowcode/display/Image'
 import { Container, ContainerPreview } from '@/components/lowcode/layout/Container'
@@ -63,43 +63,38 @@ describe('组件库迁移测试', () => {
 
   describe('组件渲染测试', () => {
     it('应该能够渲染Button预览组件', () => {
-      ;(render as any)(<ButtonPreview />)(
-        expect(screen.getByText('按钮')) as any
-      ).toBeInTheDocument()
+      render(<ButtonPreview />)
+      expect(screen.getByText('按钮')).toBeTruthy()
     })
 
     it('应该能够渲染Input预览组件', () => {
-      ;(render as any)(<InputPreview />)(
-        expect(screen.getByPlaceholderText('输入框')) as any
-      ).toBeInTheDocument()
+      render(<InputPreview />)
+      expect(screen.getByPlaceholderText('输入框')).toBeTruthy()
     })
 
     it('应该能够渲染Text预览组件', () => {
-      ;(render as any)(<TextPreview />)(expect(screen.getByText('文本')) as any).toBeInTheDocument()
+      render(<TextPreview />)
+      expect(screen.getByText('文本')).toBeTruthy()
     })
 
     it('应该能够渲染Image预览组件', () => {
-      ;(render as any)(<ImagePreview />)(
-        expect(screen.getByText('图片')) as any
-      ).toBeInTheDocument()
+      render(<ImagePreview />)
+      expect(screen.getByText('图片')).toBeTruthy()
     })
 
     it('应该能够渲染Container预览组件', () => {
-      ;(render as any)(<ContainerPreview />)(
-        expect(screen.getByRole('button')) as any
-      ).toBeInTheDocument()
+      render(<ContainerPreview />)
+      expect(screen.getByRole('button')).toBeTruthy()
     })
 
     it('应该能够渲染Row预览组件', () => {
-      ;(render as any)(<RowPreview />)(
-        expect(screen.getByRole('button')) as any
-      ).toBeInTheDocument()
+      render(<RowPreview />)
+      expect(screen.getByRole('button')).toBeTruthy()
     })
 
     it('应该能够渲染Col预览组件', () => {
-      ;(render as any)(<ColPreview />)(
-        expect(screen.getByRole('button')) as any
-      ).toBeInTheDocument()
+      render(<ColPreview />)
+      expect(screen.getByRole('button')).toBeTruthy()
     })
   })
 })

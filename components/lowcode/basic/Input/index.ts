@@ -7,4 +7,4 @@
 import { PageInput } from './Input'
 import { InputPreview } from './Preview'
 
-export { PageInput as Input, InputPreview, PageInput }
+export { PageInput as Input, PageInput, InputPreview }

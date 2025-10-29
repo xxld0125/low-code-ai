@@ -1,15 +1,15 @@
 /**
- * 页面设计器按钮组件
- * 功能模块: 基础页面设计器 (003-page-designer)
- * 创建日期: 2025-10-27
+ * 页面设计器复选框组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
+ * 创建日期: 2025-10-29
  */
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ComponentRendererProps } from '@/types/page-designer/component'
 import { cn } from '@/lib/utils'
 
-export const PageButton: React.FC<ComponentRendererProps> = ({
+export const PageCheckbox: React.FC<ComponentRendererProps> = ({
   id,
   props,
   styles,
@@ -18,19 +18,21 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
 }) => {
-  const buttonProps = props.button || {
-    text: '点击按钮',
-    variant: 'primary',
-    size: 'md',
+  const checkboxProps = props.checkbox || {
+    checked: false,
     disabled: false,
+    label: '复选框选项',
+  }
+
+  const handleChange = (checked: boolean) => {
+    if (checkboxProps.onChange) {
+      checkboxProps.onChange(checked)
+    }
+    onSelect?.(id)
   }
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (buttonProps.onClick) {
-      // 执行自定义事件处理
-      // TODO: 实现自定义事件处理逻辑
-    }
     onSelect?.(id)
   }
 
@@ -89,18 +91,16 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
   }
 
   return (
-    <Button
+    <div
       data-component-id={id}
-      data-component-type="button"
-      variant={buttonProps.variant === 'primary' ? 'default' : buttonProps.variant}
-      size={buttonProps.size === 'md' ? 'default' : buttonProps.size}
-      disabled={buttonProps.disabled}
+      data-component-type="checkbox"
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       style={mergedStyles}
       className={cn(
-        'page-designer-button',
+        'page-designer-checkbox',
+        'flex items-center space-x-2',
         'transition-all duration-200',
         isSelected && 'ring-2 ring-blue-500 ring-offset-2',
         isDragging && 'opacity-75',
@@ -109,22 +109,48 @@ export const PageButton: React.FC<ComponentRendererProps> = ({
         props.className
       )}
       tabIndex={0}
-      role="button"
-      aria-label={buttonProps.text || '按钮'}
+      role="group"
+      aria-label={checkboxProps.label || '复选框'}
     >
-      {buttonProps.loading && (
-        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      <Checkbox
+        checked={checkboxProps.checked}
+        disabled={checkboxProps.disabled}
+        onCheckedChange={handleChange}
+        id={`${id}-checkbox`}
+      />
+      {checkboxProps.label && (
+        <label
+          htmlFor={`${id}-checkbox`}
+          className="cursor-pointer select-none"
+          onClick={e => e.stopPropagation()}
+        >
+          {checkboxProps.label}
+        </label>
       )}
+    </div>
+  )
+}
 
-      {buttonProps.icon && buttonProps.icon_position === 'left' && (
-        <span className="mr-2">{buttonProps.icon}</span>
-      )}
-
-      <span className="select-none">{buttonProps.text}</span>
-
-      {buttonProps.icon && buttonProps.icon_position === 'right' && (
-        <span className="ml-2">{buttonProps.icon}</span>
-      )}
-    </Button>
+// 复选框预览组件（用于组件面板）
+export const PageCheckboxPreview: React.FC<{
+  onClick?: () => void
+}> = ({ onClick }) => {
+  return (
+    <div
+      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.()
+        }
+      }}
+    >
+      <div className="flex items-center space-x-2">
+        <div className="h-4 w-4 rounded border border-gray-300"></div>
+        <span className="text-sm text-gray-600">复选框</span>
+      </div>
+    </div>
   )
 }

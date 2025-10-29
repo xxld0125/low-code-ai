@@ -193,24 +193,3 @@ export const PageInput: React.FC<ComponentRendererProps> = ({
     </div>
   )
 }
-
-// 输入框预览组件（用于组件面板）
-export const PageInputPreview: React.FC<{
-  onClick?: () => void
-}> = ({ onClick }) => {
-  return (
-    <div
-      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          onClick?.()
-        }
-      }}
-    >
-      <Input placeholder="输入框" disabled className="pointer-events-none h-8" />
-    </div>
-  )
-}
