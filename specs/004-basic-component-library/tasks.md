@@ -64,12 +64,12 @@ description: 'Task list for 基础组件库 implementation'
 
 **NOTE: 先编写这些测试，确保它们在实现前失败**
 
-- [ ] T014 [P] [US1] Unit test suite for Button组件 in tests/components/basic/Button.test.tsx
-- [ ] T015 [P] [US1] Unit test suite for Input组件 in tests/components/basic/Input.test.tsx
-- [ ] T016 [P] [US1] Unit test suite for Textarea组件 in tests/components/basic/Textarea.test.tsx
-- [ ] T017 [P] [US1] Unit test suite for Select组件 in tests/components/basic/Select.test.tsx
-- [ ] T018 [P] [US1] Unit test suite for Checkbox组件 in tests/components/basic/Checkbox.test.tsx
-- [ ] T019 [P] [US1] Unit test suite for Radio组件 in tests/components/basic/Radio.test.tsx
+- [x] T014 [P] [US1] Unit test suite for Button组件 in tests/components/basic/Button.test.tsx
+- [x] T015 [P] [US1] Unit test suite for Input组件 in tests/components/basic/Input.test.tsx
+- [x] T016 [P] [US1] Unit test suite for Textarea组件 in tests/components/basic/Textarea.test.tsx
+- [x] T017 [P] [US1] Unit test suite for Select组件 in tests/components/basic/Select.test.tsx
+- [x] T018 [P] [US1] Unit test suite for Checkbox组件 in tests/components/basic/Checkbox.test.tsx
+- [x] T019 [P] [US1] Unit test suite for Radio组件 in tests/components/basic/Radio.test.tsx
 
 ### Implementation for User Story 1
 
