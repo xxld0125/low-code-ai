@@ -7,8 +7,8 @@
 // 已实现的组件
 export * from './Text'
 export * from './Image'
+export * from './Badge'
+export * from './Card'
 
 // 将在后续任务中添加导出
 // export * from './Heading'
-// export * from './Card'
-// export * from './Badge'

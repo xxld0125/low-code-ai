@@ -116,9 +116,9 @@ description: 'Task list for 基础组件库 implementation'
 
 - [x] T048 [P] [US2] Unit test suite for Text组件 in tests/components/display/Text.test.tsx
 - [x] T049 [P] [US2] Unit test suite for Heading组件 in tests/components/display/Heading.test.tsx
-- [ ] T050 [P] [US2] Unit test suite for Image组件 in tests/components/display/Image.test.tsx
-- [ ] T051 [P] [US2] Unit test suite for Card组件 in tests/components/display/Card.test.tsx
-- [ ] T052 [P] [US2] Unit test suite for Badge组件 in tests/components/display/Badge.test.tsx
+- [x] T050 [P] [US2] Unit test suite for Image组件 in tests/components/display/Image.test.tsx
+- [x] T051 [P] [US2] Unit test suite for Card组件 in tests/components/display/Card.test.tsx
+- [x] T052 [P] [US2] Unit test suite for Badge组件 in tests/components/display/Badge.test.tsx
 
 ### Implementation for User Story 2
 
