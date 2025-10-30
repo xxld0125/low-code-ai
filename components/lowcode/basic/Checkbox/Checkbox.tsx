@@ -63,16 +63,28 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, LowcodeCheckboxProps
             onCheckedChange={handleChange}
             autoFocus={autoFocus}
             data-testid="checkbox-input"
-            aria-checked={checked ? 'true' : 'false'}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-required={required}
-            aria-disabled={disabled}
             className={cn(
               'mt-0.5',
               error && 'border-destructive',
               indeterminate && 'data-[state=indeterminate]:bg-muted'
             )}
-            {...props}
+            {...Object.fromEntries(
+              Object.entries(props).filter(
+                ([key]) =>
+                  ![
+                    'aria-invalid',
+                    'aria-required',
+                    'aria-disabled',
+                    'aria-checked',
+                    'error',
+                    'required',
+                  ].includes(key)
+              )
+            )}
+            aria-checked={checked ? 'true' : 'false'}
+            aria-invalid={error ? 'true' : 'false'}
+            aria-required={required}
+            aria-disabled={disabled}
           />
 
           {label && (
@@ -96,7 +108,10 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, LowcodeCheckboxProps
         {(error || helper) && (
           <div className="ml-6 space-y-1">
             {error && (
-              <p className="flex items-center gap-1 text-sm text-destructive">
+              <p
+                data-testid="error-message"
+                className="flex items-center gap-1 text-sm text-destructive"
+              >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"

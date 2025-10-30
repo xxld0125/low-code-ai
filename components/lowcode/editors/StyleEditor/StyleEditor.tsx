@@ -215,7 +215,6 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
       }
 
       const fieldProps = {
-        key: property.id,
         definition: {
           key: property.id,
           type: mapFieldTypeToPropertyType(property.type), // 转换类型
@@ -236,7 +235,7 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
       // 根据属性类型渲染不同的字段编辑器
       switch (property.type) {
         case 'color':
-          return <ColorFieldEditor {...fieldProps} />
+          return <ColorFieldEditor key={property.id} {...fieldProps} />
         case 'size':
           return (
             <SizeFieldEditor
@@ -259,9 +258,9 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
             />
           )
         case 'spacing':
-          return <SpacingFieldEditor {...fieldProps} />
+          return <SpacingFieldEditor key={property.id} {...fieldProps} />
         case 'select':
-          return <SelectFieldEditor {...fieldProps} />
+          return <SelectFieldEditor key={property.id} {...fieldProps} />
         case 'border':
           return (
             <BorderFieldEditor
@@ -301,7 +300,7 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
             />
           )
         case 'number':
-          return <NumberFieldEditor {...fieldProps} />
+          return <NumberFieldEditor key={property.id} {...fieldProps} />
         default:
           return null
       }

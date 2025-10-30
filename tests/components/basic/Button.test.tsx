@@ -38,8 +38,8 @@ describe('Button组件', () => {
   })
 
   describe('变体样式', () => {
-    test('正确渲染primary变体', () => {
-      render(<Button text="主要按钮" variant="primary" />)
+    test('正确渲染default变体', () => {
+      render(<Button text="默认按钮" variant="default" />)
 
       const button = screen.getByTestId('button')
       expect(button).toHaveAttribute('data-variant', 'default')
