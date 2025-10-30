@@ -151,7 +151,7 @@ function NotificationItem({
               {notification.actions.map((action, index) => (
                 <Button
                   key={index}
-                  variant={action.variant === 'primary' ? 'default' : 'outline'}
+                  variant={action.variant || 'outline'}
                   size="sm"
                   disabled={isExecuting}
                   onClick={() => handleActionClick(action)}
@@ -348,7 +348,7 @@ export function ToastNotification({
               {notification.actions.map((action, index) => (
                 <Button
                   key={index}
-                  variant={action.variant === 'primary' ? 'default' : 'outline'}
+                  variant={action.variant || 'outline'}
                   size="sm"
                   disabled={isExecuting}
                   onClick={() => handleActionClick(action)}

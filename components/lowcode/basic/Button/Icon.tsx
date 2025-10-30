@@ -10,7 +10,7 @@ export interface ButtonIconProps {
   size?: number | string
   className?: string
   color?: string
-  variant?: 'default' | 'primary' | 'secondary' | 'outline'
+  variant?: 'default' | 'primary' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
 }
 
 export const ButtonIcon: React.FC<ButtonIconProps> = ({
@@ -77,7 +77,7 @@ export const ButtonIcon: React.FC<ButtonIconProps> = ({
 
 // 特殊变体的图标
 export const ButtonPrimaryIcon: React.FC<Omit<ButtonIconProps, 'variant'>> = props => (
-  <ButtonIcon {...props} variant="primary" />
+  <ButtonIcon {...props} variant="default" />
 )
 
 export const ButtonSecondaryIcon: React.FC<Omit<ButtonIconProps, 'variant'>> = props => (

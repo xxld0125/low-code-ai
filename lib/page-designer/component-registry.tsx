@@ -543,7 +543,7 @@ const COMPONENT_REGISTRY: Partial<
     category: 'basic',
     icon: ButtonIcon,
     description: '可点击的按钮组件',
-    defaultProps: { button: { text: '点击按钮', variant: 'primary', size: 'md' } },
+    defaultProps: { button: { text: '点击按钮', variant: 'default', size: 'default' } },
     defaultStyles: {},
     configurableProps: buttonProps,
     render: props => <Button {...props} />,
@@ -552,12 +552,12 @@ const COMPONENT_REGISTRY: Partial<
       {
         name: '主要按钮',
         description: '主要操作按钮',
-        props: { button: { text: '确认', variant: 'primary', size: 'md' } },
+        props: { button: { text: '确认', variant: 'default', size: 'default' } },
       },
       {
         name: '次要按钮',
         description: '次要操作按钮',
-        props: { button: { text: '取消', variant: 'secondary', size: 'md' } },
+        props: { button: { text: '取消', variant: 'secondary', size: 'default' } },
       },
     ],
   },

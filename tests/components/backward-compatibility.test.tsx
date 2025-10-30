@@ -27,7 +27,7 @@ describe('新组件库兼容性测试', () => {
         <Button
           id="test"
           type="button"
-          props={{ button: { text: '测试按钮', variant: 'primary', size: 'md' } }}
+          props={{ button: { text: '测试按钮', variant: 'default', size: 'default' } }}
           styles={{}}
           events={{}}
         />

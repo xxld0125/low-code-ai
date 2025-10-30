@@ -13,7 +13,7 @@ export interface LowcodeButtonProps {
   className?: string
   children?: React.ReactNode
   text?: string
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  variant?: 'default' | 'primary' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon'
   disabled?: boolean
   loading?: boolean
@@ -72,7 +72,9 @@ export const Button = React.forwardRef<HTMLButtonElement, LowcodeButtonProps>(
     }
 
     // 将variant映射到shadcn/ui的variant
-    const getShadcnVariant = (buttonVariant: string) => {
+    const getShadcnVariant = (
+      buttonVariant: string
+    ): 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' => {
       switch (buttonVariant) {
         case 'primary':
           return 'default'
@@ -92,7 +94,7 @@ export const Button = React.forwardRef<HTMLButtonElement, LowcodeButtonProps>(
     }
 
     // 将size映射到shadcn/ui的size
-    const getShadcnSize = (buttonSize: string) => {
+    const getShadcnSize = (buttonSize: string): 'default' | 'sm' | 'lg' | 'icon' => {
       switch (buttonSize) {
         case 'sm':
           return 'sm'

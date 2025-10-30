@@ -97,7 +97,7 @@ export function PropertiesPanel({
                 {
                   label: 'View Details',
                   action: async () => console.log('View conflict details:', conflict),
-                  variant: 'primary',
+                  variant: 'default',
                 },
               ],
             })

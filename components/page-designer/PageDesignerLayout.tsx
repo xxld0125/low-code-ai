@@ -301,7 +301,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
   const getDefaultProps = (type: string) => {
     switch (type) {
       case 'button':
-        return { button: { text: '按钮', variant: 'primary' as const, size: 'md' as const } }
+        return { button: { text: '按钮', variant: 'default' as const, size: 'default' as const } }
       case 'input':
         return { input: { placeholder: '请输入内容', type: 'text' as const } }
       case 'text':

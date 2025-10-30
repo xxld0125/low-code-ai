@@ -13,6 +13,7 @@ export { SelectFieldEditor } from './SelectFieldEditor'
 // 样式字段编辑器
 export { ColorFieldEditor } from './ColorFieldEditor'
 export { ImageFieldEditor } from './ImageFieldEditor'
+export { SizeFieldEditor } from './SizeFieldEditor'
 export { SpacingFieldEditor } from './SpacingFieldEditor'
 export { BorderFieldEditor } from './BorderFieldEditor'
 export { ShadowFieldEditor } from './ShadowFieldEditor'

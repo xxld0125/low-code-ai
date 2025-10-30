@@ -1,38 +1,33 @@
 /**
  * 阴影字段编辑器
  * 功能模块: 基础组件库 (004-basic-component-library)
- * 创建日期: 2025-10-29
+ * 创建日期: 2025-10-30
  */
 
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { PropertyDefinition } from '@/types/lowcode/property'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
-import { Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Plus } from 'lucide-react'
 
-interface ShadowFieldEditorProps {
-  value: unknown
-  onChange: (value: unknown) => void
-  disabled?: boolean
-  readonly?: boolean
-  definition: PropertyDefinition
+// 导入共享类型和工具
+import { FieldDefinition } from '@/lib/lowcode/types/editor'
+import { parseSizeValue, formatSizeValue, validateSizeValue } from '@/lib/lowcode/utils/style-utils'
+import { SHADOW_PRESETS } from '@/lib/lowcode/constants/style-presets'
+
+// 本地接口定义
+interface ShadowConfig {
+  presets?: Array<{ value: string; label: string }>
+  custom?: boolean
 }
 
-interface ShadowConfig {
-  enabled: boolean
-  preset?: string
+interface ShadowValue {
   x: number
   y: number
   blur: number
@@ -41,366 +36,419 @@ interface ShadowConfig {
   inset: boolean
 }
 
-// 预设阴影样式
-const PRESET_SHADOWS: Record<string, Omit<ShadowConfig, 'enabled'>> = {
-  none: { x: 0, y: 0, blur: 0, spread: 0, color: 'transparent', inset: false },
-  sm: { x: 0, y: 1, blur: 2, spread: 0, color: 'rgba(0, 0, 0, 0.05)', inset: false },
-  md: { x: 0, y: 4, blur: 6, spread: -1, color: 'rgba(0, 0, 0, 0.1)', inset: false },
-  lg: { x: 0, y: 10, blur: 15, spread: -3, color: 'rgba(0, 0, 0, 0.1)', inset: false },
-  xl: { x: 0, y: 20, blur: 25, spread: -5, color: 'rgba(0, 0, 0, 0.1)', inset: false },
-  '2xl': { x: 0, y: 25, blur: 50, spread: -12, color: 'rgba(0, 0, 0, 0.25)', inset: false },
-  inner: { x: 0, y: 2, blur: 4, spread: 0, color: 'rgba(0, 0, 0, 0.06)', inset: true },
-  outline: { x: 0, y: 0, blur: 0, spread: 1, color: 'rgba(0, 0, 0, 0.1)', inset: false },
+interface ShadowFieldEditorProps {
+  definition: FieldDefinition & {
+    default_value?: string | ShadowValue
+    editor_config: ShadowConfig
+  }
+  value?: string | ShadowValue
+  error?: string
+  disabled?: boolean
+  readonly?: boolean
+  onChange: (value: string | ShadowValue) => void
+  onError?: (error: { message: string }) => void
+  onBlur?: () => void
+  onFocus?: () => void
+  className?: string
 }
 
-// 常用阴影颜色
-const SHADOW_COLORS = [
-  { label: '黑色', value: 'rgba(0, 0, 0, 0.1)' },
-  { label: '深黑', value: 'rgba(0, 0, 0, 0.25)' },
-  { label: '灰色', value: 'rgba(107, 114, 128, 0.1)' },
-  { label: '蓝色', value: 'rgba(59, 130, 246, 0.1)' },
-  { label: '红色', value: 'rgba(239, 68, 68, 0.1)' },
-  { label: '绿色', value: 'rgba(34, 197, 94, 0.1)' },
-  { label: '紫色', value: 'rgba(139, 92, 246, 0.1)' },
-]
+// 解析阴影值
+const parseShadowValue = (value: string | ShadowValue | undefined): ShadowValue => {
+  if (!value) {
+    return {
+      x: 0,
+      y: 2,
+      blur: 4,
+      spread: 0,
+      color: 'rgba(0, 0, 0, 0.1)',
+      inset: false,
+    }
+  }
+
+  if (typeof value === 'object') {
+    return value
+  }
+
+  // 解析字符串形式的阴影值
+  if (value === 'none') {
+    return {
+      x: 0,
+      y: 0,
+      blur: 0,
+      spread: 0,
+      color: 'transparent',
+      inset: false,
+    }
+  }
+
+  const strValue = String(value).trim()
+
+  // 处理 inset 阴影
+  const insetMatch = strValue.match(/^inset\s+(.+)$/)
+  const shadowStr = insetMatch ? insetMatch[1] : strValue
+  const inset = !!insetMatch
+
+  // 解析阴影参数
+  const match = shadowStr.match(
+    /(-?\d+px|-?\d+rem|-?\d+em)\s+(-?\d+px|-?\d+rem|-?\d+em)\s+(-?\d+px|-?\d+rem|-?\d+em)\s*(?:(-?\d+px|-?\d+rem|-?\d+em)\s*)?(.+)$/
+  )
+  if (match) {
+    return {
+      x: parseSizeValue(match[1])?.value || 0,
+      y: parseSizeValue(match[2])?.value || 0,
+      blur: parseSizeValue(match[3])?.value || 0,
+      spread: parseSizeValue(match[4])?.value || 0,
+      color: match[5] || 'rgba(0, 0, 0, 0.1)',
+      inset,
+    }
+  }
+
+  return {
+    x: 0,
+    y: 2,
+    blur: 4,
+    spread: 0,
+    color: 'rgba(0, 0, 0, 0.1)',
+    inset: false,
+  }
+}
+
+// 格式化阴影值
+const formatShadowValue = (shadow: ShadowValue): string => {
+  if (shadow.x === 0 && shadow.y === 0 && shadow.blur === 0 && shadow.spread === 0) {
+    return 'none'
+  }
+
+  const parts = []
+  if (shadow.inset) parts.push('inset')
+  parts.push(`${shadow.x}px`)
+  parts.push(`${shadow.y}px`)
+  parts.push(`${shadow.blur}px`)
+  if (shadow.spread !== 0) parts.push(`${shadow.spread}px`)
+  parts.push(shadow.color)
+
+  return parts.join(' ')
+}
+
+// 转换颜色格式（支持 rgba 到 hex 的转换）
+const normalizeColor = (color: string): string => {
+  // 如果已经是标准格式，直接返回
+  if (/^#[0-9a-f]{3,8}$/i.test(color) || /^rgba?\(/.test(color)) {
+    return color
+  }
+
+  // 简单的颜色映射
+  const colorMap: Record<string, string> = {
+    black: '#000000',
+    white: '#ffffff',
+    red: '#ef4444',
+    green: '#10b981',
+    blue: '#3b82f6',
+    yellow: '#eab308',
+    purple: '#8b5cf6',
+    pink: '#ec4899',
+  }
+
+  return colorMap[color.toLowerCase()] || color
+}
 
 export const ShadowFieldEditor: React.FC<ShadowFieldEditorProps> = ({
+  definition,
   value,
-  onChange,
+  error,
   disabled = false,
   readonly = false,
-  definition,
+  onChange,
+  onError,
 }) => {
-  const [shadowConfig, setShadowConfig] = useState<ShadowConfig>(() => {
-    return parseShadowValue(value)
-  })
+  const [shadow, setShadow] = useState<ShadowValue>(parseShadowValue(value))
+  const [activeTab, setActiveTab] = useState('basic')
 
-  // 解析阴影值
-  function parseShadowValue(value: unknown): ShadowConfig {
-    // 布尔值
-    if (typeof value === 'boolean') {
-      return {
-        enabled: value,
-        ...PRESET_SHADOWS.md,
-      }
-    }
+  // 阴影配置
+  const config = useMemo(() => definition.editor_config || {}, [definition.editor_config])
+  const presets = useMemo(() => {
+    return config.presets || SHADOW_PRESETS
+  }, [config.presets])
 
-    // 字符串预设值
-    if (typeof value === 'string') {
-      // 检查是否是预设值
-      if (value in PRESET_SHADOWS) {
-        return {
-          enabled: true,
-          preset: value,
-          ...PRESET_SHADOWS[value as keyof typeof PRESET_SHADOWS],
-        }
-      }
+  // 处理参数变更
+  const handleParameterChange = useCallback(
+    (parameter: keyof ShadowValue, newValue: unknown) => {
+      const newShadow = { ...shadow, [parameter]: newValue }
+      setShadow(newShadow)
+      onChange(formatShadowValue(newShadow))
+    },
+    [shadow, onChange]
+  )
 
-      // 尝试解析CSS阴影字符串
-      const match = value.match(
-        /^(\-?\d+)px\s+(\-?\d+)px\s+(\d+)px\s*(\d+px)?\s*(rgba?\([^)]+\)|#[a-fA-F0-9]+)\s*(inset)?$/i
-      )
-      if (match) {
-        return {
-          enabled: true,
-          x: parseInt(match[1]),
-          y: parseInt(match[2]),
-          blur: parseInt(match[3]),
-          spread: match[4] ? parseInt(match[4]) : 0,
-          color: match[5],
-          inset: match[6] === 'inset',
-        }
-      }
+  // 处理颜色变更
+  const handleColorChange = useCallback(
+    (color: string) => {
+      const normalizedColor = normalizeColor(color)
+      handleParameterChange('color', normalizedColor)
+    },
+    [handleParameterChange]
+  )
 
-      // 默认阴影
-      return {
-        enabled: true,
-        ...PRESET_SHADOWS.md,
-      }
-    }
+  // 应用预设值
+  const applyPreset = useCallback(
+    (presetValue: string) => {
+      const newShadow = parseShadowValue(presetValue)
+      setShadow(newShadow)
+      onChange(formatShadowValue(newShadow))
+    },
+    [onChange]
+  )
 
-    // 默认值
-    return {
-      enabled: false,
-      ...PRESET_SHADOWS.none,
-    }
-  }
-
-  // 格式化阴影值
-  function formatShadowValue(config: ShadowConfig): string {
-    if (!config.enabled) {
-      return 'none'
-    }
-
-    if (config.preset && Object.keys(PRESET_SHADOWS).includes(config.preset)) {
-      return config.preset
-    }
-
-    const parts = [
-      `${config.x}px`,
-      `${config.y}px`,
-      `${config.blur}px`,
-      config.spread !== 0 ? `${config.spread}px` : '',
-      config.color,
-      config.inset ? 'inset' : '',
-    ].filter(Boolean)
-
-    return parts.join(' ')
-  }
-
-  // 更新阴影配置
-  const updateShadowConfig = (updates: Partial<ShadowConfig>) => {
-    const newConfig = { ...shadowConfig, ...updates }
-
-    // 如果更新了预设，同步预设的参数
-    if (updates.preset && updates.preset in PRESET_SHADOWS) {
-      const presetConfig = PRESET_SHADOWS[updates.preset]
-      Object.assign(newConfig, presetConfig)
-    }
-
-    // 如果手动修改了参数，清除预设
-    if (
-      updates.x !== undefined ||
-      updates.y !== undefined ||
-      updates.blur !== undefined ||
-      updates.spread !== undefined ||
-      updates.color !== undefined ||
-      updates.inset !== undefined
-    ) {
-      newConfig.preset = undefined
-    }
-
-    setShadowConfig(newConfig)
-    onChange(formatShadowValue(newConfig))
-  }
-
-  // 应用预设
-  const applyPreset = (presetName: string) => {
-    const preset = PRESET_SHADOWS[presetName as keyof typeof PRESET_SHADOWS]
-    if (preset) {
-      const config = {
-        enabled: true,
-        preset: presetName,
-        ...preset,
-      }
-      setShadowConfig(config)
-      onChange(formatShadowValue(config))
-    }
-  }
+  // 重置为默认值
+  const resetToDefault = useCallback(() => {
+    const defaultShadow = parseShadowValue(definition.default_value)
+    setShadow(defaultShadow)
+    onChange(formatShadowValue(defaultShadow))
+  }, [definition.default_value, onChange])
 
   // 清除阴影
-  const clearShadow = () => {
-    const config = { ...shadowConfig, enabled: false, preset: undefined }
-    setShadowConfig(config)
-    onChange('none')
-  }
-
-  // 只读模式显示
-  if (readonly) {
-    if (!shadowConfig.enabled) {
-      return <div className="text-sm text-muted-foreground">无阴影</div>
+  const clearShadow = useCallback(() => {
+    const emptyShadow = {
+      x: 0,
+      y: 0,
+      blur: 0,
+      spread: 0,
+      color: 'transparent',
+      inset: false,
     }
-
-    return (
-      <div className="space-y-2">
-        {shadowConfig.preset && (
-          <Badge variant="secondary" className="text-xs">
-            预设: {shadowConfig.preset}
-          </Badge>
-        )}
-        <div className="font-mono text-xs text-muted-foreground">
-          {formatShadowValue(shadowConfig)}
-        </div>
-      </div>
-    )
-  }
+    setShadow(emptyShadow)
+    onChange('none')
+  }, [onChange])
 
   return (
     <div className="space-y-4">
-      {/* 启用/禁用阴影 */}
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">启用阴影</Label>
-        <Switch
-          checked={shadowConfig.enabled}
-          onCheckedChange={enabled => updateShadowConfig({ enabled })}
-          disabled={disabled}
-        />
+      <div className="flex items-center gap-2">
+        <Label className="text-sm font-medium">{definition.label}</Label>
+        {definition.required && (
+          <Badge variant="secondary" className="text-xs">
+            必填
+          </Badge>
+        )}
       </div>
 
-      {shadowConfig.enabled && (
-        <>
-          {/* 预设样式 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">预设样式</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.entries(PRESET_SHADOWS).map(([name, config]) => (
-                <Button
-                  key={name}
-                  type="button"
-                  variant={shadowConfig.preset === name ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => applyPreset(name)}
-                  disabled={disabled}
-                  className="h-auto p-2"
-                >
-                  <div
-                    className="h-6 w-full rounded bg-background"
-                    style={{
-                      boxShadow: formatShadowValue({ enabled: true, ...config }),
-                    }}
-                  />
-                  <div className="mt-1 text-xs">{name}</div>
-                </Button>
-              ))}
-            </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="basic">基础设置</TabsTrigger>
+          <TabsTrigger value="preset">预设样式</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="space-y-4">
+          {/* 阴影开关 */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm">启用阴影</Label>
+            <Switch
+              checked={shadow.x !== 0 || shadow.y !== 0 || shadow.blur !== 0}
+              onCheckedChange={enabled => {
+                if (!enabled) {
+                  clearShadow()
+                } else {
+                  const defaultShadow = parseShadowValue('0 2px 4px rgba(0, 0, 0, 0.1)')
+                  setShadow(defaultShadow)
+                  onChange(formatShadowValue(defaultShadow))
+                }
+              }}
+              disabled={disabled || readonly}
+            />
           </div>
 
-          {/* 自定义阴影参数 */}
-          <div className="space-y-3">
-            <Label className="text-xs text-muted-foreground">自定义参数</Label>
-
-            <div className="grid grid-cols-2 gap-2">
-              {/* X偏移 */}
-              <div className="space-y-1">
-                <Label className="text-xs">X偏移</Label>
-                <Input
-                  type="number"
-                  value={shadowConfig.x}
-                  onChange={e => updateShadowConfig({ x: parseInt(e.target.value) || 0 })}
-                  disabled={disabled}
-                  className="text-sm"
-                />
-              </div>
-
-              {/* Y偏移 */}
-              <div className="space-y-1">
-                <Label className="text-xs">Y偏移</Label>
-                <Input
-                  type="number"
-                  value={shadowConfig.y}
-                  onChange={e => updateShadowConfig({ y: parseInt(e.target.value) || 0 })}
-                  disabled={disabled}
-                  className="text-sm"
-                />
-              </div>
-
-              {/* 模糊 */}
-              <div className="space-y-1">
-                <Label className="text-xs">模糊</Label>
-                <Input
-                  type="number"
-                  value={shadowConfig.blur}
-                  onChange={e => updateShadowConfig({ blur: parseInt(e.target.value) || 0 })}
-                  disabled={disabled}
-                  min="0"
-                  className="text-sm"
-                />
-              </div>
-
-              {/* 扩展 */}
-              <div className="space-y-1">
-                <Label className="text-xs">扩展</Label>
-                <Input
-                  type="number"
-                  value={shadowConfig.spread}
-                  onChange={e => updateShadowConfig({ spread: parseInt(e.target.value) || 0 })}
-                  disabled={disabled}
-                  className="text-sm"
-                />
-              </div>
-            </div>
-
-            {/* 阴影颜色 */}
-            <div className="space-y-2">
-              <Label className="text-xs">颜色</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={shadowConfig.color.startsWith('rgba') ? '#000000' : shadowConfig.color}
-                  onChange={e => {
-                    const hex = e.target.value
-                    // 将hex转换为rgba格式，保持透明度
-                    const rgba = hex + '1a' // 添加10%透明度
-                    updateShadowConfig({ color: rgba })
-                  }}
-                  disabled={disabled}
-                  className="h-10 w-10 cursor-pointer rounded border border-border disabled:opacity-50"
-                />
-                <Input
-                  value={shadowConfig.color}
-                  onChange={e => updateShadowConfig({ color: e.target.value })}
-                  disabled={disabled}
-                  placeholder="rgba(0, 0, 0, 0.1)"
-                  className="flex-1 font-mono text-sm"
-                />
-              </div>
-              {/* 预设颜色 */}
-              <div className="flex flex-wrap gap-1">
-                {SHADOW_COLORS.map(color => (
-                  <Button
-                    key={color.value}
-                    type="button"
-                    variant={shadowConfig.color === color.value ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateShadowConfig({ color: color.value })}
-                    disabled={disabled}
-                    className="h-auto px-2 py-1 text-xs"
-                  >
-                    {color.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* 内阴影 */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={shadowConfig.inset}
-                onCheckedChange={inset => updateShadowConfig({ inset })}
-                disabled={disabled}
+          {/* 水平偏移 */}
+          <div className="space-y-2">
+            <Label className="text-sm">水平偏移 (X)</Label>
+            <div className="flex items-center gap-2">
+              <Slider
+                value={[shadow.x]}
+                onValueChange={([value]) => handleParameterChange('x', value)}
+                min={-50}
+                max={50}
+                step={1}
+                disabled={disabled || readonly}
+                className="flex-1"
               />
-              <Label className="text-sm">内阴影</Label>
+              <Input
+                type="number"
+                value={shadow.x}
+                onChange={e => handleParameterChange('x', parseInt(e.target.value) || 0)}
+                className="w-16 text-center"
+                disabled={disabled || readonly}
+              />
             </div>
           </div>
 
-          {/* 预览 */}
+          {/* 垂直偏移 */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">预览</Label>
-            <Card>
-              <CardContent className="p-4">
-                <div
-                  className="flex h-16 w-full items-center justify-center rounded bg-background"
-                  style={{
-                    boxShadow: formatShadowValue(shadowConfig),
-                  }}
-                >
-                  <span className="text-xs text-muted-foreground">阴影预览</span>
-                </div>
-              </CardContent>
-            </Card>
+            <Label className="text-sm">垂直偏移 (Y)</Label>
+            <div className="flex items-center gap-2">
+              <Slider
+                value={[shadow.y]}
+                onValueChange={([value]) => handleParameterChange('y', value)}
+                min={-50}
+                max={50}
+                step={1}
+                disabled={disabled || readonly}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                value={shadow.y}
+                onChange={e => handleParameterChange('y', parseInt(e.target.value) || 0)}
+                className="w-16 text-center"
+                disabled={disabled || readonly}
+              />
+            </div>
           </div>
 
-          {/* CSS值显示 */}
-          <div className="rounded bg-muted/30 p-2 font-mono text-xs text-muted-foreground">
-            {formatShadowValue(shadowConfig)}
+          {/* 模糊度 */}
+          <div className="space-y-2">
+            <Label className="text-sm">模糊度</Label>
+            <div className="flex items-center gap-2">
+              <Slider
+                value={[shadow.blur]}
+                onValueChange={([value]) => handleParameterChange('blur', value)}
+                min={0}
+                max={100}
+                step={1}
+                disabled={disabled || readonly}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                value={shadow.blur}
+                onChange={e => handleParameterChange('blur', parseInt(e.target.value) || 0)}
+                className="w-16 text-center"
+                disabled={disabled || readonly}
+              />
+            </div>
           </div>
-        </>
-      )}
 
-      {/* 清除按钮 */}
-      {shadowConfig.enabled && (
+          {/* 扩散度 */}
+          <div className="space-y-2">
+            <Label className="text-sm">扩散度</Label>
+            <div className="flex items-center gap-2">
+              <Slider
+                value={[shadow.spread]}
+                onValueChange={([value]) => handleParameterChange('spread', value)}
+                min={-50}
+                max={50}
+                step={1}
+                disabled={disabled || readonly}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                value={shadow.spread}
+                onChange={e => handleParameterChange('spread', parseInt(e.target.value) || 0)}
+                className="w-16 text-center"
+                disabled={disabled || readonly}
+              />
+            </div>
+          </div>
+
+          {/* 颜色 */}
+          <div className="space-y-2">
+            <Label className="text-sm">颜色</Label>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={shadow.color.startsWith('#') ? shadow.color : '#000000'}
+                onChange={e => handleColorChange(e.target.value)}
+                disabled={disabled || readonly}
+                className="h-10 w-16 p-1"
+              />
+              <Input
+                type="text"
+                value={shadow.color}
+                onChange={e => handleColorChange(e.target.value)}
+                placeholder="rgba(0, 0, 0, 0.1)"
+                disabled={disabled || readonly}
+                className="flex-1"
+              />
+            </div>
+          </div>
+
+          {/* 内阴影 */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm">内阴影</Label>
+            <Switch
+              checked={shadow.inset}
+              onCheckedChange={inset => handleParameterChange('inset', inset)}
+              disabled={disabled || readonly}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="preset" className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            {presets.map(preset => (
+              <Button
+                key={preset.value}
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset(preset.value)}
+                disabled={disabled || readonly}
+                className="h-8 text-xs"
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* 当前值预览 */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">预览</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="flex h-16 items-center justify-center rounded bg-background"
+                style={{
+                  boxShadow: formatShadowValue(shadow),
+                }}
+              >
+                <span className="text-center text-xs text-muted-foreground">
+                  {formatShadowValue(shadow)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* 工具按钮 */}
+      <div className="flex justify-between">
         <Button
-          type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={clearShadow}
-          disabled={disabled}
-          className="w-full"
+          disabled={disabled || readonly}
+          className="text-xs"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
-          清除阴影
+          清除
         </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetToDefault}
+          disabled={disabled || readonly}
+          className="text-xs"
+        >
+          重置
+        </Button>
+      </div>
+
+      {/* 错误提示 */}
+      {error && <div className="text-xs text-destructive">{error}</div>}
+
+      {/* 配置信息 */}
+      {definition.description && (
+        <div className="text-xs text-muted-foreground">{definition.description}</div>
       )}
     </div>
   )
 }
+
+export default ShadowFieldEditor

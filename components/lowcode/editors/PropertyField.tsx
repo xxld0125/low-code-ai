@@ -90,10 +90,38 @@ export const PropertyField: React.FC<PropertyFieldProps> = ({
         return <SpacingFieldEditor {...commonProps} />
 
       case 'border':
-        return <BorderFieldEditor {...commonProps} />
+        return (
+          <BorderFieldEditor
+            value={value as string}
+            onChange={newValue => onChange(newValue)}
+            disabled={disabled}
+            readonly={readonly}
+            definition={{
+              name: key,
+              label,
+              type,
+              default_value: defaultValue as string,
+              editor_config: {},
+            }}
+          />
+        )
 
       case 'shadow':
-        return <ShadowFieldEditor {...commonProps} />
+        return (
+          <ShadowFieldEditor
+            value={value as string}
+            onChange={newValue => onChange(newValue)}
+            disabled={disabled}
+            readonly={readonly}
+            definition={{
+              name: key,
+              label,
+              type,
+              default_value: defaultValue as string,
+              editor_config: {},
+            }}
+          />
+        )
 
       case 'font':
         return <StringFieldEditor {...commonProps} placeholder="选择字体" />

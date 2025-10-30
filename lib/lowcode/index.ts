@@ -61,6 +61,35 @@ export type {
 // 样式引擎特定的导出，避免冲突
 export { DEFAULT_BREAKPOINTS as STYLE_ENGINE_BREAKPOINTS, responsiveUtils } from './style-engine'
 
+// T114: 新增编辑器类型和工具导出
+export * from './types/editor'
+export type { PreviewConfig as EditorPreviewConfig } from './types/editor'
+export {
+  BREAKPOINTS,
+  BREAKPOINT_ARRAY,
+  DEFAULT_BREAKPOINT,
+  getBreakpointById,
+  getBreakpointByWidth,
+} from './constants/breakpoints'
+
+export type { BreakpointId } from './constants/breakpoints'
+export * from './constants/style-presets'
+export * from './utils/style-utils'
+export * from './utils/error-handling'
+// export {
+//   globalStyleValidator,
+//   validateStyles,
+//   addCustomValidationRule,
+//   createStyleValidator
+// } from './validation/style-validator'
+
+// export type {
+//   ValidationError as StyleValidationError,
+//   ValidationRule as StyleValidationRule,
+//   ValidationResult as StyleValidationResult,
+//   ValidationRuleType
+// } from './validation/style-validator'
+// export * from './style-engine/preview'
+
 // 将在后续任务中添加导出
 // export * from './component-system'
-// export * from './validation'

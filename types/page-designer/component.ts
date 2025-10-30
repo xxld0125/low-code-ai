@@ -84,8 +84,8 @@ export interface ComponentProps {
   // Button属性
   button?: {
     text: string
-    variant: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link'
-    size: 'sm' | 'md' | 'lg'
+    variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+    size: 'sm' | 'default' | 'lg' | 'icon'
     disabled?: boolean
     loading?: boolean
     icon?: string

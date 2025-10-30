@@ -53,8 +53,221 @@ import {
 import { ColorPicker, BackgroundColorPicker, TextColorPicker } from './property-editors/ColorPicker'
 import { SizePropertyEditor, SpacingSizeEditor } from './property-editors/SizePropertyEditor'
 
+// 导入低代码组件编辑器
+import { PropertyEditor } from '@/components/lowcode/editors/PropertyEditor'
+import { StyleEditor } from '@/components/lowcode/editors/StyleEditor'
+import { ValidationEditor } from '@/components/lowcode/editors/ValidationEditor'
+
 // 导入自动保存Hook
 import { useComponentAutoSave } from '@/hooks/use-page-auto-save'
+
+// 组件类型映射辅助函数
+const getComponentCategory = (componentType: string): string => {
+  const categoryMap: Record<string, string> = {
+    button: 'basic',
+    input: 'basic',
+    textarea: 'basic',
+    select: 'basic',
+    checkbox: 'basic',
+    radio: 'basic',
+    text: 'display',
+    heading: 'display',
+    image: 'display',
+    card: 'display',
+    badge: 'display',
+    container: 'layout',
+    row: 'layout',
+    col: 'layout',
+    divider: 'layout',
+    spacer: 'layout',
+  }
+  return categoryMap[componentType] || 'basic'
+}
+
+const getComponentPropertyType = (componentType: string): 'string' | 'number' | 'email' | 'url' => {
+  const textTypes = ['input', 'textarea', 'text', 'heading']
+  const emailTypes = ['input']
+  const urlTypes = ['input']
+  const numberTypes = ['input']
+
+  if (textTypes.includes(componentType)) return 'string'
+  if (emailTypes.includes(componentType)) return 'email'
+  if (urlTypes.includes(componentType)) return 'url'
+  if (numberTypes.includes(componentType)) return 'number'
+  return 'string'
+}
+
+const getComponentPropertyDefinitions = (componentType: string): any[] => {
+  // 根据组件类型返回对应的属性定义
+  // 这里简化处理，实际应该从组件注册系统获取
+  const definitions: Record<string, any[]> = {
+    button: [
+      {
+        key: 'text',
+        type: 'string',
+        label: '按钮文字',
+        required: true,
+        default: '按钮',
+        group: '基础',
+        order: 1,
+      },
+      {
+        key: 'variant',
+        type: 'select',
+        label: '按钮样式',
+        required: false,
+        default: 'default',
+        group: '样式',
+        order: 2,
+        options: [
+          { value: 'default', label: '默认' },
+          { value: 'destructive', label: '危险' },
+          { value: 'outline', label: '轮廓' },
+          { value: 'secondary', label: '次要' },
+          { value: 'ghost', label: '幽灵' },
+          { value: 'link', label: '链接' },
+        ],
+      },
+      {
+        key: 'disabled',
+        type: 'boolean',
+        label: '禁用状态',
+        required: false,
+        default: false,
+        group: '状态',
+        order: 3,
+      },
+    ],
+    input: [
+      {
+        key: 'placeholder',
+        type: 'string',
+        label: '占位符',
+        required: false,
+        default: '',
+        group: '基础',
+        order: 1,
+      },
+      {
+        key: 'required',
+        type: 'boolean',
+        label: '必填字段',
+        required: false,
+        default: false,
+        group: '验证',
+        order: 2,
+      },
+    ],
+    text: [
+      {
+        key: 'content',
+        type: 'string',
+        label: '文本内容',
+        required: true,
+        default: '文本内容',
+        group: '基础',
+        order: 1,
+      },
+    ],
+  }
+
+  return definitions[componentType] || []
+}
+
+const getComponentStyleDefinition = (componentType: string): any => {
+  // 根据组件类型返回对应的样式定义
+  const styleDefinitions: Record<string, any> = {
+    button: {
+      id: `style-${componentType}`,
+      name: componentType.charAt(0).toUpperCase() + componentType.slice(1),
+      category: 'basic',
+      style_schema: {
+        groups: [
+          {
+            id: 'typography',
+            name: '文字',
+            order: 1,
+            properties: [
+              {
+                id: 'color',
+                name: 'color',
+                type: 'color',
+                label: '文字颜色',
+                required: false,
+                editor_config: {
+                  type: 'color',
+                  presets: ['#000000', '#ffffff', '#ef4444', '#3b82f6', '#22c55e'],
+                },
+              },
+              {
+                id: 'fontSize',
+                name: 'fontSize',
+                type: 'size',
+                label: '字体大小',
+                required: false,
+                editor_config: {
+                  type: 'size',
+                  units: ['px', 'rem', 'em'],
+                  min: 8,
+                  max: 72,
+                },
+              },
+            ],
+          },
+          {
+            id: 'layout',
+            name: '布局',
+            order: 2,
+            properties: [
+              {
+                id: 'padding',
+                name: 'padding',
+                type: 'spacing',
+                label: '内边距',
+                required: false,
+                editor_config: {
+                  type: 'spacing',
+                  directions: ['top', 'right', 'bottom', 'left'],
+                  units: ['px', 'rem', 'em'],
+                },
+              },
+            ],
+          },
+          {
+            id: 'borders',
+            name: '边框',
+            order: 3,
+            properties: [
+              {
+                id: 'borderRadius',
+                name: 'borderRadius',
+                type: 'size',
+                label: '圆角',
+                required: false,
+                editor_config: {
+                  type: 'size',
+                  units: ['px', '%', 'rem'],
+                  min: 0,
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  }
+
+  return (
+    styleDefinitions[componentType] || {
+      id: `style-${componentType}`,
+      name: componentType.charAt(0).toUpperCase() + componentType.slice(1),
+      category: 'basic',
+      style_schema: {
+        groups: [],
+      },
+    }
+  )
+}
 
 interface PagePropertiesPanelProps extends PropertyPanelProps {
   selectedComponent: ComponentInstance | null
@@ -554,26 +767,77 @@ export const PagePropertiesPanel: React.FC<PagePropertiesPanelProps> = ({
             <ScrollArea className="flex-1">
               <div className="px-3 pb-3">
                 <TabsContent value="properties" className="mt-0 space-y-0">
-                  {renderPropertyGroup(
-                    '基础属性',
-                    <Settings className="h-4 w-4" />,
-                    renderBasicProperties(),
-                    'basic'
-                  )}
-                  {renderPropertyGroup(
-                    '高级属性',
-                    <Info className="h-4 w-4" />,
-                    renderAdvancedProperties(),
-                    'advanced'
+                  {selectedComponent && (
+                    <div className="p-4">
+                      {/* 使用新的PropertyEditor组件 */}
+                      <PropertyEditor
+                        componentType={selectedComponent.component_type}
+                        componentId={selectedComponent.id}
+                        componentCategory={getComponentCategory(selectedComponent.component_type)}
+                        properties={(selectedComponent.props as any) || {}}
+                        propertyDefinitions={getComponentPropertyDefinitions(
+                          selectedComponent.component_type
+                        )}
+                        onPropertyChange={event => {
+                          handlePropertyChange(event.property_key, event.value, 'props')
+                        }}
+                        onPropertiesChange={newProps => {
+                          handlePropertyChange('props', newProps, 'props')
+                        }}
+                      />
+
+                      {/* 验证规则编辑器 */}
+                      {showAdvanced && (
+                        <div className="mt-6">
+                          <ValidationEditor
+                            componentType={selectedComponent.component_type}
+                            propertyName="validation"
+                            propertyType={getComponentPropertyType(
+                              selectedComponent.component_type
+                            )}
+                            validationRules={(selectedComponent as any).validation || []}
+                            onValidationRulesChange={rules => {
+                              handlePropertyChange('validation', rules, 'props')
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="styles" className="mt-0">
-                  {renderPropertyGroup(
-                    '样式设置',
-                    <Palette className="h-4 w-4" />,
-                    renderStyleProperties(),
-                    'styles'
+                  {selectedComponent && (
+                    <div className="p-4">
+                      {/* 使用新的StyleEditor组件 */}
+                      <StyleEditor
+                        componentDefinition={getComponentStyleDefinition(
+                          selectedComponent.component_type
+                        )}
+                        componentStyles={(selectedComponent.styles as any) || {}}
+                        onStyleChange={(property, value, options) => {
+                          if (options?.breakpoint) {
+                            // 处理响应式样式
+                            handlePropertyChange(
+                              `responsive-${options.breakpoint}-${property}`,
+                              value,
+                              'styles'
+                            )
+                          } else {
+                            handlePropertyChange(property, value, 'styles')
+                          }
+                        }}
+                        onValidationError={(property, error) => {
+                          console.warn(`Style validation error for ${property}:`, error)
+                        }}
+                        onPreviewStyle={previewStyles => {
+                          // 实时预览样式变更
+                          handlePropertyChange('preview', previewStyles, 'styles')
+                        }}
+                        showResponsive={true}
+                        showPreview={true}
+                      />
+                    </div>
                   )}
                 </TabsContent>
 

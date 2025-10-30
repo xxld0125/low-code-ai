@@ -1,13 +1,12 @@
 /**
  * 边框字段编辑器
  * 功能模块: 基础组件库 (004-basic-component-library)
- * 创建日期: 2025-10-29
+ * 创建日期: 2025-10-30
  */
 
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -15,369 +14,339 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PropertyDefinition } from '@/types/lowcode/property'
-import { BorderValue } from '@/types/lowcode/style'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Plus } from 'lucide-react'
+
+// 导入共享类型和工具
+import { FieldDefinition } from '@/lib/lowcode/types/editor'
+import { parseSizeValue, formatSizeValue, validateSizeValue } from '@/lib/lowcode/utils/style-utils'
+import { BORDER_STYLE_PRESETS, BORDER_RADIUS_PRESETS } from '@/lib/lowcode/constants/style-presets'
+
+// 本地接口定义
+interface BorderConfig {
+  style?: {
+    type: 'select'
+    options: Array<{ value: string; label: string }>
+  }
+  width?: {
+    type: 'number'
+    min?: number
+    max?: number
+  }
+  color?: {
+    type: 'color'
+    presets?: string[]
+  }
+}
+
+interface BorderValue {
+  style: string
+  width: string
+  color: string
+}
 
 interface BorderFieldEditorProps {
-  value: unknown
-  onChange: (value: unknown) => void
+  definition: FieldDefinition & {
+    default_value?: string | BorderValue
+    editor_config: BorderConfig
+  }
+  value?: string | BorderValue
+  error?: string
   disabled?: boolean
   readonly?: boolean
-  definition: PropertyDefinition
+  onChange: (value: string | BorderValue) => void
+  onError?: (error: { message: string }) => void
+  onBlur?: () => void
+  onFocus?: () => void
+  className?: string
 }
 
-interface BorderConfig {
-  enabled: boolean
-  width: number
-  color: string
-  style: 'solid' | 'dashed' | 'dotted' | 'double'
-  side: 'all' | 'top' | 'right' | 'bottom' | 'left' | 'x' | 'y'
+// 解析边框值
+const parseBorderValue = (value: string | BorderValue | undefined): BorderValue => {
+  if (!value) {
+    return {
+      style: 'solid',
+      width: '1px',
+      color: '#000000',
+    }
+  }
+
+  if (typeof value === 'object') {
+    return value
+  }
+
+  // 解析字符串形式的边框值 "style width color"
+  const match = String(value).match(
+    /^(none|solid|dashed|dotted|double|hidden|groove|ridge|inset|outset)\s+(\d+px|\d+rem|\d+em)\s+(.+)$/
+  )
+  if (match) {
+    return {
+      style: match[1],
+      width: match[2],
+      color: match[3],
+    }
+  }
+
+  return {
+    style: 'solid',
+    width: '1px',
+    color: '#000000',
+  }
 }
 
-// 预设边框样式
-const PRESET_BORDER_STYLES: BorderConfig[] = [
-  { enabled: true, width: 1, color: '#e5e7eb', style: 'solid', side: 'all' },
-  { enabled: true, width: 2, color: '#d1d5db', style: 'solid', side: 'all' },
-  { enabled: true, width: 1, color: '#3b82f6', style: 'solid', side: 'all' },
-  { enabled: true, width: 2, color: '#ef4444', style: 'solid', side: 'all' },
-  { enabled: true, width: 1, color: '#6b7280', style: 'dashed', side: 'all' },
-  { enabled: true, width: 1, color: '#6b7280', style: 'dotted', side: 'all' },
-]
-
-// 常用颜色
-const COMMON_COLORS = [
-  '#000000',
-  '#ffffff',
-  '#ef4444',
-  '#f97316',
-  '#eab308',
-  '#84cc16',
-  '#22c55e',
-  '#14b8a6',
-  '#06b6d4',
-  '#0ea5e9',
-  '#3b82f6',
-  '#6366f1',
-  '#8b5cf6',
-  '#a855f7',
-  '#d946ef',
-  '#ec4899',
-  '#f43f5e',
-  '#64748b',
-  '#f1f5f9',
-  '#e5e7eb',
-]
+// 格式化边框值
+const formatBorderValue = (border: BorderValue): string => {
+  if (border.style === 'none') {
+    return 'none'
+  }
+  return `${border.style} ${border.width} ${border.color}`
+}
 
 export const BorderFieldEditor: React.FC<BorderFieldEditorProps> = ({
+  definition,
   value,
-  onChange,
+  error,
   disabled = false,
   readonly = false,
-  definition,
+  onChange,
+  onError,
 }) => {
-  const [borderConfig, setBorderConfig] = useState<BorderConfig>(() => {
-    return parseBorderValue(value)
-  })
+  const [border, setBorder] = useState<BorderValue>(parseBorderValue(value))
+  const [activeTab, setActiveTab] = useState('basic')
 
-  // 解析边框值
-  function parseBorderValue(value: unknown): BorderConfig {
-    // 简单布尔值
-    if (typeof value === 'boolean') {
-      return {
-        enabled: value,
-        width: 1,
-        color: '#e5e7eb',
-        style: 'solid',
-        side: 'all',
-      }
-    }
+  // 边框样式配置
+  const config = useMemo(() => definition.editor_config || {}, [definition.editor_config])
+  const borderStyles = useMemo(() => {
+    return config.style?.options || BORDER_STYLE_PRESETS
+  }, [config.style?.options])
 
-    // 字符串边框值
-    if (typeof value === 'string') {
-      // 简单边框字符串，如 "1px solid #ccc"
-      const match = value.match(/^(\d+px|\d+)\s+(solid|dashed|dotted|double)\s+(.+)$/)
-      if (match) {
-        return {
-          enabled: true,
-          width: parseInt(match[1]),
-          color: match[3],
-          style: match[2] as BorderConfig['style'],
-          side: 'all',
-        }
-      }
+  // 处理样式变更
+  const handleStyleChange = useCallback(
+    (style: string) => {
+      const newBorder = { ...border, style }
+      setBorder(newBorder)
+      onChange(formatBorderValue(newBorder))
+    },
+    [border, onChange]
+  )
 
-      // 默认边框
-      return {
-        enabled: true,
-        width: 1,
-        color: value,
-        style: 'solid',
-        side: 'all',
-      }
-    }
+  // 处理宽度变更
+  const handleWidthChange = useCallback(
+    (width: string) => {
+      const newBorder = { ...border, width }
+      setBorder(newBorder)
+      onChange(formatBorderValue(newBorder))
+    },
+    [border, onChange]
+  )
 
-    // 对象边框值
-    if (typeof value === 'object' && value !== null) {
-      const borderObj = value as any
-      return {
-        enabled: true,
-        width: borderObj.width || 1,
-        color: borderObj.color || '#e5e7eb',
-        style: borderObj.style || 'solid',
-        side: borderObj.side || 'all',
-      }
-    }
+  // 处理颜色变更
+  const handleColorChange = useCallback(
+    (color: string) => {
+      const newBorder = { ...border, color }
+      setBorder(newBorder)
+      onChange(formatBorderValue(newBorder))
+    },
+    [border, onChange]
+  )
 
-    // 默认值
-    return {
-      enabled: false,
-      width: 1,
-      color: '#e5e7eb',
-      style: 'solid',
-      side: 'all',
-    }
-  }
+  // 应用预设值
+  const applyPreset = useCallback(
+    (presetValue: string) => {
+      const newBorder = parseBorderValue(presetValue)
+      setBorder(newBorder)
+      onChange(formatBorderValue(newBorder))
+    },
+    [onChange]
+  )
 
-  // 格式化边框值
-  function formatBorderValue(config: BorderConfig): BorderValue {
-    if (!config.enabled) {
-      return false
-    }
-
-    if (config.side === 'all') {
-      // 简单字符串格式
-      return `${config.width}px ${config.style} ${config.color}`
-    }
-
-    // 对象格式
-    return {
-      width: config.width,
-      color: config.color,
-      style: config.style,
-      side: config.side,
-    }
-  }
-
-  // 更新边框配置
-  const updateBorderConfig = (updates: Partial<BorderConfig>) => {
-    const newConfig = { ...borderConfig, ...updates }
-    setBorderConfig(newConfig)
-    onChange(formatBorderValue(newConfig))
-  }
-
-  // 应用预设
-  const applyPreset = (preset: BorderConfig) => {
-    setBorderConfig(preset)
-    onChange(formatBorderValue(preset))
-  }
-
-  // 清除边框
-  const clearBorder = () => {
-    const config = { ...borderConfig, enabled: false }
-    setBorderConfig(config)
-    onChange(false)
-  }
-
-  // 只读模式显示
-  if (readonly) {
-    if (!borderConfig.enabled) {
-      return <div className="text-sm text-muted-foreground">无边框</div>
-    }
-
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {borderConfig.width}px
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            {borderConfig.style}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            {borderConfig.side}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <div
-            className="h-6 w-6 rounded border-2"
-            style={{
-              borderColor: borderConfig.color,
-              borderStyle: borderConfig.style,
-            }}
-          />
-          <span className="text-xs text-muted-foreground">{borderConfig.color}</span>
-        </div>
-      </div>
-    )
-  }
+  // 重置为默认值
+  const resetToDefault = useCallback(() => {
+    const defaultBorder = parseBorderValue(definition.default_value)
+    setBorder(defaultBorder)
+    onChange(formatBorderValue(defaultBorder))
+  }, [definition.default_value, onChange])
 
   return (
     <div className="space-y-4">
-      {/* 启用/禁用边框 */}
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">启用边框</Label>
-        <Switch
-          checked={borderConfig.enabled}
-          onCheckedChange={enabled => updateBorderConfig({ enabled })}
-          disabled={disabled}
-        />
+      <div className="flex items-center gap-2">
+        <Label className="text-sm font-medium">{definition.label}</Label>
+        {definition.required && (
+          <Badge variant="secondary" className="text-xs">
+            必填
+          </Badge>
+        )}
       </div>
 
-      {borderConfig.enabled && (
-        <>
-          {/* 预设样式 */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="basic">基础设置</TabsTrigger>
+          <TabsTrigger value="preset">预设样式</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="space-y-4">
+          {/* 边框样式 */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">预设样式</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {PRESET_BORDER_STYLES.map((preset, index) => (
-                <Button
-                  key={index}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => applyPreset(preset)}
-                  disabled={disabled}
-                  className="h-auto p-2"
-                >
-                  <div
-                    className="h-4 w-full rounded border-2"
-                    style={{
-                      borderColor: preset.color,
-                      borderStyle: preset.style,
-                    }}
-                  />
-                </Button>
-              ))}
-            </div>
+            <Label className="text-sm">样式</Label>
+            <Select
+              value={border.style}
+              onValueChange={handleStyleChange}
+              disabled={disabled || readonly}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {borderStyles.map(style => (
+                  <SelectItem key={style.value} value={style.value}>
+                    {style.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* 边框宽度 */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">宽度</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                value={borderConfig.width}
-                onChange={e => updateBorderConfig({ width: parseInt(e.target.value) || 0 })}
-                disabled={disabled}
-                min="0"
-                max="20"
-                className="w-20"
-              />
-              <span className="text-xs text-muted-foreground">px</span>
-            </div>
-          </div>
-
-          {/* 边框样式 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">样式</Label>
-            <Select
-              value={borderConfig.style}
-              onValueChange={(style: BorderConfig['style']) => updateBorderConfig({ style })}
-              disabled={disabled}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="solid">实线</SelectItem>
-                <SelectItem value="dashed">虚线</SelectItem>
-                <SelectItem value="dotted">点线</SelectItem>
-                <SelectItem value="double">双线</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* 边框方向 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">方向</Label>
-            <Select
-              value={borderConfig.side}
-              onValueChange={(side: BorderConfig['side']) => updateBorderConfig({ side })}
-              disabled={disabled}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部</SelectItem>
-                <SelectItem value="top">上边</SelectItem>
-                <SelectItem value="right">右边</SelectItem>
-                <SelectItem value="bottom">下边</SelectItem>
-                <SelectItem value="left">左边</SelectItem>
-                <SelectItem value="x">水平</SelectItem>
-                <SelectItem value="y">垂直</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label className="text-sm">宽度</Label>
+            <Input
+              type="text"
+              value={border.width}
+              onChange={e => handleWidthChange(e.target.value)}
+              placeholder="如: 1px, 2px, 0.5rem"
+              disabled={disabled || readonly}
+            />
           </div>
 
           {/* 边框颜色 */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">颜色</Label>
-            <div className="flex items-center gap-2">
-              <input
+            <Label className="text-sm">颜色</Label>
+            <div className="flex gap-2">
+              <Input
                 type="color"
-                value={borderConfig.color}
-                onChange={e => updateBorderConfig({ color: e.target.value })}
-                disabled={disabled}
-                className="h-10 w-10 cursor-pointer rounded border border-border disabled:opacity-50"
+                value={border.color}
+                onChange={e => handleColorChange(e.target.value)}
+                disabled={disabled || readonly}
+                className="h-10 w-16 p-1"
               />
               <Input
-                value={borderConfig.color}
-                onChange={e => updateBorderConfig({ color: e.target.value })}
-                disabled={disabled}
+                type="text"
+                value={border.color}
+                onChange={e => handleColorChange(e.target.value)}
                 placeholder="#000000"
-                className="flex-1 font-mono text-sm"
+                disabled={disabled || readonly}
+                className="flex-1"
               />
             </div>
-            {/* 预设颜色 */}
-            <div className="flex flex-wrap gap-1">
-              {COMMON_COLORS.map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  className="h-6 w-6 rounded border border-border transition-transform hover:scale-110"
-                  style={{ backgroundColor: color }}
-                  onClick={() => updateBorderConfig({ color })}
-                  disabled={disabled}
-                />
-              ))}
-            </div>
           </div>
+        </TabsContent>
 
-          {/* 预览 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">预览</Label>
-            <div
-              className="flex h-12 w-full items-center justify-center rounded bg-background"
-              style={{
-                border: `${borderConfig.width}px ${borderConfig.style} ${borderConfig.color}`,
-              }}
+        <TabsContent value="preset" className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            {/* 常用预设 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => applyPreset('none')}
+              disabled={disabled || readonly}
+              className="h-8"
             >
-              <span className="text-xs text-muted-foreground">边框预览</span>
-            </div>
+              无边框
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => applyPreset('solid 1px #e5e7eb')}
+              disabled={disabled || readonly}
+              className="h-8"
+            >
+              细边框
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => applyPreset('solid 2px #374151')}
+              disabled={disabled || readonly}
+              className="h-8"
+            >
+              中边框
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => applyPreset('solid 4px #000000')}
+              disabled={disabled || readonly}
+              className="h-8"
+            >
+              粗边框
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => applyPreset('dashed 1px #3b82f6')}
+              disabled={disabled || readonly}
+              className="h-8"
+            >
+              虚线蓝
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => applyPreset('dotted 2px #ef4444')}
+              disabled={disabled || readonly}
+              className="h-8"
+            >
+              点线红
+            </Button>
           </div>
-        </>
-      )}
 
-      {/* 清除按钮 */}
-      {borderConfig.enabled && (
+          {/* 当前值预览 */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">预览</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="flex h-12 items-center justify-center rounded border-2 bg-background"
+                style={{
+                  borderStyle: border.style as any,
+                  borderWidth: border.width,
+                  borderColor: border.color,
+                }}
+              >
+                <span className="text-xs text-muted-foreground">{formatBorderValue(border)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* 工具按钮 */}
+      <div className="flex justify-between">
         <Button
-          type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={clearBorder}
-          disabled={disabled}
-          className="w-full"
+          onClick={resetToDefault}
+          disabled={disabled || readonly}
+          className="text-xs"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
-          清除边框
+          重置
         </Button>
+      </div>
+
+      {/* 错误提示 */}
+      {error && <div className="text-xs text-destructive">{error}</div>}
+
+      {/* 配置信息 */}
+      {definition.description && (
+        <div className="text-xs text-muted-foreground">{definition.description}</div>
       )}
     </div>
   )
 }
+
+export default BorderFieldEditor

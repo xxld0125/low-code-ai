@@ -103,7 +103,7 @@ export interface Notification {
 export interface NotificationAction {
   label: string
   action: () => void | Promise<void>
-  variant?: 'primary' | 'secondary' | 'destructive'
+  variant?: 'default' | 'secondary' | 'destructive'
 }
 
 /**
@@ -674,7 +674,7 @@ export class ConflictDetector {
               // Proceed with operation
               console.log('Proceeding with operation despite own lock')
             },
-            variant: 'primary',
+            variant: 'default',
           })
         } else {
           actions.push({
@@ -687,7 +687,7 @@ export class ConflictDetector {
                 'A notification has been sent to request the lock.'
               )
             },
-            variant: 'primary',
+            variant: 'default',
           })
         }
         break
@@ -700,7 +700,7 @@ export class ConflictDetector {
             // Open rename dialog
             console.log('Opening rename dialog')
           },
-          variant: 'primary',
+          variant: 'default',
         })
         break
 
@@ -711,7 +711,7 @@ export class ConflictDetector {
             // Show affected relationships
             console.log('Showing affected relationships')
           },
-          variant: 'primary',
+          variant: 'default',
         })
         break
 
@@ -722,7 +722,7 @@ export class ConflictDetector {
             // Show what changed
             console.log('Showing changes')
           },
-          variant: 'primary',
+          variant: 'default',
         })
         actions.push({
           label: 'Proceed Anyway',

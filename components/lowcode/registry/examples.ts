@@ -350,7 +350,7 @@ export function demonstratePropSystem() {
   console.log('=== Button组件属性验证示例 ===')
   const buttonProps = {
     text: '提交按钮',
-    variant: 'primary',
+    variant: 'default',
     size: 'large',
     disabled: false,
     loading: true,

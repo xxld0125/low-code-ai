@@ -93,7 +93,7 @@ export const EnhancedRendererExample: React.FC = () => {
     {
       id: 'enhanced-button-1',
       componentType: 'Button',
-      props: { text: '增强按钮', variant: 'primary' },
+      props: { text: '增强按钮', variant: 'default' },
       styles: { margin: 8 },
     },
     {

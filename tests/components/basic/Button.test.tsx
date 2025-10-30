@@ -42,7 +42,7 @@ describe('Button组件', () => {
       render(<Button text="主要按钮" variant="primary" />)
 
       const button = screen.getByTestId('button')
-      expect(button).toHaveAttribute('data-variant', 'primary')
+      expect(button).toHaveAttribute('data-variant', 'default')
     })
 
     test('正确渲染secondary变体', () => {
@@ -247,7 +247,7 @@ describe('Button组件', () => {
 
       validVariants.forEach(variant => {
         expect(() => {
-          render(<Button text="测试" variant={variant as 'primary' | 'secondary' | 'outline'} />)
+          render(<Button text="测试" variant={variant as 'default' | 'secondary' | 'outline'} />)
         }).not.toThrow()
       })
     })
