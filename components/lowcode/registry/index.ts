@@ -74,13 +74,7 @@ export {
 export { TextDefinition, HeadingDefinition, ImageDefinition, CardDefinition, BadgeDefinition }
 
 // 布局组件定义导出
-export {
-  ContainerDefinition,
-  RowDefinition,
-  ColDefinition,
-  DividerDefinition,
-  SpacerDefinition,
-}
+export { ContainerDefinition, RowDefinition, ColDefinition, DividerDefinition, SpacerDefinition }
 
 // 表单组件导出
 export { Button, type LowcodeButtonProps } from '../basic/Button'
@@ -148,9 +142,9 @@ export { CardIcon } from '../display/Card'
 export { BadgeIcon } from '../display/Badge'
 
 // 布局组件导出
-export { PageContainer as Container } from '../layout/Container'
-export { PageRow as Row } from '../layout/Row'
-export { PageCol as Col } from '../layout/Col'
+export { Container } from '../layout/Container'
+export { Row } from '../layout/Row'
+export { Col } from '../layout/Col'
 export { Divider } from '../layout/Divider'
 export { Spacer } from '../layout/Spacer'
 

@@ -1,41 +1,61 @@
+/**
+ * Divider 预览组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
+ * 创建日期: 2025-10-30
+ */
+
 import React from 'react'
-import { cn } from '@/lib/utils'
+import { Divider } from './Divider'
+import type { DividerProps } from '@/types/lowcode/component'
 
 interface DividerPreviewProps {
+  props?: Partial<DividerProps>
+  styles?: Record<string, any>
   onClick?: () => void
 }
 
-export const DividerPreview: React.FC<DividerPreviewProps> = ({ onClick }) => {
+export const DividerPreview: React.FC<DividerPreviewProps> = ({
+  props = {},
+  styles = {},
+  onClick,
+}) => {
+  const defaultPreviewProps: DividerProps = {
+    orientation: 'horizontal',
+    thickness: 1,
+    color: '#d1d5db',
+    style: 'solid',
+    length: '80%',
+  }
+
+  const mergedProps = { ...defaultPreviewProps, ...props }
+
   return (
     <div
-      className={cn(
-        'flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-3 hover:border-blue-300 hover:bg-blue-50'
-      )}
+      className="cursor-pointer transition-opacity hover:opacity-80"
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           onClick?.()
         }
       }}
     >
-      <div className="flex w-full flex-col items-center gap-2">
-        {/* 水平分割线预览 */}
-        <div className="flex w-full items-center gap-2">
-          <div className="h-px flex-1 bg-gray-300"></div>
-          <span className="text-xs text-gray-500">分割线</span>
-          <div className="h-px flex-1 bg-gray-300"></div>
+      <div className="flex flex-col items-center gap-4 p-4">
+        {/* 水平分割线示例 */}
+        <div className="w-full">
+          <div className="mb-2 text-xs text-gray-500">水平分割线</div>
+          <Divider {...mergedProps} orientation="horizontal" />
         </div>
 
-        {/* 垂直分割线预览 */}
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-px bg-gray-400"></div>
-          <span className="text-xs text-gray-400">|</span>
+        {/* 垂直分割线示例 */}
+        <div className="flex w-full items-center justify-center gap-4">
+          <div className="text-xs text-gray-500">垂直分割线</div>
+          <div className="h-12">
+            <Divider {...mergedProps} orientation="vertical" length="100%" />
+          </div>
         </div>
       </div>
     </div>
   )
 }
-
-export default DividerPreview

@@ -1,17 +1,31 @@
 /**
- * Row预览组件（从现有PageRowPreview迁移）
+ * Row 预览组件
  * 功能模块: 基础组件库 (004-basic-component-library)
- * 创建日期: 2025-10-28
+ * 创建日期: 2025-10-30
  */
 
 import React from 'react'
+import { Row } from './Row'
+import type { RowProps } from '@/types/lowcode/component'
 
-export const RowPreview: React.FC<{
+interface RowPreviewProps {
+  props?: Partial<RowProps>
+  styles?: Record<string, any>
   onClick?: () => void
-}> = ({ onClick }) => {
+}
+
+export const RowPreview: React.FC<RowPreviewProps> = ({ props = {}, styles = {}, onClick }) => {
+  const defaultPreviewProps: RowProps = {
+    gap: 8,
+    justify: 'start',
+    align: 'center',
+  }
+
+  const mergedProps = { ...defaultPreviewProps, ...props }
+
   return (
     <div
-      className="flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50"
+      className="cursor-pointer transition-opacity hover:opacity-80"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -21,11 +35,14 @@ export const RowPreview: React.FC<{
         }
       }}
     >
-      <div className="flex gap-1">
-        <div className="h-8 w-8 rounded bg-blue-300"></div>
-        <div className="h-8 w-8 rounded bg-blue-400"></div>
-        <div className="h-8 w-8 rounded bg-blue-300"></div>
-      </div>
+      <Row {...mergedProps}>
+        {/* 模拟内容 */}
+        <div className="flex gap-2">
+          <div className="h-8 w-8 rounded bg-blue-300"></div>
+          <div className="h-8 w-8 rounded bg-blue-400"></div>
+          <div className="h-8 w-8 rounded bg-blue-300"></div>
+        </div>
+      </Row>
     </div>
   )
 }

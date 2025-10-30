@@ -1,11 +1,12 @@
 /**
  * Container组件导出
  * 功能模块: 基础组件库 (004-basic-component-library)
- * 创建日期: 2025-10-28
+ * 创建日期: 2025-10-30
  */
 
-import { PageContainer } from './Container'
+import { Container } from './Container'
 import { ContainerPreview } from './Preview'
 import { ContainerIcon } from './Icon'
+import { ContainerDefinition } from './definition'
 
-export { PageContainer as Container, ContainerPreview, ContainerIcon, PageContainer }
+export { Container, ContainerPreview, ContainerIcon, ContainerDefinition }

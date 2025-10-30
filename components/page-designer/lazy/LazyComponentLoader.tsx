@@ -88,10 +88,10 @@ const BASIC_COMPONENTS = {
 // 布局组件懒加载映射
 const LAYOUT_COMPONENTS = {
   container: lazy(() =>
-    import('@/components/lowcode/layout/Container').then(m => ({ default: m.PageContainer }))
+    import('@/components/lowcode/layout/Container').then(m => ({ default: m.Container }))
   ),
-  row: lazy(() => import('@/components/lowcode/layout/Row').then(m => ({ default: m.PageRow }))),
-  col: lazy(() => import('@/components/lowcode/layout/Col').then(m => ({ default: m.PageCol }))),
+  row: lazy(() => import('@/components/lowcode/layout/Row').then(m => ({ default: m.Row }))),
+  col: lazy(() => import('@/components/lowcode/layout/Col').then(m => ({ default: m.Col }))),
 }
 
 // 表单组件懒加载映射（暂时注释，等组件创建后再启用）

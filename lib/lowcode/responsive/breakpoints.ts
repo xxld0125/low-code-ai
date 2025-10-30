@@ -133,3 +133,19 @@ export function getPreviousBreakpoint(breakpoint: Breakpoint): Breakpoint | null
 export function isValidBreakpoint(breakpoint: string): breakpoint is Breakpoint {
   return Object.keys(BREAKPOINTS).includes(breakpoint)
 }
+
+/**
+ * 获取当前屏幕断点
+ * 在客户端使用时返回实际断点，在服务端使用时返回默认断点
+ * @returns 当前断点
+ */
+export function getCurrentBreakpoint(): Breakpoint {
+  // 检查是否在客户端环境
+  if (typeof window !== 'undefined') {
+    const width = window.innerWidth
+    return getBreakpointForWidth(width)
+  }
+
+  // 服务端渲染时返回默认断点（mobile-first）
+  return 'mobile'
+}

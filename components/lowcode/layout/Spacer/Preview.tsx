@@ -1,53 +1,74 @@
+/**
+ * Spacer 预览组件
+ * 功能模块: 基础组件库 (004-basic-component-library)
+ * 创建日期: 2025-10-30
+ */
+
 import React from 'react'
-import { cn } from '@/lib/utils'
+import { Spacer } from './Spacer'
+import type { SpacerProps } from '@/types/lowcode/component'
 
 interface SpacerPreviewProps {
+  props?: Partial<SpacerProps>
+  styles?: Record<string, any>
   onClick?: () => void
 }
 
-export const SpacerPreview: React.FC<SpacerPreviewProps> = ({ onClick }) => {
+export const SpacerPreview: React.FC<SpacerPreviewProps> = ({
+  props = {},
+  styles = {},
+  onClick,
+}) => {
+  const defaultPreviewProps: SpacerProps = {
+    size: 16,
+    direction: 'vertical',
+  }
+
+  const mergedProps = { ...defaultPreviewProps, ...props }
+
   return (
     <div
-      className={cn(
-        'flex h-16 w-full cursor-pointer items-center justify-center rounded border border-gray-200 bg-white p-3 hover:border-blue-300 hover:bg-blue-50'
-      )}
+      className="cursor-pointer transition-opacity hover:opacity-80"
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           onClick?.()
         }
       }}
     >
-      <div className="flex w-full flex-col items-center justify-center gap-3">
-        {/* 垂直间距预览 */}
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-8 rounded bg-gray-300"></div>
-          <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-          <div className="h-2 w-12 rounded bg-gray-400"></div>
-          <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-          <div className="h-2 w-6 rounded bg-gray-300"></div>
+      <div className="flex flex-col items-center gap-4 p-4">
+        {/* 垂直间距示例 */}
+        <div className="w-full">
+          <div className="mb-2 text-xs text-gray-500">垂直间距</div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-8 rounded bg-gray-300"></div>
+            <Spacer {...mergedProps} direction="vertical" size={8} />
+            <div className="h-2 w-12 rounded bg-gray-400"></div>
+          </div>
         </div>
 
-        {/* 水平间距预览 */}
-        <div className="flex items-center gap-1">
-          <div className="h-2 w-6 rounded bg-gray-400"></div>
-          <div className="flex w-4 justify-center">
-            <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+        {/* 水平间距示例 */}
+        <div className="w-full">
+          <div className="mb-2 text-xs text-gray-500">水平间距</div>
+          <div className="flex items-center justify-center">
+            <div className="h-2 w-6 rounded bg-gray-300"></div>
+            <Spacer {...mergedProps} direction="horizontal" size={12} />
+            <div className="h-2 w-8 rounded bg-gray-400"></div>
           </div>
-          <div className="h-2 w-8 rounded bg-gray-300"></div>
-          <div className="flex w-4 justify-center">
-            <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-          </div>
-          <div className="h-2 w-4 rounded bg-gray-400"></div>
         </div>
 
-        {/* 标签 */}
-        <span className="text-xs text-gray-500">间距</span>
+        {/* 弹性间距示例 */}
+        <div className="w-full">
+          <div className="mb-2 text-xs text-gray-500">弹性间距</div>
+          <div className="flex h-8 items-center">
+            <div className="h-2 w-8 rounded bg-gray-300"></div>
+            <Spacer direction="horizontal" size={16} />
+            <div className="h-2 w-8 rounded bg-gray-400"></div>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
-
-export default SpacerPreview

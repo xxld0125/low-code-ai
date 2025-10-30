@@ -64,6 +64,28 @@ export {
   generateAccessibilityReport,
 } from './accessibility'
 
+// 栅格系统导出
+export {
+  type GridSystemConfig,
+  type GridColumn,
+  type GridRow,
+  type GridContainer,
+  GridSystemManager,
+  DEFAULT_GRID_CONFIG,
+  RESPONSIVE_GRID_CONFIGS,
+  defaultGridSystem,
+  getGridSystem,
+  gridUtils,
+  calculateGridWidth,
+  calculateGridOffset,
+  validateGridSpan,
+  validateGridOffset,
+  calculateGridColumnStyles,
+  calculateGridRowStyles,
+  calculateGridContainerStyles,
+  getResponsiveValue,
+} from './grid-system'
+
 // 版本信息
 export const RESPONSIVE_SYSTEM_VERSION = '1.0.0'
 export const WCAG_VERSION = '2.1'

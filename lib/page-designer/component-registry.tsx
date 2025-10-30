@@ -676,22 +676,28 @@ const ImageWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
 )
 
 const ContainerWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <Container
-    id="preview"
-    type="container"
-    props={{}}
-    styles={{}}
-    events={{}}
-    onSelect={() => onClick?.()}
-  />
+  <div onClick={onClick} className="cursor-pointer">
+    <Container padding={{ x: 16, y: 16 }}>
+      <div className="text-center text-sm text-gray-500">Container</div>
+    </Container>
+  </div>
 )
 
 const RowWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <Row id="preview" type="row" props={{}} styles={{}} events={{}} onSelect={() => onClick?.()} />
+  <div onClick={onClick} className="cursor-pointer">
+    <Row gap={8} padding={{ x: 16, y: 8 }}>
+      <div className="h-8 flex-1 rounded bg-gray-200"></div>
+      <div className="h-8 flex-1 rounded bg-gray-300"></div>
+    </Row>
+  </div>
 )
 
 const ColWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <Col id="preview" type="col" props={{}} styles={{}} events={{}} onSelect={() => onClick?.()} />
+  <div onClick={onClick} className="cursor-pointer">
+    <Col span={12} padding={{ x: 8, y: 8 }}>
+      <div className="h-8 rounded bg-gray-200"></div>
+    </Col>
+  </div>
 )
 
 // 预览组件注册表
