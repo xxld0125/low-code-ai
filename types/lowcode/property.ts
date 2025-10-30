@@ -20,6 +20,8 @@ export interface PropertyDefinition {
   group?: string
   order?: number
   conditional?: PropertyCondition
+  min?: number
+  max?: number
 }
 
 export type PropertyType =
@@ -75,11 +77,11 @@ export type ValidationType =
   | 'url'
   | 'custom'
 
-// 组件定义
+// 组件定义 - 简化版本，用于向后兼容
 export interface ComponentDefinition<TProps = Record<string, unknown>, TPreviewProps = TProps> {
   type: string
   name: string
-  category: 'basic' | 'display' | 'layout'
+  category: 'basic' | 'display' | 'layout' | 'form'
   description: string
   icon: string
   component?: React.ComponentType<TProps>

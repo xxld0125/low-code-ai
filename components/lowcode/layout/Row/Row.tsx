@@ -9,7 +9,7 @@ import { ComponentRendererProps } from '@/types/page-designer/component'
 import { RowProps } from '@/types/page-designer/layout'
 import { cn } from '@/lib/utils'
 
-export const PageRow: React.FC<ComponentRendererProps> = ({
+export const PageRow: React.FC<ComponentRendererProps & React.HTMLAttributes<HTMLDivElement>> = ({
   id,
   props,
   styles,
@@ -18,6 +18,7 @@ export const PageRow: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
   children,
+  ...htmlProps
 }) => {
   const rowProps = props.row || {
     wrap: false,
@@ -161,6 +162,7 @@ export const PageRow: React.FC<ComponentRendererProps> = ({
       tabIndex={0}
       role="group"
       aria-label="行布局组件"
+      {...htmlProps}
     >
       {children}
     </div>

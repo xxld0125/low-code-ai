@@ -1,21 +1,14 @@
 /**
- * Jest类型定义
- * 功能模块: 测试配置
- * 创建日期: 2025-10-29
+ * 测试类型定义文件
+ * 为Jest matcher和其他测试工具提供类型支持
  */
 
-// Jest自定义匹配器类型
-export {}
+import '@testing-library/jest-dom'
 
+// 扩展Jest matcher
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toBeComponentWithProps: (componentType: string, props: Record<string, unknown>) => R
-      toBeValidComponent: () => R
-      toHaveCorrectProps: (expectedProps: Record<string, unknown>) => R
-
-      // Testing Library matchers
       toBeInTheDocument(): R
       toHaveAttribute(attr: string, value?: string): R
       toHaveTextContent(text: string | RegExp): R
@@ -40,3 +33,10 @@ declare global {
     }
   }
 }
+
+// Vitest支持
+declare module 'vitest' {
+  export interface Assertion<T = any> extends jest.Matchers<T> {}
+}
+
+export {}

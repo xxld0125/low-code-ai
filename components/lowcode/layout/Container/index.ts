@@ -6,5 +6,6 @@
 
 import { PageContainer } from './Container'
 import { ContainerPreview } from './Preview'
+import { ContainerIcon } from './Icon'
 
-export { PageContainer as Container, ContainerPreview, PageContainer }
+export { PageContainer as Container, ContainerPreview, ContainerIcon, PageContainer }

@@ -6,5 +6,6 @@
 
 import { PageCol } from './Col'
 import { ColPreview } from './Preview'
+import { ColIcon } from './Icon'
 
-export { PageCol as Col, ColPreview, PageCol }
+export { PageCol as Col, ColPreview, ColIcon, PageCol }

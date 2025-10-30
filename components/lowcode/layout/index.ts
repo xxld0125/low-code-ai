@@ -8,7 +8,5 @@
 export * from './Container'
 export * from './Row'
 export * from './Col'
-
-// 将在后续任务中添加导出
-// export * from './Divider'
-// export * from './Spacer'
+export * from './Divider'
+export * from './Spacer'

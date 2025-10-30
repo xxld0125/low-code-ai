@@ -6,5 +6,6 @@
 
 import { PageRow } from './Row'
 import { RowPreview } from './Preview'
+import { RowIcon } from './Icon'
 
-export { PageRow as Row, RowPreview, PageRow }
+export { PageRow as Row, RowPreview, RowIcon, PageRow }

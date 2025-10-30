@@ -441,6 +441,14 @@ export interface ComponentDefinition {
   render: (props: any) => React.ReactElement
   constraints: ComponentConstraints
   examples?: ComponentExample[]
+
+  // 新增属性以支持 validation.ts
+  tags?: string[]
+  configurable?: Record<string, any>
+  responsive?: {
+    breakpoints?: string[]
+    properties?: string[]
+  }
 }
 
 // 属性定义

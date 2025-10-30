@@ -9,7 +9,7 @@ import { ComponentRendererProps } from '@/types/page-designer/component'
 import { ContainerProps } from '@/types/page-designer/layout'
 import { cn } from '@/lib/utils'
 
-export const PageContainer: React.FC<ComponentRendererProps> = ({
+export const PageContainer: React.FC<ComponentRendererProps & React.HTMLAttributes<HTMLDivElement>> = ({
   id,
   props,
   styles,
@@ -18,6 +18,7 @@ export const PageContainer: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
   children,
+  ...htmlProps
 }) => {
   const containerProps = props.container || {
     direction: 'column',
@@ -156,21 +157,21 @@ export const PageContainer: React.FC<ComponentRendererProps> = ({
     borderRadius: getBorderRadiusStyle(containerProps.rounded),
 
     // 自定义样式
-    width: styles.width || '100%',
-    height: styles.height || 'auto',
-    minWidth: styles.minWidth,
-    minHeight: styles.minHeight,
-    maxWidth: styles.maxWidth,
-    maxHeight: styles.maxHeight,
-    position: styles.position || 'relative',
-    top: styles.top,
-    right: styles.right,
-    bottom: styles.bottom,
-    left: styles.left,
-    zIndex: styles.zIndex,
-    opacity: styles.opacity,
-    overflow: styles.overflow || 'visible',
-    transition: styles.transition || 'all 0.2s ease-in-out',
+    width: styles?.width || '100%',
+    height: styles?.height || 'auto',
+    minWidth: styles?.minWidth,
+    minHeight: styles?.minHeight,
+    maxWidth: styles?.maxWidth,
+    maxHeight: styles?.maxHeight,
+    position: styles?.position || 'relative',
+    top: styles?.top,
+    right: styles?.right,
+    bottom: styles?.bottom,
+    left: styles?.left,
+    zIndex: styles?.zIndex,
+    opacity: styles?.opacity,
+    overflow: styles?.overflow || 'visible',
+    transition: styles?.transition || 'all 0.2s ease-in-out',
     cursor: isDragging ? 'grabbing' : 'pointer',
     userSelect: 'none',
 
@@ -196,6 +197,7 @@ export const PageContainer: React.FC<ComponentRendererProps> = ({
       tabIndex={0}
       role="group"
       aria-label="容器组件"
+      {...htmlProps}
     >
       {children}
     </div>

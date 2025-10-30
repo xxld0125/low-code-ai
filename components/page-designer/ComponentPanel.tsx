@@ -38,6 +38,13 @@ import { ImagePreview } from '@/components/lowcode/display/Image'
 import { CardPreview } from '@/components/lowcode/display/Card'
 import { BadgePreview } from '@/components/lowcode/display/Badge'
 
+// 布局组件导入
+import { ContainerPreview } from '@/components/lowcode/layout/Container'
+import { RowPreview } from '@/components/lowcode/layout/Row'
+import { ColPreview } from '@/components/lowcode/layout/Col'
+import { DividerPreview } from '@/components/lowcode/layout/Divider'
+import { SpacerPreview } from '@/components/lowcode/layout/Spacer'
+
 // 创建适配器组件以匹配期望的类型
 const createPreviewAdapter = (PreviewComponent: React.FC<any>) => {
   const AdapterComponent = (props: { onClick?: () => void }) => {
@@ -182,6 +189,52 @@ const BASIC_COMPONENTS = [
     preview: BadgePreview,
     keywords: ['badge', 'label', '徽章', '标签'],
   },
+  // 布局组件
+  {
+    type: 'container',
+    name: '容器',
+    description: '基础容器组件，用于包裹和组织其他组件',
+    category: 'layout',
+    icon: '📦',
+    preview: createPreviewAdapter(ContainerPreview),
+    keywords: ['container', 'wrapper', '容器', '容器'],
+  },
+  {
+    type: 'row',
+    name: '行',
+    description: '水平布局容器，用于将子组件水平排列',
+    category: 'layout',
+    icon: '↔️',
+    preview: createPreviewAdapter(RowPreview),
+    keywords: ['row', 'horizontal', 'flex', '行', '水平'],
+  },
+  {
+    type: 'col',
+    name: '列',
+    description: '栅格列组件，用于在Row组件中创建列布局',
+    category: 'layout',
+    icon: '↕️',
+    preview: createPreviewAdapter(ColPreview),
+    keywords: ['col', 'column', 'grid', '列', '栅格'],
+  },
+  {
+    type: 'divider',
+    name: '分割线',
+    description: '分割线组件，用于分隔内容区域',
+    category: 'layout',
+    icon: '➖',
+    preview: createPreviewAdapter(DividerPreview),
+    keywords: ['divider', 'separator', '分割线', '分隔'],
+  },
+  {
+    type: 'spacer',
+    name: '间距',
+    description: '间距组件，用于在元素之间创建空间',
+    category: 'layout',
+    icon: '⬜',
+    preview: createPreviewAdapter(SpacerPreview),
+    keywords: ['spacer', 'space', 'gap', '间距', '空间'],
+  },
 ] as const
 
 // 拖拽组件项
@@ -213,8 +266,8 @@ const DraggableComponentItem: React.FC<{
     // 阻止点击事件冒泡到拖拽处理器
     e.preventDefault()
     e.stopPropagation()
-    // 注释掉点击添加组件的功能，只允许拖拽添加
-    // onComponentClick?.(component.type)
+    // 恢复点击添加组件的功能，同时支持拖拽和点击
+    onComponentClick?.(component.type)
   }
 
   const style = transform
@@ -243,8 +296,8 @@ const DraggableComponentItem: React.FC<{
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          // 键盘事件也不添加组件，只允许拖拽
-          // handleClick()
+          // 恢复键盘交互功能，支持键盘操作添加组件
+          onComponentClick?.(component.type)
         }
       }}
       aria-label={`拖拽 ${component.name} 组件到画布`}
@@ -372,7 +425,7 @@ export const ComponentPanel: React.FC<{
 }> = ({ className, onComponentSelect }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(['form', 'display'])
+    new Set(['form', 'display', 'layout'])
   )
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 

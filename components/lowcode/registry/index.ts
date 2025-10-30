@@ -8,6 +8,9 @@
 // 类型定义导出
 export * from './types'
 
+// 类型转换工具导出
+export { convertToFullComponentDefinition } from './type-conversion'
+
 // 属性定义和验证系统导出 (T006任务完成)
 export {
   PropValidator,
@@ -50,6 +53,13 @@ import { ImageDefinition } from '../display/Image/definition'
 import { CardDefinition } from '../display/Card/definition'
 import { BadgeDefinition } from '../display/Badge/definition'
 
+// 布局组件定义导入 (T103任务完成)
+import { ContainerDefinition } from '../layout/Container/definition'
+import { RowDefinition } from '../layout/Row/definition'
+import { ColDefinition } from '../layout/Col/definition'
+import { DividerDefinition } from '../layout/Divider/definition'
+import { SpacerDefinition } from '../layout/Spacer/definition'
+
 // 表单组件定义导出
 export {
   ButtonDefinition,
@@ -62,6 +72,15 @@ export {
 
 // 展示组件定义导出
 export { TextDefinition, HeadingDefinition, ImageDefinition, CardDefinition, BadgeDefinition }
+
+// 布局组件定义导出
+export {
+  ContainerDefinition,
+  RowDefinition,
+  ColDefinition,
+  DividerDefinition,
+  SpacerDefinition,
+}
 
 // 表单组件导出
 export { Button, type LowcodeButtonProps } from '../basic/Button'
@@ -128,6 +147,27 @@ export { ImageIcon } from '../display/Image'
 export { CardIcon } from '../display/Card'
 export { BadgeIcon } from '../display/Badge'
 
+// 布局组件导出
+export { PageContainer as Container } from '../layout/Container'
+export { PageRow as Row } from '../layout/Row'
+export { PageCol as Col } from '../layout/Col'
+export { Divider } from '../layout/Divider'
+export { Spacer } from '../layout/Spacer'
+
+// 布局预览组件导出
+export { ContainerPreview } from '../layout/Container'
+export { RowPreview } from '../layout/Row'
+export { ColPreview } from '../layout/Col'
+export { DividerPreview } from '../layout/Divider'
+export { SpacerPreview } from '../layout/Spacer'
+
+// 布局图标组件导出
+export { ContainerIcon } from '../layout/Container'
+export { RowIcon } from '../layout/Row'
+export { ColIcon } from '../layout/Col'
+export { DividerIcon } from '../layout/Divider'
+export { SpacerIcon } from '../layout/Spacer'
+
 // 所有表单组件定义数组，用于批量注册
 export const FORM_COMPONENT_DEFINITIONS = [
   ButtonDefinition,
@@ -147,10 +187,20 @@ export const DISPLAY_COMPONENT_DEFINITIONS = [
   BadgeDefinition,
 ] as const
 
+// 所有布局组件定义数组，用于批量注册
+export const LAYOUT_COMPONENT_DEFINITIONS = [
+  ContainerDefinition,
+  RowDefinition,
+  ColDefinition,
+  DividerDefinition,
+  SpacerDefinition,
+] as const
+
 // 所有组件定义数组，用于批量注册
 export const ALL_COMPONENT_DEFINITIONS = [
   ...FORM_COMPONENT_DEFINITIONS,
   ...DISPLAY_COMPONENT_DEFINITIONS,
+  ...LAYOUT_COMPONENT_DEFINITIONS,
 ] as const
 
 // 组件分类常量
@@ -182,8 +232,28 @@ export const DISPLAY_COMPONENT_TYPES = {
   BADGE: 'badge',
 } as const
 
+// 布局组件类型常量
+export const LAYOUT_COMPONENT_TYPES = {
+  CONTAINER: 'container',
+  ROW: 'row',
+  COL: 'col',
+  DIVIDER: 'divider',
+  SPACER: 'spacer',
+} as const
+
 // 所有组件类型常量
 export const ALL_COMPONENT_TYPES = {
   ...FORM_COMPONENT_TYPES,
   ...DISPLAY_COMPONENT_TYPES,
+  ...LAYOUT_COMPONENT_TYPES,
 } as const
+
+// 组件注册系统导出
+export {
+  registerAllComponents,
+  initializeComponentRegistry,
+  registerComponentsByCategory,
+  checkComponentRegistration,
+  getRegistrationStats,
+  clearRegistry,
+} from './registration'
