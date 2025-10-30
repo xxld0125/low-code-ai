@@ -656,25 +656,11 @@ const COMPONENT_REGISTRY: Partial<
 
 // 预览组件包装器
 const ButtonWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <Button
-    id="preview"
-    type="button"
-    props={{ button: { text: '按钮', variant: 'primary', size: 'md' } }}
-    styles={{}}
-    events={{}}
-    onSelect={() => onClick?.()}
-  />
+  <Button text="按钮" variant="default" size="default" onClick={() => onClick?.()} />
 )
 
 const InputWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <Input
-    id="preview"
-    type="input"
-    props={{ input: { placeholder: '输入框', type: 'text' } }}
-    styles={{}}
-    events={{}}
-    onSelect={() => onClick?.()}
-  />
+  <Input type="text" placeholder="输入框" />
 )
 
 const TextWrapper: React.FC<{ onClick?: () => void }> = ({ onClick }) => (

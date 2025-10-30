@@ -7,9 +7,13 @@ import { createLayoutTestProps } from '../../utils/test-utils'
 // Mock dependencies - Spacer组件不需要额外的UI组件依赖
 
 describe('Spacer组件', () => {
-  const defaultProps = createLayoutTestProps('spacer', {}, {
-    'data-testid': 'spacer',
-  })
+  const defaultProps = createLayoutTestProps(
+    'spacer',
+    {},
+    {
+      'data-testid': 'spacer',
+    }
+  )
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -29,9 +33,13 @@ describe('Spacer组件', () => {
       height: '20px',
     }
 
-    const propsWithStyles = createLayoutTestProps('spacer', {}, {
-      styles: customStyles,
-    })
+    const propsWithStyles = createLayoutTestProps(
+      'spacer',
+      {},
+      {
+        styles: customStyles,
+      }
+    )
 
     render(<Spacer {...propsWithStyles} />)
 
@@ -44,9 +52,13 @@ describe('Spacer组件', () => {
   })
 
   it('应该应用自定义类名', () => {
-    const propsWithClassName = createLayoutTestProps('spacer', {}, {
-      className: 'custom-spacer-class',
-    })
+    const propsWithClassName = createLayoutTestProps(
+      'spacer',
+      {},
+      {
+        className: 'custom-spacer-class',
+      }
+    )
 
     render(<Spacer {...propsWithClassName} />)
 
@@ -101,7 +113,7 @@ describe('Spacer组件', () => {
   it('应该支持预设size值', () => {
     const sizes = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl']
 
-    sizes.forEach((size) => {
+    sizes.forEach(size => {
       const propsWithPresetSize = createLayoutTestProps('spacer', {
         size: size,
       })
@@ -126,9 +138,13 @@ describe('Spacer组件', () => {
   })
 
   it('应该支持内嵌子元素', () => {
-    const propsWithChildren = createLayoutTestProps('spacer', {}, {
-      children: <div>内嵌内容</div>,
-    })
+    const propsWithChildren = createLayoutTestProps(
+      'spacer',
+      {},
+      {
+        children: <div>内嵌内容</div>,
+      }
+    )
 
     render(<Spacer {...propsWithChildren} />)
 
@@ -137,10 +153,14 @@ describe('Spacer组件', () => {
   })
 
   it('应该支持其他HTML属性', () => {
-    const propsWithCustomAttributes = createLayoutTestProps('spacer', {}, {
-      'data-testid': 'custom-test-id',
-      role: 'separator',
-    })
+    const propsWithCustomAttributes = createLayoutTestProps(
+      'spacer',
+      {},
+      {
+        'data-testid': 'custom-test-id',
+        role: 'separator',
+      }
+    )
 
     render(<Spacer {...propsWithCustomAttributes} />)
 
@@ -150,9 +170,13 @@ describe('Spacer组件', () => {
   })
 
   it('应该处理空样式对象', () => {
-    const propsWithEmptyStyles = createLayoutTestProps('spacer', {}, {
-      styles: {},
-    })
+    const propsWithEmptyStyles = createLayoutTestProps(
+      'spacer',
+      {},
+      {
+        styles: {},
+      }
+    )
 
     render(<Spacer {...propsWithEmptyStyles} />)
 
@@ -161,9 +185,13 @@ describe('Spacer组件', () => {
   })
 
   it('应该处理null样式', () => {
-    const propsWithNullStyles = createLayoutTestProps('spacer', {}, {
-      styles: null as unknown as any,
-    })
+    const propsWithNullStyles = createLayoutTestProps(
+      'spacer',
+      {},
+      {
+        styles: null as unknown as Record<string, unknown>,
+      }
+    )
 
     render(<Spacer {...propsWithNullStyles} />)
 

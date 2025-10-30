@@ -7,9 +7,13 @@ import { createLayoutTestProps } from '../../utils/test-utils'
 // Mock dependencies - Col组件不需要额外的UI组件依赖
 
 describe('Col组件', () => {
-  const defaultProps = createLayoutTestProps('col', {}, {
-    children: <div>测试内容</div>,
-  })
+  const defaultProps = createLayoutTestProps(
+    'col',
+    {},
+    {
+      children: <div>测试内容</div>,
+    }
+  )
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -30,10 +34,14 @@ describe('Col组件', () => {
       margin: '8px',
     }
 
-    const propsWithStyles = createLayoutTestProps('col', {}, {
-      styles: customStyles,
-      children: <div>测试内容</div>,
-    })
+    const propsWithStyles = createLayoutTestProps(
+      'col',
+      {},
+      {
+        styles: customStyles,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithStyles} />)
 
@@ -46,11 +54,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持span属性', () => {
-    const propsWithSpan = createLayoutTestProps('col', {
-      span: 12,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithSpan = createLayoutTestProps(
+      'col',
+      {
+        span: 12,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithSpan} />)
 
@@ -59,11 +71,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持offset属性', () => {
-    const propsWithOffset = createLayoutTestProps('col', {
-      offset: 2,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithOffset = createLayoutTestProps(
+      'col',
+      {
+        offset: 2,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithOffset} />)
 
@@ -72,11 +88,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持order属性', () => {
-    const propsWithOrder = createLayoutTestProps('col', {
-      order: 1,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithOrder = createLayoutTestProps(
+      'col',
+      {
+        order: 1,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithOrder} />)
 
@@ -85,11 +105,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持flex属性', () => {
-    const propsWithFlex = createLayoutTestProps('col', {
-      flex: '1',
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithFlex = createLayoutTestProps(
+      'col',
+      {
+        flex: '1',
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithFlex} />)
 
@@ -98,17 +122,21 @@ describe('Col组件', () => {
   })
 
   it('应该支持响应式断点属性', () => {
-    const propsWithResponsive = createLayoutTestProps('col', {
-      span: {
-        xs: 24,
-        sm: 12,
-        md: 8,
-        lg: 6,
-        xl: 4,
+    const propsWithResponsive = createLayoutTestProps(
+      'col',
+      {
+        span: {
+          xs: 24,
+          sm: 12,
+          md: 8,
+          lg: 6,
+          xl: 4,
+        },
       },
-    }, {
-      children: <div>测试内容</div>,
-    })
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithResponsive} />)
 
@@ -117,11 +145,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持flexGrow属性', () => {
-    const propsWithFlexGrow = createLayoutTestProps('col', {
-      flexGrow: 1,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithFlexGrow = createLayoutTestProps(
+      'col',
+      {
+        flexGrow: 1,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithFlexGrow} />)
 
@@ -130,11 +162,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持flexShrink属性', () => {
-    const propsWithFlexShrink = createLayoutTestProps('col', {
-      flexShrink: 0,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithFlexShrink = createLayoutTestProps(
+      'col',
+      {
+        flexShrink: 0,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithFlexShrink} />)
 
@@ -143,11 +179,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持flexBasis属性', () => {
-    const propsWithFlexBasis = createLayoutTestProps('col', {
-      flexBasis: '200px',
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithFlexBasis = createLayoutTestProps(
+      'col',
+      {
+        flexBasis: '200px',
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithFlexBasis} />)
 
@@ -156,11 +196,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持alignSelf属性', () => {
-    const propsWithAlignSelf = createLayoutTestProps('col', {
-      alignSelf: 'center',
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithAlignSelf = createLayoutTestProps(
+      'col',
+      {
+        alignSelf: 'center',
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithAlignSelf} />)
 
@@ -169,11 +213,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持padding属性', () => {
-    const propsWithPadding = createLayoutTestProps('col', {
-      padding: { x: 16, y: 8 },
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithPadding = createLayoutTestProps(
+      'col',
+      {
+        padding: { x: 16, y: 8 },
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithPadding} />)
 
@@ -182,11 +230,15 @@ describe('Col组件', () => {
   })
 
   it('应该支持margin属性', () => {
-    const propsWithMargin = createLayoutTestProps('col', {
-      margin: { x: 16, y: 8 },
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithMargin = createLayoutTestProps(
+      'col',
+      {
+        margin: { x: 16, y: 8 },
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithMargin} />)
 
@@ -202,9 +254,13 @@ describe('Col组件', () => {
       </div>
     )
 
-    const propsWithChildren = createLayoutTestProps('col', {}, {
-      children: testChildren,
-    })
+    const propsWithChildren = createLayoutTestProps(
+      'col',
+      {},
+      {
+        children: testChildren,
+      }
+    )
 
     render(<Col {...propsWithChildren} />)
 
@@ -214,10 +270,14 @@ describe('Col组件', () => {
   })
 
   it('应该处理空样式对象', () => {
-    const propsWithEmptyStyles = createLayoutTestProps('col', {}, {
-      styles: {},
-      children: <div>测试内容</div>,
-    })
+    const propsWithEmptyStyles = createLayoutTestProps(
+      'col',
+      {},
+      {
+        styles: {},
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithEmptyStyles} />)
 
@@ -226,10 +286,14 @@ describe('Col组件', () => {
   })
 
   it('应该处理null样式', () => {
-    const propsWithNullStyles = createLayoutTestProps('col', {}, {
-      styles: null as unknown as any,
-      children: <div>测试内容</div>,
-    })
+    const propsWithNullStyles = createLayoutTestProps(
+      'col',
+      {},
+      {
+        styles: null as unknown as Record<string, unknown>,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithNullStyles} />)
 
@@ -238,10 +302,14 @@ describe('Col组件', () => {
   })
 
   it('应该处理选中状态', () => {
-    const propsWithSelected = createLayoutTestProps('col', {}, {
-      isSelected: true,
-      children: <div>测试内容</div>,
-    })
+    const propsWithSelected = createLayoutTestProps(
+      'col',
+      {},
+      {
+        isSelected: true,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithSelected} />)
 
@@ -250,10 +318,14 @@ describe('Col组件', () => {
   })
 
   it('应该处理拖拽状态', () => {
-    const propsWithDragging = createLayoutTestProps('col', {}, {
-      isDragging: true,
-      children: <div>测试内容</div>,
-    })
+    const propsWithDragging = createLayoutTestProps(
+      'col',
+      {},
+      {
+        isDragging: true,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Col {...propsWithDragging} />)
 

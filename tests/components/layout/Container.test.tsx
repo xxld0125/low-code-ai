@@ -7,22 +7,26 @@ import { createLayoutTestProps } from '../../utils/test-utils'
 // Mock dependencies - Container组件不需要额外的UI组件依赖
 
 describe('Container组件', () => {
-  const defaultProps = createLayoutTestProps('container', {
-    direction: 'column',
-    wrap: false,
-    justify: 'start',
-    align: 'start',
-    gap: 0,
-    padding: { x: 0, y: 0 },
-    margin: { x: 0, y: 0 },
-    background: null,
-    border: false,
-    shadow: false,
-    rounded: false,
-  }, {
-    'data-testid': 'container',
-    children: <div>测试内容</div>,
-  })
+  const defaultProps = createLayoutTestProps(
+    'container',
+    {
+      direction: 'column',
+      wrap: false,
+      justify: 'start',
+      align: 'start',
+      gap: 0,
+      padding: { x: 0, y: 0 },
+      margin: { x: 0, y: 0 },
+      background: null,
+      border: false,
+      shadow: false,
+      rounded: false,
+    },
+    {
+      'data-testid': 'container',
+      children: <div>测试内容</div>,
+    }
+  )
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -42,22 +46,26 @@ describe('Container组件', () => {
       padding: '16px',
     }
 
-    const propsWithStyles = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-    }, {
-      styles: customStyles,
-      children: <div>测试内容</div>,
-    })
+    const propsWithStyles = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+      },
+      {
+        styles: customStyles,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithStyles} />)
 
@@ -69,22 +77,26 @@ describe('Container组件', () => {
   })
 
   it('应该应用自定义类名', () => {
-    const propsWithClassName = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-    }, {
-      className: 'custom-container-class',
-      children: <div>测试内容</div>,
-    })
+    const propsWithClassName = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+      },
+      {
+        className: 'custom-container-class',
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithClassName} />)
 
@@ -93,22 +105,26 @@ describe('Container组件', () => {
   })
 
   it('应该支持fluid布局', () => {
-    const propsWithFluid = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-      fluid: true,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithFluid = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+        fluid: true,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithFluid} />)
 
@@ -117,22 +133,26 @@ describe('Container组件', () => {
   })
 
   it('应该支持maxWidth属性', () => {
-    const propsWithMaxWidth = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-      maxWidth: 'md',
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithMaxWidth = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+        maxWidth: 'md',
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithMaxWidth} />)
 
@@ -148,21 +168,25 @@ describe('Container组件', () => {
       </div>
     )
 
-    const propsWithChildren = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-    }, {
-      children: testChildren,
-    })
+    const propsWithChildren = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+      },
+      {
+        children: testChildren,
+      }
+    )
 
     render(<Container {...propsWithChildren} />)
 
@@ -172,23 +196,27 @@ describe('Container组件', () => {
   })
 
   it('应该支持其他HTML属性', () => {
-    const propsWithCustomAttributes = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-    }, {
-      'data-testid': 'custom-test-id',
-      role: 'main',
-      children: <div>测试内容</div>,
-    })
+    const propsWithCustomAttributes = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+      },
+      {
+        'data-testid': 'custom-test-id',
+        role: 'main',
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithCustomAttributes} />)
 
@@ -198,22 +226,26 @@ describe('Container组件', () => {
   })
 
   it('应该处理空样式对象', () => {
-    const propsWithEmptyStyles = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-    }, {
-      styles: {},
-      children: <div>测试内容</div>,
-    })
+    const propsWithEmptyStyles = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+      },
+      {
+        styles: {},
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithEmptyStyles} />)
 
@@ -222,22 +254,26 @@ describe('Container组件', () => {
   })
 
   it('应该处理null样式', () => {
-    const propsWithNullStyles = createLayoutTestProps('container', {
-      direction: 'column',
-      wrap: false,
-      justify: 'start',
-      align: 'start',
-      gap: 0,
-      padding: { x: 0, y: 0 },
-      margin: { x: 0, y: 0 },
-      background: null,
-      border: false,
-      shadow: false,
-      rounded: false,
-    }, {
-      styles: null as unknown as any,
-      children: <div>测试内容</div>,
-    })
+    const propsWithNullStyles = createLayoutTestProps(
+      'container',
+      {
+        direction: 'column',
+        wrap: false,
+        justify: 'start',
+        align: 'start',
+        gap: 0,
+        padding: { x: 0, y: 0 },
+        margin: { x: 0, y: 0 },
+        background: null,
+        border: false,
+        shadow: false,
+        rounded: false,
+      },
+      {
+        styles: null as unknown as Record<string, unknown>,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Container {...propsWithNullStyles} />)
 

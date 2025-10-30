@@ -15,7 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Button as ShadcnButton } from '@/components/ui/button'
 import {
   ZoomIn,
   ZoomOut,
@@ -35,8 +35,8 @@ import { COMPONENT_TYPES, ComponentInstance, DragState } from '@/types/page-desi
 import type { CanvasState } from '@/types/page-designer'
 
 // 导入基础组件
-import { PageButton } from '@/components/lowcode/basic/Button'
-import { PageInput } from '@/components/lowcode/basic/Input'
+import { Button } from '@/components/lowcode/basic/Button'
+import { Input } from '@/components/lowcode/basic/Input'
 import { Text } from '@/components/lowcode/display/Text'
 import { Image } from '@/components/lowcode/display/Image'
 
@@ -52,8 +52,8 @@ const CANVAS_CONFIG = {
 
 // 组件渲染映射
 const ComponentRenderers: Record<string, React.FC<any>> = {
-  button: PageButton,
-  input: PageInput,
+  button: Button,
+  input: Input,
   text: Text,
   image: Image,
   // 其他组件类型将在后续实现
@@ -302,19 +302,27 @@ const EmptyCanvas: React.FC<{
         </p>
 
         <div className="flex flex-wrap justify-center gap-2">
-          <Button
+          <ShadcnButton
             variant="outline"
             size="sm"
             onClick={() => onComponentAdd(COMPONENT_TYPES.BUTTON)}
           >
             添加按钮
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onComponentAdd(COMPONENT_TYPES.TEXT)}>
+          </ShadcnButton>
+          <ShadcnButton
+            variant="outline"
+            size="sm"
+            onClick={() => onComponentAdd(COMPONENT_TYPES.TEXT)}
+          >
             添加文本
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onComponentAdd(COMPONENT_TYPES.IMAGE)}>
+          </ShadcnButton>
+          <ShadcnButton
+            variant="outline"
+            size="sm"
+            onClick={() => onComponentAdd(COMPONENT_TYPES.IMAGE)}
+          >
             添加图片
-          </Button>
+          </ShadcnButton>
         </div>
       </div>
     </motion.div>
@@ -346,7 +354,7 @@ const ZoomControls: React.FC<{
 
   return (
     <div className="absolute bottom-4 right-4 z-20 flex items-center space-x-2 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
-      <Button
+      <ShadcnButton
         variant="ghost"
         size="sm"
         onClick={handleZoomOut}
@@ -354,13 +362,13 @@ const ZoomControls: React.FC<{
         className="h-8 w-8 p-0"
       >
         <ZoomOut className="h-4 w-4" />
-      </Button>
+      </ShadcnButton>
 
       <div className="min-w-[60px] text-center">
         <span className="text-sm font-medium text-gray-700">{Math.round(zoom * 100)}%</span>
       </div>
 
-      <Button
+      <ShadcnButton
         variant="ghost"
         size="sm"
         onClick={handleZoomIn}
@@ -368,13 +376,13 @@ const ZoomControls: React.FC<{
         className="h-8 w-8 p-0"
       >
         <ZoomIn className="h-4 w-4" />
-      </Button>
+      </ShadcnButton>
 
       <div className="mx-1 h-6 w-px bg-gray-300" />
 
-      <Button variant="ghost" size="sm" onClick={handleReset} className="h-8 w-8 p-0">
+      <ShadcnButton variant="ghost" size="sm" onClick={handleReset} className="h-8 w-8 p-0">
         <Maximize2 className="h-4 w-4" />
-      </Button>
+      </ShadcnButton>
     </div>
   )
 }
@@ -386,7 +394,7 @@ const CanvasToolbar: React.FC<{
 }> = ({ showGrid, onToggleGrid }) => {
   return (
     <div className="absolute right-4 top-4 z-20 flex items-center space-x-2 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
-      <Button
+      <ShadcnButton
         variant={showGrid ? 'default' : 'ghost'}
         size="sm"
         onClick={onToggleGrid}
@@ -394,7 +402,7 @@ const CanvasToolbar: React.FC<{
       >
         <Grid3X3 className="mr-1 h-4 w-4" />
         网格
-      </Button>
+      </ShadcnButton>
     </div>
   )
 }

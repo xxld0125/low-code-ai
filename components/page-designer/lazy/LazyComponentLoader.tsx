@@ -73,11 +73,9 @@ const ErrorFallback: React.FC<{
 // 基础组件懒加载映射
 const BASIC_COMPONENTS = {
   button: lazy(() =>
-    import('@/components/lowcode/basic/Button').then(m => ({ default: m.PageButton }))
+    import('@/components/lowcode/basic/Button').then(m => ({ default: m.Button }))
   ),
-  input: lazy(() =>
-    import('@/components/lowcode/basic/Input').then(m => ({ default: m.PageInput }))
-  ),
+  input: lazy(() => import('@/components/lowcode/basic/Input').then(m => ({ default: m.Input }))),
   text: lazy(() => import('@/components/lowcode/display/Text').then(m => ({ default: m.Text }))),
   image: lazy(() => import('@/components/lowcode/display/Image').then(m => ({ default: m.Image }))),
   // link: lazy(() => import('@/components/lowcode/basic/Link')),

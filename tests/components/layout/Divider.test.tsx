@@ -7,9 +7,13 @@ import { createLayoutTestProps } from '../../utils/test-utils'
 // Mock dependencies - Divider组件不需要额外的UI组件依赖
 
 describe('Divider组件', () => {
-  const defaultProps = createLayoutTestProps('divider', {}, {
-    'data-testid': 'divider',
-  })
+  const defaultProps = createLayoutTestProps(
+    'divider',
+    {},
+    {
+      'data-testid': 'divider',
+    }
+  )
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -29,9 +33,13 @@ describe('Divider组件', () => {
       margin: '16px 0',
     }
 
-    const propsWithStyles = createLayoutTestProps('divider', {}, {
-      styles: customStyles,
-    })
+    const propsWithStyles = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        styles: customStyles,
+      }
+    )
 
     render(<Divider {...propsWithStyles} />)
 
@@ -44,9 +52,13 @@ describe('Divider组件', () => {
   })
 
   it('应该应用自定义类名', () => {
-    const propsWithClassName = createLayoutTestProps('divider', {}, {
-      className: 'custom-divider-class',
-    })
+    const propsWithClassName = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        className: 'custom-divider-class',
+      }
+    )
 
     render(<Divider {...propsWithClassName} />)
 
@@ -77,9 +89,13 @@ describe('Divider组件', () => {
   })
 
   it('应该支持带文本的分隔线', () => {
-    const propsWithText = createLayoutTestProps('divider', {}, {
-      children: '分隔文本',
-    })
+    const propsWithText = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        children: '分隔文本',
+      }
+    )
 
     render(<Divider {...propsWithText} />)
 
@@ -99,11 +115,15 @@ describe('Divider组件', () => {
   })
 
   it('应该支持plain样式', () => {
-    const propsWithPlain = createLayoutTestProps('divider', {
-      plain: true,
-    }, {
-      children: '纯文本',
-    })
+    const propsWithPlain = createLayoutTestProps(
+      'divider',
+      {
+        plain: true,
+      },
+      {
+        children: '纯文本',
+      }
+    )
 
     render(<Divider {...propsWithPlain} />)
 
@@ -114,9 +134,13 @@ describe('Divider组件', () => {
 
   it('应该支持自定义文本内容', () => {
     const customText = '自定义分隔内容'
-    const propsWithCustomText = createLayoutTestProps('divider', {}, {
-      children: customText,
-    })
+    const propsWithCustomText = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        children: customText,
+      }
+    )
 
     render(<Divider {...propsWithCustomText} />)
 
@@ -132,9 +156,13 @@ describe('Divider组件', () => {
       </div>
     )
 
-    const propsWithComplexChildren = createLayoutTestProps('divider', {}, {
-      children: complexChildren,
-    })
+    const propsWithComplexChildren = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        children: complexChildren,
+      }
+    )
 
     render(<Divider {...propsWithComplexChildren} />)
 
@@ -144,10 +172,14 @@ describe('Divider组件', () => {
   })
 
   it('应该支持其他HTML属性', () => {
-    const propsWithCustomAttributes = createLayoutTestProps('divider', {}, {
-      'data-testid': 'custom-test-id',
-      role: 'separator',
-    })
+    const propsWithCustomAttributes = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        'data-testid': 'custom-test-id',
+        role: 'separator',
+      }
+    )
 
     render(<Divider {...propsWithCustomAttributes} />)
 
@@ -157,9 +189,13 @@ describe('Divider组件', () => {
   })
 
   it('应该处理空样式对象', () => {
-    const propsWithEmptyStyles = createLayoutTestProps('divider', {}, {
-      styles: {},
-    })
+    const propsWithEmptyStyles = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        styles: {},
+      }
+    )
 
     render(<Divider {...propsWithEmptyStyles} />)
 
@@ -168,9 +204,13 @@ describe('Divider组件', () => {
   })
 
   it('应该处理null样式', () => {
-    const propsWithNullStyles = createLayoutTestProps('divider', {}, {
-      styles: null as unknown as any,
-    })
+    const propsWithNullStyles = createLayoutTestProps(
+      'divider',
+      {},
+      {
+        styles: null as unknown as Record<string, unknown>,
+      }
+    )
 
     render(<Divider {...propsWithNullStyles} />)
 

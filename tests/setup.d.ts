@@ -5,38 +5,31 @@
 
 import '@testing-library/jest-dom'
 
-// 扩展Jest matcher
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeInTheDocument(): R
-      toHaveAttribute(attr: string, value?: string): R
-      toHaveTextContent(text: string | RegExp): R
-      toBeVisible(): R
-      toBeDisabled(): R
-      toBeEnabled(): R
-      toHaveClass(...className: string[]): R
-      toHaveStyle(style: Record<string, any>): R
-      toHaveValue(value: any): R
-      toBeChecked(): R
-      toHaveFocus(): R
-      toBeEmptyDOMElement(): R
-      toContainElement(element: HTMLElement | null): R
-      toContainHTML(html: string): R
-      toHaveDescription(text: string | RegExp): R
-      toHaveDisplayValue(value: any): R
-      toHaveErrorMessage(text: string | RegExp): R
-      toHaveFormValues(values: Record<string, any>): R
-      toHaveRole(role: string): R
-      toHaveAccessibleDescription(): R
-      toHaveAccessibleName(): R
-    }
-  }
-}
-
 // Vitest支持
 declare module 'vitest' {
-  export interface Assertion<T = any> extends jest.Matchers<T> {}
+  export interface Assertion<T = unknown> {
+    toBeInTheDocument(): T
+    toHaveAttribute(attr: string, value?: string): T
+    toHaveTextContent(text: string | RegExp): T
+    toBeVisible(): T
+    toBeDisabled(): T
+    toBeEnabled(): T
+    toHaveClass(...className: string[]): T
+    toHaveStyle(style: Record<string, string>): T
+    toHaveValue(value: string | string[]): T
+    toBeChecked(): T
+    toHaveFocus(): T
+    toBeEmptyDOMElement(): T
+    toContainElement(element: HTMLElement | null): T
+    toContainHTML(html: string): T
+    toHaveDescription(text: string | RegExp): T
+    toHaveDisplayValue(value: string | RegExp | Array<string | RegExp>): T
+    toHaveErrorMessage(text: string | RegExp): T
+    toHaveFormValues(values: Record<string, unknown>): T
+    toHaveRole(role: string): T
+    toHaveAccessibleDescription(): T
+    toHaveAccessibleName(): T
+  }
 }
 
 export {}

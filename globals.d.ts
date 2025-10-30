@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /// <reference types="@testing-library/jest-dom" />
 
 declare global {
@@ -11,7 +12,7 @@ declare global {
       toBeDisabled(): R
       toBeEnabled(): R
       toBeChecked(): R
-      toBeEmpty(): R
+      toBeEmptyDOMElement(): R
       toBeInTheDocument(): R
       toHaveFocus(): R
       toHaveFormValues(expectedValues: Record<string, unknown>): R
@@ -20,15 +21,19 @@ declare global {
       toHaveDisplayValue(value: string | RegExp | Array<string | RegExp>): R
       toHaveErrorMessage(text: string | RegExp): R
       toHaveRole(role: string): R
-      toHaveAccessibleDescription(text: string | RegExp): R
-      toHaveAccessibleName(text: string | RegExp): R
+      toHaveAccessibleDescription(): R
+      toHaveAccessibleName(): R
       toBeInvalid(): R
       toBeRequired(): R
       toBeValid(): R
       toHaveValue(value: string | string[]): R
+      toContainElement(element: HTMLElement | null): R
+      toContainHTML(html: string): R
       // 自定义匹配器
       toHaveComponent(componentType: string): R
       toHaveComponentWithProps(componentType: string, props: Record<string, unknown>): R
+      toBeValidComponent(): R
+      toHaveCorrectProps(expectedProps: Record<string, unknown>): R
     }
   }
 }
