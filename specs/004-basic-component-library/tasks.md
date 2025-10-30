@@ -122,29 +122,29 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Implementation for User Story 2
 
-- [ ] T053 [P] [US2] Create Text组件定义 in `components/lowcode/display/Text/definition.ts`
-- [ ] T054 [P] [US2] Create Text React组件 in `components/lowcode/display/Text/Text.tsx`
-- [ ] T055 [P] [US2] Create Text预览组件 in `components/lowcode/display/Text/Preview.tsx`
-- [ ] T056 [P] [US2] Create Text图标组件 in `components/lowcode/display/Text/Icon.tsx`
-- [ ] T057 [P] [US2] Create Heading组件定义 in `components/lowcode/display/Heading/definition.ts`
-- [ ] T058 [P] [US2] Create Heading React组件 in `components/lowcode/display/Heading/Heading.tsx`
-- [ ] T059 [P] [US2] Create Heading预览组件 in `components/lowcode/display/Heading/Preview.tsx`
-- [ ] T060 [P] [US2] Create Heading图标组件 in `components/lowcode/display/Heading/Icon.tsx`
-- [ ] T061 [P] [US2] Create Image组件定义 in `components/lowcode/display/Image/definition.ts`
-- [ ] T062 [P] [US2] Create Image React组件 in `components/lowcode/display/Image/Image.tsx`
-- [ ] T063 [P] [US2] Create Image预览组件 in `components/lowcode/display/Image/Preview.tsx`
-- [ ] T064 [P] [US2] Create Image图标组件 in `components/lowcode/display/Image/Icon.tsx`
-- [ ] T065 [P] [US2] Create Card组件定义 in `components/lowcode/display/Card/definition.ts`
-- [ ] T066 [P] [US2] Create Card React组件 in `components/lowcode/display/Card/Card.tsx`
-- [ ] T067 [P] [US2] Create Card预览组件 in `components/lowcode/display/Card/Preview.tsx`
-- [ ] T068 [P] [US2] Create Card图标组件 in `components/lowcode/display/Card/Icon.tsx`
-- [ ] T069 [P] [US2] Create Badge组件定义 in `components/lowcode/display/Badge/definition.ts`
-- [ ] T070 [P] [US2] Create Badge React组件 in `components/lowcode/display/Badge/Badge.tsx`
-- [ ] T071 [P] [US2] Create Badge预览组件 in `components/lowcode/display/Badge/Preview.tsx`
-- [ ] T072 [P] [US2] Create Badge图标组件 in `components/lowcode/display/Badge/Icon.tsx`
-- [ ] T073 [P] [US2] Create 展示组件导出文件 in `components/lowcode/display/*/index.ts`
-- [ ] T074 [US2] Register all display components in registry in `components/lowcode/registry/index.ts`
-- [ ] T075 [US2] Integrate display components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
+- [x] T053 [P] [US2] Create Text组件定义 in `components/lowcode/display/Text/definition.ts`
+- [x] T054 [P] [US2] Create Text React组件 in `components/lowcode/display/Text/Text.tsx`
+- [x] T055 [P] [US2] Create Text预览组件 in `components/lowcode/display/Text/Preview.tsx`
+- [x] T056 [P] [US2] Create Text图标组件 in `components/lowcode/display/Text/Icon.tsx`
+- [x] T057 [P] [US2] Create Heading组件定义 in `components/lowcode/display/Heading/definition.ts`
+- [x] T058 [P] [US2] Create Heading React组件 in `components/lowcode/display/Heading/Heading.tsx`
+- [x] T059 [P] [US2] Create Heading预览组件 in `components/lowcode/display/Heading/Preview.tsx`
+- [x] T060 [P] [US2] Create Heading图标组件 in `components/lowcode/display/Heading/Icon.tsx`
+- [x] T061 [P] [US2] Create Image组件定义 in `components/lowcode/display/Image/definition.ts`
+- [x] T062 [P] [US2] Create Image React组件 in `components/lowcode/display/Image/Image.tsx`
+- [x] T063 [P] [US2] Create Image预览组件 in `components/lowcode/display/Image/Preview.tsx`
+- [x] T064 [P] [US2] Create Image图标组件 in `components/lowcode/display/Image/Icon.tsx`
+- [x] T065 [P] [US2] Create Card组件定义 in `components/lowcode/display/Card/definition.ts`
+- [x] T066 [P] [US2] Create Card React组件 in `components/lowcode/display/Card/Card.tsx`
+- [x] T067 [P] [US2] Create Card预览组件 in `components/lowcode/display/Card/Preview.tsx`
+- [x] T068 [P] [US2] Create Card图标组件 in `components/lowcode/display/Card/Icon.tsx`
+- [x] T069 [P] [US2] Create Badge组件定义 in `components/lowcode/display/Badge/definition.ts`
+- [x] T070 [P] [US2] Create Badge React组件 in `components/lowcode/display/Badge/Badge.tsx`
+- [x] T071 [P] [US2] Create Badge预览组件 in `components/lowcode/display/Badge/Preview.tsx`
+- [x] T072 [P] [US2] Create Badge图标组件 in `components/lowcode/display/Badge/Icon.tsx`
+- [x] T073 [P] [US2] Create 展示组件导出文件 in `components/lowcode/display/*/index.ts`
+- [x] T074 [US2] Register all display components in registry in `components/lowcode/registry/index.ts`
+- [x] T075 [US2] Integrate display components with 页面设计器 in `components/page-designer/ComponentPanel.tsx`
 
 **Checkpoint**: 此时用户故事1和2都应该独立工作
 
