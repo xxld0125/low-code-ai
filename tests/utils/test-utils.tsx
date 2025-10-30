@@ -7,8 +7,19 @@ import { render, RenderOptions } from '@testing-library/react'
 // import { vi } from 'vitest'
 
 // 创建真实的UI组件Mock
-export function createMockUIComponent(componentName: string, defaultProps: Record<string, unknown> = {}) {
-  const MockComponent = ({ children, className, ...props }: { children?: React.ReactNode; className?: string; [key: string]: unknown }) => (
+export function createMockUIComponent(
+  componentName: string,
+  defaultProps: Record<string, unknown> = {}
+) {
+  const MockComponent = ({
+    children,
+    className,
+    ...props
+  }: {
+    children?: React.ReactNode
+    className?: string
+    [key: string]: unknown
+  }) => (
     <div
       data-testid={`mock-${componentName.toLowerCase()}`}
       className={className}
@@ -26,7 +37,15 @@ export function createMockUIComponent(componentName: string, defaultProps: Recor
 
 // 创建SVG图标的Mock
 export function createMockIcon(iconName: string) {
-  const MockIcon = ({ size = 24, className, ...props }: { size?: number | string; className?: string; [key: string]: unknown }) => (
+  const MockIcon = ({
+    size = 24,
+    className,
+    ...props
+  }: {
+    size?: number | string
+    className?: string
+    [key: string]: unknown
+  }) => (
     <svg
       data-testid={`mock-icon-${iconName.toLowerCase()}`}
       width={size}
@@ -73,10 +92,7 @@ export const LayoutComponentMocks = {
 }
 
 // 增强的渲染函数，支持主题和国际化
-export function renderWithProviders(
-  ui: React.ReactElement,
-  options: RenderOptions = {}
-) {
+export function renderWithProviders(ui: React.ReactElement, options: RenderOptions = {}) {
   const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <div data-testid="test-wrapper" className="test-environment">
@@ -127,7 +143,11 @@ export function testAccessibility(
       it(`应该有包含 "${label}" 的可访问性标签`, () => {
         const { container } = renderWithProviders(component)
         const element = container.querySelector('[aria-label], [aria-labelledby], [title]')
-        expect(element?.textContent || element?.getAttribute('aria-label') || element?.getAttribute('title')).toMatch(new RegExp(label, 'i'))
+        expect(
+          element?.textContent ||
+            element?.getAttribute('aria-label') ||
+            element?.getAttribute('title')
+        ).toMatch(new RegExp(label, 'i'))
       })
     })
 
@@ -267,7 +287,7 @@ export function createTestRendererProps(overrides: Record<string, unknown> = {})
     isSelected: false,
     isHovered: false,
     isDragging: false,
-    readonly: false,
+    readOnly: false, // 修复: 使用 readOnly 而不是 readonly
     onSelect: undefined,
     onUpdate: undefined,
     onDelete: undefined,
@@ -277,7 +297,11 @@ export function createTestRendererProps(overrides: Record<string, unknown> = {})
 }
 
 // 为布局组件创建测试 props 的辅助函数
-export function createLayoutTestProps(componentType: 'container' | 'row' | 'col' | 'divider' | 'spacer', specificProps: Record<string, unknown> = {}, overrides: Record<string, unknown> = {}) {
+export function createLayoutTestProps(
+  componentType: 'container' | 'row' | 'col' | 'divider' | 'spacer',
+  specificProps: Record<string, unknown> = {},
+  overrides: Record<string, unknown> = {}
+) {
   const baseProps = createTestRendererProps({
     type: componentType,
     props: {

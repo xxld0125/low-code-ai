@@ -158,11 +158,11 @@ description: 'Task list for 基础组件库 implementation'
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T076 [P] [US3] Unit test suite for Container组件 in tests/components/layout/Container.test.tsx
-- [ ] T077 [P] [US3] Unit test suite for Row组件 in tests/components/layout/Row.test.tsx
-- [ ] T078 [P] [US3] Unit test suite for Col组件 in tests/components/layout/Col.test.tsx
-- [ ] T079 [P] [US3] Unit test suite for Divider组件 in tests/components/layout/Divider.test.tsx
-- [ ] T080 [P] [US3] Unit test suite for Spacer组件 in tests/components/layout/Spacer.test.tsx
+- [x] T076 [P] [US3] Unit test suite for Container组件 in tests/components/layout/Container.test.tsx
+- [x] T077 [P] [US3] Unit test suite for Row组件 in tests/components/layout/Row.test.tsx
+- [x] T078 [P] [US3] Unit test suite for Col组件 in tests/components/layout/Col.test.tsx
+- [x] T079 [P] [US3] Unit test suite for Divider组件 in tests/components/layout/Divider.test.tsx
+- [x] T080 [P] [US3] Unit test suite for Spacer组件 in tests/components/layout/Spacer.test.tsx
 
 ### Implementation for User Story 3
 

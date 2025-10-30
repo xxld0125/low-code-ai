@@ -9,7 +9,9 @@ import { ComponentRendererProps } from '@/types/page-designer/component'
 import { ContainerProps } from '@/types/page-designer/layout'
 import { cn } from '@/lib/utils'
 
-export const PageContainer: React.FC<ComponentRendererProps & React.HTMLAttributes<HTMLDivElement>> = ({
+export const PageContainer: React.FC<
+  ComponentRendererProps & React.HTMLAttributes<HTMLDivElement>
+> = ({
   id,
   props,
   styles,
@@ -18,6 +20,9 @@ export const PageContainer: React.FC<ComponentRendererProps & React.HTMLAttribut
   onSelect,
   onDelete,
   children,
+  readonly,
+  onUpdate,
+  isHovered,
   ...htmlProps
 }) => {
   const containerProps = props.container || {

@@ -22,11 +22,20 @@ const SPACING_MAP: Record<string, number> = {
   xxl: 48,
 }
 
-export const Spacer: React.FC<ComponentRendererProps & SpacerProps & React.HTMLAttributes<HTMLDivElement>> = ({
+export const Spacer: React.FC<
+  ComponentRendererProps & SpacerProps & React.HTMLAttributes<HTMLDivElement>
+> = ({
   id,
   props = {},
   styles = {},
   className,
+  isSelected,
+  isDragging,
+  onSelect,
+  onDelete,
+  readonly,
+  onUpdate,
+  isHovered,
   ...htmlProps
 }) => {
   const {

@@ -36,7 +36,10 @@ const eslintConfig = [
 
       // Environment
       ".env",
-      ".env*.local",
+      ".env.local",
+      ".env.development.local",
+      ".env.test.local",
+      ".env.production.local",
 
       // IDE
       ".vscode/**",
@@ -68,6 +71,14 @@ const eslintConfig = [
       "designer-temp/**",
       "designer-exports/**",
       "designer-thumbnails/**",
+
+      // Additional ignore patterns from .eslintignore
+      "*.generated.js",
+      "*.generated.ts",
+      "*.swp",
+      "*.swo",
+      "test-results/**",
+      "playwright-report/**",
     ],
   },
   {

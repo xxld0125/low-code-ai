@@ -18,6 +18,9 @@ export const PageCol: React.FC<ComponentRendererProps> = ({
   onSelect,
   onDelete,
   children,
+  readonly,
+  onUpdate,
+  isHovered,
 }) => {
   const colProps = props.col || {
     span: 12,

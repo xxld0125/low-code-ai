@@ -35,15 +35,16 @@ describe('Container组件', () => {
   it('应该正确渲染基础容器', () => {
     render(<Container {...defaultProps} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toBeInTheDocument()
+    expect(container).toHaveAttribute('data-component-type', 'container')
     expect(container).toHaveTextContent('测试内容')
   })
 
   it('应该应用自定义样式', () => {
     const customStyles = {
-      backgroundColor: '#ffffff',
-      padding: '16px',
+      width: '300px',
+      height: '200px',
     }
 
     const propsWithStyles = createLayoutTestProps(
@@ -54,7 +55,7 @@ describe('Container组件', () => {
         justify: 'start',
         align: 'start',
         gap: 0,
-        padding: { x: 0, y: 0 },
+        padding: { x: 16, y: 16 },
         margin: { x: 0, y: 0 },
         background: null,
         border: false,
@@ -69,11 +70,10 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithStyles} />)
 
-    const container = screen.getByTestId('container')
-    expect(container).toHaveStyle({
-      backgroundColor: '#ffffff',
-      padding: '16px',
-    })
+    const container = screen.getByRole('group')
+    expect(container).toHaveStyle('width: 300px')
+    expect(container).toHaveStyle('height: 200px')
+    expect(container).toHaveStyle('padding: 16px 16px')
   })
 
   it('应该应用自定义类名', () => {
@@ -100,7 +100,7 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithClassName} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toHaveClass('custom-container-class')
   })
 
@@ -128,7 +128,7 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithFluid} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toBeInTheDocument()
   })
 
@@ -156,7 +156,7 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithMaxWidth} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toBeInTheDocument()
   })
 
@@ -190,7 +190,7 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithChildren} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toHaveTextContent('标题')
     expect(container).toHaveTextContent('段落内容')
   })
@@ -249,7 +249,7 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithEmptyStyles} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toBeInTheDocument()
   })
 
@@ -277,7 +277,7 @@ describe('Container组件', () => {
 
     render(<Container {...propsWithNullStyles} />)
 
-    const container = screen.getByTestId('container')
+    const container = screen.getByRole('group')
     expect(container).toBeInTheDocument()
   })
 })

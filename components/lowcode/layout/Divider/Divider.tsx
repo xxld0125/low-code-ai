@@ -13,12 +13,21 @@ export interface DividerProps {
   className?: string
 }
 
-export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerProps & React.HTMLAttributes<HTMLDivElement>> = ({
+export const Divider: React.FC<
+  Omit<ComponentRendererProps, 'type'> & DividerProps & React.HTMLAttributes<HTMLDivElement>
+> = ({
   id,
   props = {},
   styles = {},
   className,
   children,
+  isSelected,
+  isDragging,
+  onSelect,
+  onDelete,
+  readonly,
+  onUpdate,
+  isHovered,
   ...htmlProps
 }) => {
   const {
@@ -32,7 +41,14 @@ export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerPro
 
   // 生成边框样式
   const getBorderStyle = (): React.CSSProperties => {
-    const borderStyleValue = borderStyle === 'dashed' ? 'dashed' : borderStyle === 'dotted' ? 'dotted' : borderStyle === 'double' ? 'double' : 'solid'
+    const borderStyleValue =
+      borderStyle === 'dashed'
+        ? 'dashed'
+        : borderStyle === 'dotted'
+          ? 'dotted'
+          : borderStyle === 'double'
+            ? 'double'
+            : 'solid'
 
     if (orientation === 'horizontal') {
       return {
@@ -84,7 +100,7 @@ export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerPro
         <div
           className={cn(
             'flex-1',
-            orientation === 'vertical' ? 'w-px h-full' : 'h-px',
+            orientation === 'vertical' ? 'h-full w-px' : 'h-px',
             dashed && 'border-dashed'
           )}
           style={{
@@ -95,10 +111,7 @@ export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerPro
 
         {/* 中间文本 */}
         <div
-          className={cn(
-            'px-3 text-sm',
-            orientation === 'vertical' ? 'py-2' : ''
-          )}
+          className={cn('px-3 text-sm', orientation === 'vertical' ? 'py-2' : '')}
           style={{ color }}
         >
           {children}
@@ -108,7 +121,7 @@ export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerPro
         <div
           className={cn(
             'flex-1',
-            orientation === 'vertical' ? 'w-px h-full' : 'h-px',
+            orientation === 'vertical' ? 'h-full w-px' : 'h-px',
             dashed && 'border-dashed'
           )}
           style={{
@@ -126,10 +139,7 @@ export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerPro
       <div
         data-component-id={id}
         data-component-type="divider"
-        className={cn(
-          'relative',
-          className
-        )}
+        className={cn('relative', className)}
         style={{
           margin: (styles as any).margin || '16px 0',
           opacity: (styles as any).opacity || 1,
@@ -149,16 +159,14 @@ export const Divider: React.FC<Omit<ComponentRendererProps, 'type'> & DividerPro
               dashed && 'border-dashed'
             )}
             style={{
-              borderTop: orientation === 'horizontal' ? `${size}px ${borderStyle} ${color}` : 'none',
+              borderTop:
+                orientation === 'horizontal' ? `${size}px ${borderStyle} ${color}` : 'none',
               borderLeft: orientation === 'vertical' ? `${size}px ${borderStyle} ${color}` : 'none',
             }}
           />
         </div>
         <div
-          className={cn(
-            'relative bg-white px-3 text-sm',
-            orientation === 'vertical' ? 'py-2' : ''
-          )}
+          className={cn('relative bg-white px-3 text-sm', orientation === 'vertical' ? 'py-2' : '')}
           style={{ color }}
         >
           {children}

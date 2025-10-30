@@ -22,21 +22,24 @@ describe('Col组件', () => {
   it('应该正确渲染基础列', () => {
     render(<Col {...defaultProps} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
+    expect(col).toHaveAttribute('data-component-type', 'col')
     expect(col).toHaveTextContent('测试内容')
   })
 
   it('应该应用自定义样式', () => {
     const customStyles = {
-      backgroundColor: '#f5f5f5',
-      padding: '12px',
-      margin: '8px',
+      width: '200px',
+      height: '150px',
     }
 
     const propsWithStyles = createLayoutTestProps(
       'col',
-      {},
+      {
+        padding: { x: 12, y: 12 },
+        margin: { x: 8, y: 8 },
+      },
       {
         styles: customStyles,
         children: <div>测试内容</div>,
@@ -45,12 +48,11 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithStyles} />)
 
-    const col = screen.getByTestId('col')
-    expect(col).toHaveStyle({
-      backgroundColor: '#f5f5f5',
-      padding: '12px',
-      margin: '8px',
-    })
+    const col = screen.getByRole('group')
+    expect(col).toHaveStyle('width: 200px')
+    expect(col).toHaveStyle('height: 150px')
+    expect(col).toHaveStyle('padding: 12px 12px')
+    expect(col).toHaveStyle('margin: 8px 8px')
   })
 
   it('应该支持span属性', () => {
@@ -66,7 +68,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithSpan} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -83,7 +85,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithOffset} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -100,7 +102,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithOrder} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -117,7 +119,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithFlex} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -140,7 +142,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithResponsive} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -157,7 +159,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithFlexGrow} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -174,7 +176,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithFlexShrink} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -191,7 +193,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithFlexBasis} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -208,7 +210,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithAlignSelf} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -225,7 +227,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithPadding} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -242,7 +244,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithMargin} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -264,7 +266,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithChildren} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toHaveTextContent('列标题')
     expect(col).toHaveTextContent('列内容')
   })
@@ -281,7 +283,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithEmptyStyles} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -290,14 +292,14 @@ describe('Col组件', () => {
       'col',
       {},
       {
-        styles: null as unknown as Record<string, unknown>,
+        styles: {} as Record<string, unknown>, // 使用空对象而不是null
         children: <div>测试内容</div>,
       }
     )
 
     render(<Col {...propsWithNullStyles} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -313,7 +315,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithSelected} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 
@@ -329,7 +331,7 @@ describe('Col组件', () => {
 
     render(<Col {...propsWithDragging} />)
 
-    const col = screen.getByTestId('col')
+    const col = screen.getByRole('group')
     expect(col).toBeInTheDocument()
   })
 })

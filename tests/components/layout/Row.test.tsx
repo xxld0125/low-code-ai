@@ -7,10 +7,14 @@ import { createLayoutTestProps } from '../../utils/test-utils'
 // Mock dependencies - Row组件不需要额外的UI组件依赖
 
 describe('Row组件', () => {
-  const defaultProps = createLayoutTestProps('row', {}, {
-    'data-testid': 'row',
-    children: <div>测试内容</div>,
-  })
+  const defaultProps = createLayoutTestProps(
+    'row',
+    {},
+    {
+      'data-testid': 'row',
+      children: <div>测试内容</div>,
+    }
+  )
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -19,94 +23,115 @@ describe('Row组件', () => {
   it('应该正确渲染基础行', () => {
     render(<Row {...defaultProps} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toBeInTheDocument()
+    expect(row).toHaveAttribute('data-component-type', 'row')
     expect(row).toHaveTextContent('测试内容')
   })
 
   it('应该应用自定义样式', () => {
     const customStyles = {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      width: '500px',
+      height: '100px',
     }
 
-    const propsWithStyles = createLayoutTestProps('row', {}, {
-      styles: customStyles,
-      children: <div>测试内容</div>,
-    })
+    const propsWithStyles = createLayoutTestProps(
+      'row',
+      {},
+      {
+        styles: customStyles,
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithStyles} />)
 
-    const row = screen.getByTestId('row')
-    expect(row).toHaveStyle({
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    })
+    const row = screen.getByRole('group')
+    expect(row).toHaveStyle('width: 500px')
+    expect(row).toHaveStyle('height: 100px')
   })
 
   it('应该应用自定义类名', () => {
-    const propsWithClassName = createLayoutTestProps('row', {}, {
-      className: 'custom-row-class',
-      children: <div>测试内容</div>,
-    })
+    const propsWithClassName = createLayoutTestProps(
+      'row',
+      {},
+      {
+        className: 'custom-row-class',
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithClassName} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toHaveClass('custom-row-class')
   })
 
   it('应该支持gutter属性', () => {
-    const propsWithGutter = createLayoutTestProps('row', {
-      gutter: 16,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithGutter = createLayoutTestProps(
+      'row',
+      {
+        gutter: 16,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithGutter} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toBeInTheDocument()
   })
 
   it('应该支持justify属性', () => {
-    const propsWithJustify = createLayoutTestProps('row', {
-      justify: 'center',
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithJustify = createLayoutTestProps(
+      'row',
+      {
+        justify: 'center',
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithJustify} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toBeInTheDocument()
   })
 
   it('应该支持align属性', () => {
-    const propsWithAlign = createLayoutTestProps('row', {
-      align: 'middle',
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithAlign = createLayoutTestProps(
+      'row',
+      {
+        align: 'middle',
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithAlign} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toBeInTheDocument()
   })
 
   it('应该支持wrap属性', () => {
-    const propsWithWrap = createLayoutTestProps('row', {
-      wrap: true,
-    }, {
-      children: <div>测试内容</div>,
-    })
+    const propsWithWrap = createLayoutTestProps(
+      'row',
+      {
+        wrap: true,
+      },
+      {
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithWrap} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toBeInTheDocument()
   })
 
@@ -117,24 +142,32 @@ describe('Row组件', () => {
       <div key="3">子元素3</div>,
     ]
 
-    const propsWithMultipleChildren = createLayoutTestProps('row', {}, {
-      children: testChildren,
-    })
+    const propsWithMultipleChildren = createLayoutTestProps(
+      'row',
+      {},
+      {
+        children: testChildren,
+      }
+    )
 
     render(<Row {...propsWithMultipleChildren} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toHaveTextContent('子元素1')
     expect(row).toHaveTextContent('子元素2')
     expect(row).toHaveTextContent('子元素3')
   })
 
   it('应该支持其他HTML属性', () => {
-    const propsWithCustomAttributes = createLayoutTestProps('row', {}, {
-      'data-testid': 'custom-test-id',
-      role: 'row',
-      children: <div>测试内容</div>,
-    })
+    const propsWithCustomAttributes = createLayoutTestProps(
+      'row',
+      {},
+      {
+        'data-testid': 'custom-test-id',
+        role: 'row',
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithCustomAttributes} />)
 
@@ -144,14 +177,18 @@ describe('Row组件', () => {
   })
 
   it('应该处理空样式对象', () => {
-    const propsWithEmptyStyles = createLayoutTestProps('row', {}, {
-      styles: {},
-      children: <div>测试内容</div>,
-    })
+    const propsWithEmptyStyles = createLayoutTestProps(
+      'row',
+      {},
+      {
+        styles: {},
+        children: <div>测试内容</div>,
+      }
+    )
 
     render(<Row {...propsWithEmptyStyles} />)
 
-    const row = screen.getByTestId('row')
+    const row = screen.getByRole('group')
     expect(row).toBeInTheDocument()
   })
 })

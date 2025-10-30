@@ -18,6 +18,9 @@ export const PageRow: React.FC<ComponentRendererProps & React.HTMLAttributes<HTM
   onSelect,
   onDelete,
   children,
+  readonly,
+  onUpdate,
+  isHovered,
   ...htmlProps
 }) => {
   const rowProps = props.row || {
