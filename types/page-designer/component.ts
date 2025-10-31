@@ -148,6 +148,61 @@ export interface ComponentProps {
     className?: string
   }
 
+  // Textarea属性
+  textarea?: {
+    placeholder?: string
+    value?: string
+    rows?: number
+    required?: boolean
+    disabled?: boolean
+    readOnly?: boolean
+    maxlength?: number
+    minlength?: number
+    label?: string
+    error?: string
+    helper?: string
+    className?: string
+  }
+
+  // Select属性
+  select?: {
+    placeholder?: string
+    value?: string | string[]
+    options?: Array<{ value: string; label: string; disabled?: boolean }>
+    required?: boolean
+    disabled?: boolean
+    multiple?: boolean
+    label?: string
+    error?: string
+    helper?: string
+    className?: string
+  }
+
+  // Checkbox属性
+  checkbox?: {
+    checked?: boolean
+    label?: string
+    value?: string
+    required?: boolean
+    disabled?: boolean
+    indeterminate?: boolean
+    error?: string
+    helper?: string
+    className?: string
+  }
+
+  // Radio属性
+  radio?: {
+    label?: string
+    value?: string
+    options?: Array<{ value: string; label: string; disabled?: boolean }>
+    required?: boolean
+    disabled?: boolean
+    error?: string
+    helper?: string
+    className?: string
+  }
+
   // Container属性
   container?: {
     direction?: 'row' | 'column'

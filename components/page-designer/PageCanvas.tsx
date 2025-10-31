@@ -37,8 +37,17 @@ import type { CanvasState } from '@/types/page-designer'
 // 导入基础组件
 import { Button } from '@/components/lowcode/basic/Button'
 import { Input } from '@/components/lowcode/basic/Input'
-import { Text } from '@/components/lowcode/display/Text'
-import { Image } from '@/components/lowcode/display/Image'
+import { Textarea } from '@/components/lowcode/basic/Textarea'
+import { Select } from '@/components/lowcode/basic/Select'
+import { Checkbox } from '@/components/lowcode/basic/Checkbox'
+import { Radio } from '@/components/lowcode/basic/Radio'
+
+// 导入展示组件
+import { Text } from '@/components/lowcode/display/Text/Text'
+import { LowcodeImage as Image } from '@/components/lowcode/display/Image/Image'
+import { Heading } from '@/components/lowcode/display/Heading/Heading'
+import { Card as LowcodeCard } from '@/components/lowcode/display/Card/Card'
+import { Badge } from '@/components/lowcode/display/Badge/Badge'
 
 // 画布配置
 const CANVAS_CONFIG = {
@@ -54,11 +63,17 @@ const CANVAS_CONFIG = {
 const ComponentRenderers: Record<string, React.FC<any>> = {
   button: Button,
   input: Input,
+  textarea: Textarea,
+  select: Select,
+  checkbox: Checkbox,
+  radio: Radio,
   text: Text,
   image: Image,
+  heading: Heading,
+  card: LowcodeCard,
+  badge: Badge,
   // 其他组件类型将在后续实现
   link: Text,
-  heading: Text,
   paragraph: Text,
   divider: Text,
   spacer: Text,
@@ -66,17 +81,12 @@ const ComponentRenderers: Record<string, React.FC<any>> = {
   row: Text,
   col: Text,
   form: Text,
-  textarea: Text,
-  select: Text,
-  checkbox: Text,
-  radio: Text,
   navbar: Text,
   sidebar: Text,
   breadcrumb: Text,
   tabs: Text,
   list: Text,
   table: Text,
-  card: Text,
   grid: Text,
 }
 
@@ -146,7 +156,6 @@ const SortableComponentWrapper: React.FC<{
   )
 
   if (!Renderer) {
-    console.warn(`No renderer found for component type: ${component.component_type}`)
     return (
       <div className="rounded-lg border border-red-300 bg-red-50 p-4">
         <div className="text-sm text-red-600">未知组件类型: {component.component_type}</div>
@@ -185,9 +194,9 @@ const SortableComponentWrapper: React.FC<{
       {/* 组件内容 */}
       <div className={cn('relative', isSelected && 'overflow-hidden rounded-lg')}>
         <Renderer
+          {...component.props}
           id={component.id}
           type={component.component_type}
-          props={component.props}
           styles={component.styles}
           events={component.events}
           isSelected={isSelected}
@@ -337,18 +346,15 @@ const ZoomControls: React.FC<{
 }> = ({ zoom, onZoomChange, onReset }) => {
   const handleZoomIn = () => {
     const newZoom = Math.min(zoom + CANVAS_CONFIG.zoomStep, CANVAS_CONFIG.maxZoom)
-    console.log('Zooming in:', { currentZoom: zoom, newZoom })
     onZoomChange(newZoom)
   }
 
   const handleZoomOut = () => {
     const newZoom = Math.max(zoom - CANVAS_CONFIG.zoomStep, CANVAS_CONFIG.minZoom)
-    console.log('Zooming out:', { currentZoom: zoom, newZoom })
     onZoomChange(newZoom)
   }
 
   const handleReset = () => {
-    console.log('Resetting zoom')
     onReset()
   }
 
@@ -524,7 +530,6 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
   // 处理缩放变化
   const handleZoomChange = useCallback(
     (zoom: number) => {
-      console.log('PageCanvas: handleZoomChange called with zoom:', zoom)
       onCanvasStateChange({ zoom })
     },
     [onCanvasStateChange]
@@ -532,7 +537,6 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
 
   // 处理重置视图
   const handleResetView = useCallback(() => {
-    console.log('PageCanvas: handleResetView called')
     onCanvasStateChange({
       zoom: 1,
       pan: { x: 0, y: 0 },
@@ -593,13 +597,97 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
   const getDefaultProps = (type: string) => {
     switch (type) {
       case 'button':
-        return { button: { text: '按钮', variant: 'default' as const, size: 'default' as const } }
+        return {
+          button: { text: '按钮', variant: 'default' as const, size: 'default' as const },
+        }
       case 'input':
-        return { input: { placeholder: '请输入内容', type: 'text' as const } }
+        return {
+          input: {
+            placeholder: '请输入内容',
+            type: 'text' as const,
+            value: '示例文本',
+          },
+        }
+      case 'textarea':
+        return {
+          textarea: {
+            placeholder: '请输入内容',
+            rows: 3,
+            value: '这是多行文本示例内容\n第二行文本',
+          },
+        }
+      case 'select':
+        return {
+          select: {
+            placeholder: '请选择选项',
+            options: [
+              { value: 'option1', label: '选项 1 - 示例选项' },
+              { value: 'option2', label: '选项 2 - 示例选项' },
+              { value: 'option3', label: '选项 3 - 示例选项' },
+            ],
+            value: 'option1',
+          },
+        }
+      case 'checkbox':
+        return {
+          checkbox: { label: '示例复选框选项', checked: false },
+        }
+      case 'radio':
+        return {
+          radio: {
+            label: '单选框组',
+            options: [
+              { value: 'option1', label: '单选选项 1' },
+              { value: 'option2', label: '单选选项 2' },
+            ],
+            value: 'option1',
+          },
+        }
       case 'text':
-        return { text: { content: '📝 文本内容', variant: 'body' as const } }
+        return {
+          text: {
+            content: '📝 这是示例文本内容，用于展示文本组件的效果',
+            variant: 'body' as const,
+          },
+        }
       case 'image':
-        return { image: { src: '/api/placeholder/300/200', alt: '图片' } }
+        return {
+          image: {
+            src: '/api/placeholder/300/200',
+            alt: '示例图片占位符',
+            width: 300,
+            height: 200,
+            rounded: true,
+            shadow: true,
+          },
+        }
+      case 'heading':
+        return {
+          text: {
+            content: '🎯 这是示例标题',
+            variant: 'heading2' as const,
+            weight: 'semibold' as const,
+            align: 'left' as const,
+          },
+        }
+      case 'card':
+        return {
+          container: {
+            padding: 16,
+            background: { color: '#ffffff' },
+            border: { width: 1, color: '#e5e7eb', style: 'solid' as const },
+            shadow: 'md' as const,
+            rounded: 'md' as const,
+          },
+        }
+      case 'badge':
+        return {
+          text: {
+            content: '示例徽章',
+            variant: 'body' as const,
+            size: 'sm' as const,
+          },
+        }
       default:
         return {}
     }
@@ -611,21 +699,65 @@ export const PageCanvas: React.FC<PageCanvasProps> = ({
       margin: { bottom: 16 },
     }
 
-    // 为文本组件添加特殊样式以确保可见性
-    if (type === 'text') {
-      return {
-        ...baseStyles,
-        padding: '8px 12px',
-        backgroundColor: '#f3f4f6',
-        border: '1px dashed #d1d5db',
-        borderRadius: '4px',
-        minWidth: '120px',
-        minHeight: '32px',
-        display: 'inline-block' as const,
-      }
-    }
+    // 为不同类型的组件添加可见性样式
+    switch (type) {
+      case 'text':
+        return {
+          ...baseStyles,
+          padding: '12px 16px',
+          backgroundColor: '#e5e7eb',
+          border: '2px solid #6b7280',
+          borderRadius: '8px',
+          minWidth: '200px',
+          minHeight: '40px',
+          display: 'inline-block' as const,
+        }
 
-    return baseStyles
+      case 'image':
+        return {
+          ...baseStyles,
+          border: '2px solid #6b7280',
+          borderRadius: '8px',
+          display: 'inline-block' as const,
+          backgroundColor: '#e5e7eb',
+          minWidth: '200px',
+          minHeight: '150px',
+        }
+
+      case 'heading':
+        return {
+          ...baseStyles,
+          padding: '12px 16px',
+          backgroundColor: '#e5e7eb',
+          border: '2px solid #6b7280',
+          borderRadius: '8px',
+          minWidth: '200px',
+          minHeight: '40px',
+          display: 'inline-block' as const,
+        }
+
+      case 'card':
+        return {
+          ...baseStyles,
+          padding: '16px',
+          backgroundColor: '#f3f4f6',
+          border: '2px solid #6b7280',
+          borderRadius: '8px',
+          minWidth: '250px',
+          minHeight: '120px',
+          display: 'inline-block' as const,
+        }
+
+      case 'badge':
+        return {
+          ...baseStyles,
+          padding: '8px 16px',
+          display: 'inline-block' as const,
+        }
+
+      default:
+        return baseStyles
+    }
   }
 
   const canvasScale = canvasState.zoom
