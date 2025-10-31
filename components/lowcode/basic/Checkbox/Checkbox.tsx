@@ -13,6 +13,7 @@ import type { CheckboxProps } from '@/types/lowcode/component'
 
 export interface LowcodeCheckboxProps extends CheckboxProps {
   className?: string
+  style?: React.CSSProperties
   id?: string
   onChange?: (checked: boolean) => void
   autoFocus?: boolean
@@ -29,6 +30,7 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, LowcodeCheckboxProps
       error,
       helper,
       className,
+      style,
       id,
       onChange,
       autoFocus = false,
@@ -54,7 +56,7 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, LowcodeCheckboxProps
     }
 
     return (
-      <div className={cn('space-y-2', className)}>
+      <div className={cn('space-y-2', className)} style={style}>
         <div className="flex items-start space-x-2">
           <ShadcnCheckbox
             id={checkboxId}

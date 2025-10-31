@@ -272,10 +272,10 @@ export default function PageDesignerEditor() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="text-muted-foreground">正在加载页面设计...</p>
+          <p className="text-gray-600">正在加载页面设计...</p>
         </div>
       </div>
     )
@@ -283,10 +283,10 @@ export default function PageDesignerEditor() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <h1 className="mb-2 text-2xl font-bold text-red-600">加载失败</h1>
-          <p className="mb-4 text-muted-foreground">{error}</p>
+          <p className="mb-4 text-gray-600">{error}</p>
           <Button onClick={() => window.location.reload()}>重新加载</Button>
         </div>
       </div>
@@ -295,13 +295,13 @@ export default function PageDesignerEditor() {
 
   return (
     <PageDesignerErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         {/* 顶部工具栏 */}
         <div className="border-b border-gray-200 bg-white px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => router.push('/protected/designer/list')}
               >
@@ -330,7 +330,7 @@ export default function PageDesignerEditor() {
 
             <div className="flex items-center space-x-2">
               {/* 保存状态指示器 */}
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-600">
                 {isSaving
                   ? '保存中...'
                   : lastSaveTime

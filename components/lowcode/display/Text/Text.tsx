@@ -16,6 +16,7 @@ export interface LowcodeTextProps {
   color?: string
   decoration?: 'none' | 'underline' | 'line-through'
   className?: string
+  style?: React.CSSProperties
 }
 
 export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
@@ -29,6 +30,7 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
       color,
       decoration = 'none',
       className,
+      style,
       ...props
     },
     ref
@@ -121,6 +123,7 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
     // 构建内联样式
     const inlineStyles: React.CSSProperties = {
       color,
+      ...style,
     }
 
     return (

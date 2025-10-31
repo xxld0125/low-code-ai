@@ -18,7 +18,7 @@ export interface LowcodeBadgeProps {
 export const Badge = React.forwardRef<HTMLSpanElement, LowcodeBadgeProps>(
   (
     {
-      content = '徽章',
+      content = '示例徽章',
       variant = 'default',
       size = 'default',
       rounded = 'full',
@@ -31,15 +31,15 @@ export const Badge = React.forwardRef<HTMLSpanElement, LowcodeBadgeProps>(
     const getVariantClass = (variant: string) => {
       switch (variant) {
         case 'default':
-          return 'bg-primary text-primary-foreground hover:bg-primary/90'
+          return 'bg-gray-800 text-white hover:bg-gray-700 border-2 border-gray-600'
         case 'secondary':
-          return 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+          return 'bg-gray-200 text-gray-800 hover:bg-gray-300 border-2 border-gray-600'
         case 'destructive':
-          return 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+          return 'bg-red-600 text-white hover:bg-red-700 border-2 border-red-600'
         case 'outline':
-          return 'border border-input text-foreground bg-background hover:bg-accent hover:text-accent-foreground'
+          return 'border-2 border-gray-600 text-gray-800 bg-gray-100 hover:bg-gray-200'
         default:
-          return 'bg-primary text-primary-foreground hover:bg-primary/90'
+          return 'bg-gray-800 text-white hover:bg-gray-700 border-2 border-gray-600'
       }
     }
 

@@ -16,6 +16,22 @@ export default function PreviewPage() {
   const [pageDesign, setPageDesign] = useState<PageDesign | null>(null)
   const [components, setComponents] = useState<ComponentInstance[]>([])
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
+  const [currentTime, setCurrentTime] = useState<string>('')
+
+  // 更新当前时间，仅在客户端运行
+  useEffect(() => {
+    // 确保只在客户端执行
+    if (typeof window === 'undefined') return
+
+    const updateTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))
+    }
+
+    updateTime() // 立即更新一次
+    const interval = setInterval(updateTime, 1000) // 每秒更新
+
+    return () => clearInterval(interval)
+  }, [])
 
   // 加载页面设计数据
   useEffect(() => {
@@ -219,9 +235,7 @@ export default function PreviewPage() {
             {/* 设备状态栏（仅在移动端显示） */}
             {(previewMode === 'mobile' || previewMode === 'tablet') && (
               <div className="flex items-center justify-between bg-gray-900 px-4 py-1 text-xs text-white">
-                <span>
-                  {new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                </span>
+                <span>{currentTime || '--:--'}</span>
                 <div className="flex items-center space-x-1">
                   <div className="h-3 w-4 rounded-sm border border-white">
                     <div className="m-px h-2 w-3 rounded-sm bg-white"></div>

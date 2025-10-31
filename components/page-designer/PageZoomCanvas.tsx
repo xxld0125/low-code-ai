@@ -213,7 +213,7 @@ export function PageZoomCanvas({
       </TransformWrapper>
 
       {/* 缩放信息显示 */}
-      <div className="absolute bottom-4 right-4 rounded-md border bg-background/80 px-3 py-2 text-sm text-muted-foreground backdrop-blur-sm">
+      <div className="absolute bottom-4 right-4 rounded-md border bg-background/80 px-3 py-2 text-sm text-gray-600 backdrop-blur-sm">
         <div>缩放: {Math.round(zoom * 100)}%</div>
         <div>
           位置: ({Math.round(pan.x)}, {Math.round(pan.y)})

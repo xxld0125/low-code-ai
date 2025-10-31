@@ -131,7 +131,7 @@ export function PageToolbar({
                     step={zoomStep}
                     className="w-full"
                   />
-                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                  <div className="mt-1 flex justify-between text-xs text-gray-600">
                     <span>{minZoom}%</span>
                     <span>{maxZoom}%</span>
                   </div>
@@ -173,7 +173,7 @@ export function PageToolbar({
         <div className="h-6 w-px bg-border" />
 
         {/* 中间：画布信息 */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>画布: {canvas?.canvasWidth}px</span>
           <span>缩放: {formatZoomLabel(zoom)}</span>
         </div>

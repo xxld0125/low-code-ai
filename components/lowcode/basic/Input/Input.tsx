@@ -14,6 +14,7 @@ import type { InputProps } from '@/types/lowcode/component'
 
 export interface LowcodeInputProps extends Omit<InputProps, 'error'> {
   className?: string
+  style?: React.CSSProperties
   id?: string
   defaultValue?: string
   value?: string
@@ -48,6 +49,7 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
       error: externalError,
       helper,
       className,
+      style,
       id,
       onChange,
       onFocus,
@@ -158,7 +160,7 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
     const errorId = displayError ? `${inputId}-error` : undefined
 
     return (
-      <div className={cn('space-y-2', className)}>
+      <div className={cn('space-y-2', className)} style={style}>
         {/* 标签 */}
         {label && (
           <Label

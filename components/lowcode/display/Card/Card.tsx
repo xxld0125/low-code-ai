@@ -30,7 +30,7 @@ export const Card = React.forwardRef<HTMLDivElement, LowcodeCardProps>(
       rounded = 'medium',
       shadow = 'medium',
       border = 'light',
-      background = '#ffffff',
+      background = '#f3f4f6',
       children,
       className,
       ...props
@@ -91,13 +91,13 @@ export const Card = React.forwardRef<HTMLDivElement, LowcodeCardProps>(
         case 'none':
           return ''
         case 'light':
-          return 'border border-gray-200'
+          return 'border-2 border-gray-600'
         case 'medium':
-          return 'border border-gray-300'
+          return 'border-2 border-gray-600'
         case 'strong':
-          return 'border-2 border-gray-400'
+          return 'border-2 border-gray-600'
         default:
-          return 'border border-gray-200'
+          return 'border-2 border-gray-600'
       }
     }
 

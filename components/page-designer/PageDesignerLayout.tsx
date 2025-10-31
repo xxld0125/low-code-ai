@@ -60,14 +60,14 @@ const DesignerToolbar: React.FC<{
           <button
             onClick={onUndo}
             disabled={true} // 暂时禁用
-            className="cursor-not-allowed rounded bg-gray-50 px-3 py-1 text-sm text-gray-400 transition-colors"
+            className="cursor-not-allowed rounded bg-gray-100 px-3 py-1 text-sm text-gray-400 transition-colors"
           >
             撤销
           </button>
           <button
             onClick={onRedo}
             disabled={true} // 暂时禁用
-            className="cursor-not-allowed rounded bg-gray-50 px-3 py-1 text-sm text-gray-400 transition-colors"
+            className="cursor-not-allowed rounded bg-gray-100 px-3 py-1 text-sm text-gray-400 transition-colors"
           >
             重做
           </button>
@@ -110,7 +110,7 @@ const DesignerStatusBar: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-1 text-xs text-gray-600"
+      className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-1 text-xs text-gray-600"
     >
       <div className="flex items-center space-x-4">
         <span>就绪</span>
@@ -143,7 +143,7 @@ const PropertiesPanelPlaceholder: React.FC<{
 
       <div className="flex-1 p-4">
         {selectedComponents.length === 0 ? (
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-gray-600">
             <div className="py-8">
               <svg
                 className="mx-auto mb-4 h-12 w-12 text-gray-400"
@@ -173,7 +173,7 @@ const PropertiesPanelPlaceholder: React.FC<{
             </div>
           </div>
         ) : (
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-gray-600">
             <p>已选择 {selectedComponents.length} 个组件</p>
             <p>批量编辑功能开发中...</p>
           </div>
@@ -397,7 +397,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
     >
-      <div className={cn('flex h-screen flex-col bg-gray-50', className)}>
+      <div className={cn('flex h-screen flex-col bg-white', className)}>
         {/* 工具栏 */}
         <DesignerToolbar
           componentCount={stats.componentCount}

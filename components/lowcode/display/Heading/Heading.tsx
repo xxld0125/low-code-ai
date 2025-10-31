@@ -21,7 +21,7 @@ export interface LowcodeHeadingProps {
 export const Heading = React.forwardRef<HTMLHeadingElement, LowcodeHeadingProps>(
   (
     {
-      content = '这是标题文本',
+      content = '🎯 这是示例标题文本',
       level = 2,
       size = 'auto',
       weight = 'semibold',

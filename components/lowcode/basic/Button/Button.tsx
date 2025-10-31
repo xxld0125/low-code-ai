@@ -11,6 +11,7 @@ import type { ButtonProps } from '@/types/lowcode/component'
 
 export interface LowcodeButtonProps {
   className?: string
+  style?: React.CSSProperties
   children?: React.ReactNode
   text?: string
   variant?: 'default' | 'primary' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
@@ -34,6 +35,7 @@ export const Button = React.forwardRef<HTMLButtonElement, LowcodeButtonProps>(
       icon_position = 'left',
       onClick,
       className,
+      style,
       children,
       ...props
     },
@@ -170,6 +172,7 @@ export const Button = React.forwardRef<HTMLButtonElement, LowcodeButtonProps>(
           loading && 'relative',
           className
         )}
+        style={style}
         {...props}
       >
         {renderContent()}

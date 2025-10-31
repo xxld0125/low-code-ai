@@ -237,7 +237,7 @@ const BASIC_COMPONENTS = [
   },
 ] as const
 
-// 拖拽组件项
+// 拖拽组件项 - 简化版本，只显示图标和名称
 const DraggableComponentItem: React.FC<{
   component: {
     type: string
@@ -263,10 +263,8 @@ const DraggableComponentItem: React.FC<{
   })
 
   const handleClick = (e: React.MouseEvent) => {
-    // 阻止点击事件冒泡到拖拽处理器
     e.preventDefault()
     e.stopPropagation()
-    // 恢复点击添加组件的功能，同时支持拖拽和点击
     onComponentClick?.(component.type)
   }
 
@@ -275,8 +273,6 @@ const DraggableComponentItem: React.FC<{
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
       }
     : undefined
-
-  const PreviewComponent = component.preview
 
   return (
     <div
@@ -290,13 +286,11 @@ const DraggableComponentItem: React.FC<{
         isDragging && 'scale-95 opacity-50'
       )}
       onClick={handleClick}
-      onDoubleClick={handleClick} // 双击也不添加组件
       role="button"
       tabIndex={0}
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          // 恢复键盘交互功能，支持键盘操作添加组件
           onComponentClick?.(component.type)
         }
       }}
@@ -304,33 +298,19 @@ const DraggableComponentItem: React.FC<{
     >
       <div
         className={cn(
-          'relative rounded border border-gray-200 bg-white p-2',
-          'hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+          'flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card p-2',
+          'hover:border-primary/50 hover:bg-accent/50',
+          'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
           'transition-all duration-200'
         )}
       >
-        {/* 拖拽指示器 */}
-        <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
-          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100">
-            <LayoutGrid className="h-2 w-2 text-blue-600" />
-          </div>
+        {/* 组件图标 */}
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-border bg-muted/30">
+          <span className="text-sm">{component.icon}</span>
         </div>
 
-        {/* 组件预览 */}
-        <div className="mb-2">
-          <PreviewComponent />
-        </div>
-
-        {/* 组件信息 */}
-        <div className="space-y-0.5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-medium text-gray-900">
-              {component.icon} {component.name}
-            </h3>
-          </div>
-          <p className="truncate text-xs text-gray-500">{component.description}</p>
-        </div>
+        {/* 组件名称 */}
+        <span className="truncate text-xs font-medium text-gray-900">{component.name}</span>
       </div>
     </div>
   )
@@ -375,15 +355,15 @@ const CategorySection: React.FC<{
   if (filteredComponents.length === 0) return null
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* 分类标题 */}
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between rounded bg-gray-50 px-2 py-1.5 text-left transition-colors hover:bg-gray-100"
+        className="flex w-full items-center justify-between rounded-md bg-muted px-3 py-2 text-left transition-colors hover:bg-muted/80"
         aria-expanded={isExpanded}
         aria-controls={`category-${category.id}`}
       >
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <div className={cn('h-2 w-2 rounded-full', category.color)} />
           <Icon className="h-4 w-4 text-gray-600" />
           <span className="text-sm font-medium text-gray-900">{category.name}</span>
@@ -392,9 +372,9 @@ const CategorySection: React.FC<{
           </Badge>
         </div>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-gray-500" />
+          <ChevronDown className="h-4 w-4 text-gray-600" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-gray-500" />
+          <ChevronRight className="h-4 w-4 text-gray-600" />
         )}
       </button>
 
@@ -402,7 +382,7 @@ const CategorySection: React.FC<{
       {isExpanded && (
         <div
           id={`category-${category.id}`}
-          className="grid grid-cols-1 gap-2"
+          className="grid grid-cols-2 gap-2"
           role="list"
           aria-label={`${category.name}组件列表`}
         >
@@ -452,7 +432,7 @@ export const ComponentPanel: React.FC<{
   return (
     <div className={cn('flex h-full flex-col border-r border-gray-200 bg-white', className)}>
       {/* 面板头部 */}
-      <div className="flex flex-col space-y-3 border-b border-gray-200 p-4">
+      <div className="flex flex-col space-y-2 border-b border-gray-200 p-4 pb-2">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">组件库</h2>
           <div className="flex items-center space-x-1">
@@ -491,7 +471,7 @@ export const ComponentPanel: React.FC<{
 
         {/* 统计信息 */}
         {searchQuery && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-600">
             找到{' '}
             {
               BASIC_COMPONENTS.filter(comp => {
@@ -509,8 +489,8 @@ export const ComponentPanel: React.FC<{
       </div>
 
       {/* 组件列表 */}
-      <ScrollArea className="flex-1 p-3">
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-2">
           {COMPONENT_CATEGORIES.map(category => (
             <CategorySection
               key={category.id}
@@ -537,7 +517,7 @@ export const ComponentPanel: React.FC<{
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Search className="mb-4 h-12 w-12 text-gray-400" />
               <h3 className="mb-2 text-lg font-medium text-gray-900">未找到组件</h3>
-              <p className="mb-4 text-sm text-gray-500">尝试使用不同的关键词搜索</p>
+              <p className="mb-4 text-sm text-gray-600">尝试使用不同的关键词搜索</p>
               <Button variant="outline" size="sm" onClick={() => setSearchQuery('')}>
                 清除搜索
               </Button>
@@ -547,7 +527,7 @@ export const ComponentPanel: React.FC<{
 
       {/* 面板底部 */}
       <div className="border-t border-gray-200 p-4">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-gray-600">
           <span>拖拽组件到画布添加</span>
           <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
             <Plus className="mr-1 h-3 w-3" />

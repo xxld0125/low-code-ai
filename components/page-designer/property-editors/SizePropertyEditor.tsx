@@ -307,7 +307,7 @@ export const SizePropertyEditor: React.FC<SizePropertyEditorProps> = ({
       {/* 快速预设 */}
       {showQuickPresets && !disabled && (
         <div className="space-y-2">
-          <Label className="text-xs font-medium text-muted-foreground">快速选择</Label>
+          <Label className="text-xs font-medium text-gray-600">快速选择</Label>
           <div className="grid grid-cols-4 gap-1">
             {SIZE_PRESETS.slice(0, 8).map(preset => (
               <Button
@@ -331,8 +331,8 @@ export const SizePropertyEditor: React.FC<SizePropertyEditorProps> = ({
         config.max !== undefined && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-medium text-muted-foreground">精确调节</Label>
-              <span className="text-xs text-muted-foreground">
+              <Label className="text-xs font-medium text-gray-600">精确调节</Label>
+              <span className="text-xs text-gray-600">
                 {sliderRange[0]} - {sliderRange[1]}
                 {unit}
               </span>
@@ -385,9 +385,7 @@ export const SizePropertyEditor: React.FC<SizePropertyEditorProps> = ({
       )}
 
       {/* 描述信息 */}
-      {definition.description && (
-        <p className="text-xs text-muted-foreground">{definition.description}</p>
-      )}
+      {definition.description && <p className="text-xs text-gray-600">{definition.description}</p>}
     </div>
   )
 }

@@ -21,16 +21,22 @@ export const CheckboxPreview: React.FC<CheckboxPreviewProps> = ({
   showVariants = false,
   showStates = false,
 }) => {
-  // 默认预览属性
+  // 默认预览属性 - 在组件库中只展示简单的基础复选框
   const defaultPreviewProps: LowcodeCheckboxProps = {
-    label: '同意条款',
+    label: '复选框',
     checked: false,
     indeterminate: false,
     disabled: false,
     required: false,
-    helper: '请阅读并同意相关条款',
+    helper: undefined,
     ...props,
   }
+
+  return (
+    <div style={styles} className="flex justify-center">
+      <Checkbox {...defaultPreviewProps} disabled={true} className="pointer-events-none" />
+    </div>
+  )
 
   // 如果显示变体预览
   if (showVariants) {

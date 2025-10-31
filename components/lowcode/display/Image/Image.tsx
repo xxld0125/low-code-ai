@@ -126,11 +126,11 @@ export const LowcodeImage = React.forwardRef<HTMLDivElement, LowcodeImageProps>(
     return (
       <div ref={ref} className={containerClasses} style={containerStyles} {...props}>
         {hasError ? (
-          // 错误状态
+          // 错误状态 - 在设计器中显示更明显的占位符
           <div
             className={cn(
-              'flex items-center justify-center bg-gray-100 text-gray-500',
-              'border-2 border-dashed border-gray-300',
+              'flex items-center justify-center bg-gray-200 text-gray-700',
+              'border-2 border-dashed border-gray-600',
               getRoundedClass(rounded)
             )}
             style={{
@@ -140,7 +140,7 @@ export const LowcodeImage = React.forwardRef<HTMLDivElement, LowcodeImageProps>(
           >
             <div className="p-4 text-center">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-gray-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -153,7 +153,7 @@ export const LowcodeImage = React.forwardRef<HTMLDivElement, LowcodeImageProps>(
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="mt-2 text-sm">图片加载失败</p>
+              <p className="mt-2 text-sm font-medium">图片占位符</p>
             </div>
           </div>
         ) : (

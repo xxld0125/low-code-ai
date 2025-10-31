@@ -23,19 +23,25 @@ export const TextareaPreview: React.FC<TextareaPreviewProps> = ({
   showStates = false,
   showSizes = false,
 }) => {
-  // 默认预览属性
+  // 默认预览属性 - 在组件库中只展示简单的基础文本域
   const defaultPreviewProps: LowcodeTextareaProps = {
-    label: '文本域',
-    placeholder: '请输入您的意见或建议...',
+    label: undefined,
+    placeholder: '请输入内容',
     value: '',
-    rows: 4,
+    rows: 3,
     required: false,
     disabled: false,
     readonly: false,
-    helper: '您最多可以输入500个字符',
+    helper: undefined,
     resize: 'vertical',
     ...props,
   }
+
+  return (
+    <div style={styles} className="w-full">
+      <Textarea {...defaultPreviewProps} disabled={true} className="pointer-events-none" />
+    </div>
+  )
 
   // 如果显示变体预览
   if (showVariants) {

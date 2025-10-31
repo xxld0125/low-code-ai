@@ -13,6 +13,7 @@ import type { TextareaProps } from '@/types/lowcode/component'
 
 export interface LowcodeTextareaProps extends TextareaProps {
   className?: string
+  style?: React.CSSProperties
   id?: string
   onChange?: (value: string) => void
   onFocus?: (e: React.FocusEvent<HTMLTextAreaElement>) => void
@@ -37,6 +38,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, LowcodeTextareaPro
       helper,
       resize = 'vertical',
       className,
+      style,
       id,
       onChange,
       onFocus,
@@ -123,7 +125,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, LowcodeTextareaPro
     const isOverLimit = maxlength && characterCount > maxlength
 
     return (
-      <div className={cn('space-y-2', className)}>
+      <div className={cn('space-y-2', className)} style={style}>
         {/* 标签 */}
         {label && (
           <Label

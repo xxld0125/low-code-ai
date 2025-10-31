@@ -22,6 +22,7 @@ import type { SelectProps, SelectOption } from '@/types/lowcode/component'
 
 export interface LowcodeSelectProps extends SelectProps {
   className?: string
+  style?: React.CSSProperties
   id?: string
   onChange?: (value: string | string[]) => void
   onFocus?: (e: React.FocusEvent<HTMLButtonElement>) => void
@@ -42,6 +43,7 @@ export const Select = React.forwardRef<HTMLButtonElement, LowcodeSelectProps>(
       error,
       helper,
       className,
+      style,
       id,
       onChange,
       onFocus,
@@ -127,7 +129,7 @@ export const Select = React.forwardRef<HTMLButtonElement, LowcodeSelectProps>(
       Object.keys(groupedOptions).length > 1 || Object.keys(groupedOptions)[0] !== 'default'
 
     return (
-      <div className={cn('space-y-2', className)}>
+      <div className={cn('space-y-2', className)} style={style}>
         {/* 标签 */}
         {label && (
           <Label
@@ -194,15 +196,15 @@ export const Select = React.forwardRef<HTMLButtonElement, LowcodeSelectProps>(
               // 分组显示
               Object.entries(groupedOptions).map(([groupName, groupOptions]) => (
                 <React.Fragment key={groupName}>
-                  {groupName !== 'default' && (
-                    <>
-                      <SelectLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                        {groupName}
-                      </SelectLabel>
-                      <SelectSeparator />
-                    </>
-                  )}
                   <SelectGroup>
+                    {groupName !== 'default' && (
+                      <>
+                        <SelectLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                          {groupName}
+                        </SelectLabel>
+                        <SelectSeparator />
+                      </>
+                    )}
                     {groupOptions.map(option => (
                       <SelectItem
                         key={option.value}
