@@ -7,6 +7,7 @@
 import React from 'react'
 import { Checkbox as ShadcnCheckbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { FieldValidationErrorDisplay } from '@/components/lowcode/validation/ValidationErrorDisplay'
 import { cn } from '@/lib/utils'
 import type { CheckboxProps } from '@/types/lowcode/component'
 
@@ -108,20 +109,13 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, LowcodeCheckboxProps
         {(error || helper) && (
           <div className="ml-6 space-y-1">
             {error && (
-              <p
-                data-testid="error-message"
-                className="flex items-center gap-1 text-sm text-destructive"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                {error}
-              </p>
+              <FieldValidationErrorDisplay
+                error={error}
+                field={label}
+                type="error"
+                showIcon={true}
+                className="text-sm"
+              />
             )}
             {!error && helper && <p className="text-sm text-muted-foreground">{helper}</p>}
           </div>

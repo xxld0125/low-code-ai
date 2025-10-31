@@ -8,6 +8,7 @@
 export { PropertyEditor } from './PropertyEditor'
 export { PropertyField } from './PropertyField'
 export { StyleEditor } from './StyleEditor'
+export { GridEditor } from './GridEditor'
 
 // 字段类型编辑器
 export * from './FieldTypes'

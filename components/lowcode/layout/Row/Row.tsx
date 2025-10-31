@@ -13,10 +13,11 @@ import {
   spacingToCss,
   generateFlexContainerStyles,
 } from '@/lib/lowcode/layout/utils'
+import { GridSystemUtils, type ResponsiveRowProps } from '@/lib/lowcode/layout/grid-system'
 
 export const Row = React.forwardRef<
   HTMLDivElement,
-  RowProps & React.HTMLAttributes<HTMLDivElement>
+  RowProps & ResponsiveRowProps & React.HTMLAttributes<HTMLDivElement>
 >(
   (
     {
@@ -26,6 +27,8 @@ export const Row = React.forwardRef<
       gap = 0,
       padding = { x: 0, y: 0 },
       margin = { x: 0, y: 0 },
+      direction,
+      gutter,
       className,
       children,
       style,
@@ -49,14 +52,27 @@ export const Row = React.forwardRef<
       style
     )
 
+    // 使用栅格系统生成类名
+    const gridClasses = GridSystemUtils.generateRowClasses({
+      gutter: gutter || { x: gap, y: gap },
+      justify,
+      align,
+      wrap,
+      direction,
+    })
+
     return (
       <div
         ref={ref}
         className={cn(
+          // 栅格系统类名
+          gridClasses,
+          // 基础Flex容器类（向后兼容）
           'flex',
           'flex-row',
-          FLEX_JUSTIFY_CLASSES[justify],
-          FLEX_ALIGN_CLASSES[align],
+          // 对齐方式
+          FLEX_JUSTIFY_CLASSES[justify as keyof typeof FLEX_JUSTIFY_CLASSES],
+          FLEX_ALIGN_CLASSES[align as keyof typeof FLEX_ALIGN_CLASSES],
           className
         )}
         style={mergedStyle}

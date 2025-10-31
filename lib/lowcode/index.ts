@@ -34,7 +34,7 @@ export type {
   ExtendedComponentStyles,
   StyleProcessingOptions,
   StyleProcessingResult,
-  ValidationError as StyleValidationError,
+  ValidationError as StyleEngineValidationError,
   ValidationOptions,
   ValidationRule as StyleValidationRule,
   CacheConfig,
@@ -77,9 +77,7 @@ export * from './utils/style-utils'
 export type {
   ValidationError as StyleValidationError,
   ValidationResult as StyleValidationResult,
-  ValidationSeverity,
 } from './validation/style-validator'
-export { STYLE_VALIDATION_RULES } from './validation/style-validator'
 // export {
 //   globalStyleValidator,
 //   validateStyles,

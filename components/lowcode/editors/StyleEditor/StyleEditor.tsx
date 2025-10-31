@@ -19,6 +19,8 @@ import { SelectFieldEditor } from '../FieldTypes/SelectFieldEditor'
 import { BorderFieldEditor } from '../FieldTypes/BorderFieldEditor'
 import { ShadowFieldEditor } from '../FieldTypes/ShadowFieldEditor'
 import { NumberFieldEditor } from '../FieldTypes/NumberFieldEditor'
+import { AnimationEditor, generateAnimationCSS, type AnimationConfig } from '../AnimationEditor'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // 导入共享类型和常量
 import {
@@ -92,6 +94,22 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
   // 预览状态
   const [previewStyles, setPreviewStyles] = useState<ComponentStyles>({})
 
+  // 动画配置状态
+  const [animationConfig, setAnimationConfig] = useState<AnimationConfig>(() => {
+    // 从现有样式中提取动画配置
+    const animationCSS = componentStyles.animation as string
+    if (animationCSS) {
+      // 简单解析CSS动画配置（实际项目中可能需要更复杂的解析器）
+      return {
+        animations: [],
+      }
+    }
+    return { animations: [] }
+  })
+
+  // 当前编辑的标签页
+  const [activeTab, setActiveTab] = useState('styles')
+
   // 获取所有样式分组并排序
   const styleGroups = useMemo(() => {
     const groups = componentDefinition?.style_schema?.groups || []
@@ -112,6 +130,34 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
     })
     return styles
   }, [styleGroups])
+
+  // 处理动画配置变更
+  const handleAnimationChange = useCallback(
+    (config: AnimationConfig) => {
+      setAnimationConfig(config)
+
+      // 生成CSS并应用到样式
+      const animationCSS = generateAnimationCSS(config)
+      if (animationCSS) {
+        // 解析CSS动画属性并应用到样式
+        const animationStyle = { animation: animationCSS }
+
+        // 更新预览样式
+        if (showPreview) {
+          const newPreviewStyles = mergeStyles(previewStyles, animationStyle)
+          setPreviewStyles(newPreviewStyles)
+          onPreviewStyle?.(newPreviewStyles)
+        }
+
+        // 应用样式
+        onStyleChange('animation', animationCSS)
+      } else {
+        // 移除动画样式
+        onStyleChange('animation', '')
+      }
+    },
+    [showPreview, previewStyles, onPreviewStyle, onStyleChange]
+  )
 
   // 处理样式值变更
   const handleStyleChange = useCallback(
@@ -399,12 +445,44 @@ export const StyleEditor: React.FC<StyleEditorProps> = ({
       )}
 
       {/* 样式编辑区域 */}
-      <div className="flex-1 overflow-auto p-4">
-        {styleGroups.length > 0 ? (
-          <div className="space-y-4">{styleGroups.map(renderStyleGroup)}</div>
-        ) : (
-          <div className="py-8 text-center text-sm text-muted-foreground">该组件暂无可配置样式</div>
-        )}
+      <div className="flex-1 overflow-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
+          <TabsList className="mx-4 mt-4 grid w-full grid-cols-2">
+            <TabsTrigger value="styles">基础样式</TabsTrigger>
+            <TabsTrigger value="animations">动画效果</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="styles" className="flex-1 overflow-auto p-4">
+            {styleGroups.length > 0 ? (
+              <div className="space-y-4">{styleGroups.map(renderStyleGroup)}</div>
+            ) : (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                该组件暂无可配置样式
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="animations" className="flex-1 overflow-auto p-4">
+            <AnimationEditor
+              value={animationConfig}
+              onChange={handleAnimationChange}
+              onPreview={animation => {
+                // 预览单个动画
+                const tempConfig = { animations: [animation] }
+                const animationCSS = generateAnimationCSS(tempConfig)
+                if (animationCSS) {
+                  const tempStyles = mergeStyles(previewStyles, { animation: animationCSS })
+                  onPreviewStyle?.(tempStyles)
+
+                  // 3秒后恢复原状
+                  setTimeout(() => {
+                    onPreviewStyle?.(previewStyles)
+                  }, 3000)
+                }
+              }}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* 错误提示 */}

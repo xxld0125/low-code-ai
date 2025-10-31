@@ -38,23 +38,28 @@ import {
   Save,
   Copy,
   Download,
-  Upload
+  Upload,
 } from 'lucide-react'
 
 // 导入验证相关类型和工具
-import {
-  ValidationRule,
-  ValidationResult,
-  FieldDefinition
-} from '@/lib/lowcode/types/editor'
+import { ValidationRule, FieldDefinition, ValidationRuleType } from '@/lib/lowcode/types/editor'
 import { VALIDATION_PRESETS } from '@/lib/lowcode/validation/validation-presets'
 
 // 本地类型定义
-interface ValidationRuleConfig extends ValidationRule {
+interface ValidationRuleConfig {
   id: string
+  type: ValidationRuleType
+  label: string
   enabled: boolean
+  config: Record<string, unknown>
   errorMessage?: string
   description?: string
+}
+
+interface ValidationResult {
+  isValid: boolean
+  errors: string[]
+  warnings?: string[]
 }
 
 interface ValidationEditorProps {
@@ -92,30 +97,26 @@ interface ValidationEditorProps {
 // 验证规则类型选项
 const VALIDATION_RULE_TYPES = [
   { value: 'required', label: '必填验证', icon: '⚠️' },
-  { value: 'minLength', label: '最小长度', icon: '📏' },
-  { value: 'maxLength', label: '最大长度', icon: '📏' },
-  { value: 'min', label: '最小值', icon: '🔢' },
-  { value: 'max', label: '最大值', icon: '🔢' },
+  { value: 'min_length', label: '最小长度', icon: '📏' },
+  { value: 'max_length', label: '最大长度', icon: '📏' },
+  { value: 'min_value', label: '最小值', icon: '🔢' },
+  { value: 'max_value', label: '最大值', icon: '🔢' },
   { value: 'pattern', label: '正则表达式', icon: '🔍' },
   { value: 'email', label: '邮箱格式', icon: '📧' },
-  { value: 'phone', label: '手机号码', icon: '📱' },
   { value: 'url', label: 'URL格式', icon: '🔗' },
-  { value: 'idCard', label: '身份证号', icon: '🆔' },
   { value: 'custom', label: '自定义函数', icon: '⚙️' },
 ]
 
 // 预定义的错误消息模板
 const ERROR_MESSAGE_TEMPLATES: Record<string, string> = {
   required: '此字段为必填项',
-  minLength: '最少需要 {{min}} 个字符',
-  maxLength: '最多允许 {{max}} 个字符',
-  min: '值不能小于 {{min}}',
-  max: '值不能大于 {{max}}',
+  min_length: '最少需要 {{min}} 个字符',
+  max_length: '最多允许 {{max}} 个字符',
+  min_value: '值不能小于 {{min}}',
+  max_value: '值不能大于 {{max}}',
   pattern: '格式不正确',
   email: '请输入有效的邮箱地址',
-  phone: '请输入有效的手机号码',
   url: '请输入有效的URL地址',
-  idCard: '请输入有效的身份证号码',
   custom: '验证失败',
 }
 
@@ -152,11 +153,13 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
   const applicableRuleTypes = useMemo(() => {
     return VALIDATION_RULE_TYPES.filter(ruleType => {
       switch (field.type) {
-        case 'string':
+        case 'text':
         case 'textarea':
-          return ['required', 'minLength', 'maxLength', 'pattern', 'email', 'phone', 'url', 'idCard', 'custom'].includes(ruleType.value)
+          return ['required', 'min_length', 'max_length', 'pattern', 'email', 'custom'].includes(
+            ruleType.value
+          )
         case 'number':
-          return ['required', 'min', 'max', 'custom'].includes(ruleType.value)
+          return ['required', 'min_value', 'max_value', 'custom'].includes(ruleType.value)
         case 'select':
         case 'radio':
           return ['required', 'custom'].includes(ruleType.value)
@@ -170,10 +173,13 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
 
   // 获取可用的预设
   const availablePresets = useMemo(() => {
-    const fieldPresets: Record<string, { label: string; description: string; rules: ValidationRuleConfig[] }> = {}
+    const fieldPresets: Record<
+      string,
+      { label: string; description: string; rules: ValidationRuleConfig[] }
+    > = {}
 
     // 添加通用预设
-    if (field.type === 'string' || field.type === 'textarea') {
+    if (field.type === 'text' || field.type === 'textarea') {
       fieldPresets.username = {
         label: '用户名',
         description: '用户名验证规则',
@@ -181,28 +187,33 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
           {
             id: 'required',
             type: 'required',
+            label: '必填',
             enabled: true,
+            config: {},
             errorMessage: ERROR_MESSAGE_TEMPLATES.required,
           },
           {
             id: 'minLength',
-            type: 'minLength',
-            value: 3,
+            type: 'min_length',
+            label: '最小长度',
             enabled: true,
-            errorMessage: ERROR_MESSAGE_TEMPLATES.minLength.replace('{{min}}', '3'),
+            config: { min_length: 3 },
+            errorMessage: ERROR_MESSAGE_TEMPLATES.min_length.replace('{{min}}', '3'),
           },
           {
             id: 'maxLength',
-            type: 'maxLength',
-            value: 20,
+            type: 'max_length',
+            label: '最大长度',
             enabled: true,
-            errorMessage: ERROR_MESSAGE_TEMPLATES.maxLength.replace('{{max}}', '20'),
+            config: { max_length: 20 },
+            errorMessage: ERROR_MESSAGE_TEMPLATES.max_length.replace('{{max}}', '20'),
           },
           {
             id: 'pattern',
             type: 'pattern',
-            value: '^[a-zA-Z0-9_]+$',
+            label: '正则表达式',
             enabled: true,
+            config: { pattern: '^[a-zA-Z0-9_]+$' },
             errorMessage: '只能包含字母、数字和下划线',
           },
         ],
@@ -215,21 +226,25 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
           {
             id: 'required',
             type: 'required',
+            label: '必填',
             enabled: true,
+            config: {},
             errorMessage: ERROR_MESSAGE_TEMPLATES.required,
           },
           {
             id: 'minLength',
-            type: 'minLength',
-            value: 8,
+            type: 'min_length',
+            label: '最小长度',
             enabled: true,
+            config: { min_length: 8 },
             errorMessage: '密码至少需要8个字符',
           },
           {
             id: 'pattern',
             type: 'pattern',
-            value: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$',
+            label: '正则表达式',
             enabled: true,
+            config: { pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$' },
             errorMessage: '密码必须包含大小写字母和数字',
           },
         ],
@@ -242,13 +257,17 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
           {
             id: 'required',
             type: 'required',
+            label: '必填',
             enabled: true,
+            config: {},
             errorMessage: ERROR_MESSAGE_TEMPLATES.required,
           },
           {
             id: 'email',
             type: 'email',
+            label: '邮箱格式',
             enabled: true,
+            config: {},
             errorMessage: ERROR_MESSAGE_TEMPLATES.email,
           },
         ],
@@ -263,21 +282,25 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
           {
             id: 'required',
             type: 'required',
+            label: '必填',
             enabled: true,
+            config: {},
             errorMessage: ERROR_MESSAGE_TEMPLATES.required,
           },
           {
             id: 'min',
-            type: 'min',
-            value: 0,
+            type: 'min_value',
+            label: '最小值',
             enabled: true,
+            config: { min_value: 0 },
             errorMessage: '年龄不能小于0',
           },
           {
             id: 'max',
-            type: 'max',
-            value: 150,
+            type: 'max_value',
+            label: '最大值',
             enabled: true,
+            config: { max_value: 150 },
             errorMessage: '年龄不能大于150',
           },
         ],
@@ -288,47 +311,59 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
   }, [field.type])
 
   // 添加验证规则
-  const addRule = useCallback((ruleType: string) => {
-    const ruleTypeConfig = VALIDATION_RULE_TYPES.find(rt => rt.value === ruleType)
-    if (!ruleTypeConfig) return
+  const addRule = useCallback(
+    (ruleType: string) => {
+      const ruleTypeConfig = VALIDATION_RULE_TYPES.find(rt => rt.value === ruleType)
+      if (!ruleTypeConfig) return
 
-    const newRule: ValidationRuleConfig = {
-      id: `${ruleType}_${Date.now()}`,
-      type: ruleType as any,
-      enabled: true,
-      errorMessage: ERROR_MESSAGE_TEMPLATES[ruleType] || ERROR_MESSAGE_TEMPLATES.custom,
-      description: ruleTypeConfig.label,
-    }
+      const newRule: ValidationRuleConfig = {
+        id: `${ruleType}_${Date.now()}`,
+        type: ruleType as ValidationRuleType,
+        label: ruleTypeConfig.label,
+        enabled: true,
+        config: {},
+        errorMessage: ERROR_MESSAGE_TEMPLATES[ruleType] || ERROR_MESSAGE_TEMPLATES.custom,
+        description: ruleTypeConfig.label,
+      }
 
-    const updatedRules = [...rules, newRule]
-    setRules(updatedRules)
-    onRulesChange?.(updatedRules)
-  }, [rules, onRulesChange])
+      const updatedRules = [...rules, newRule]
+      setRules(updatedRules)
+      onRulesChange?.(updatedRules)
+    },
+    [rules, onRulesChange]
+  )
 
   // 更新规则
-  const updateRule = useCallback((ruleId: string, updates: Partial<ValidationRuleConfig>) => {
-    const updatedRules = rules.map(rule =>
-      rule.id === ruleId ? { ...rule, ...updates } : rule
-    )
-    setRules(updatedRules)
-    onRulesChange?.(updatedRules)
-  }, [rules, onRulesChange])
+  const updateRule = useCallback(
+    (ruleId: string, updates: Partial<ValidationRuleConfig>) => {
+      const updatedRules = rules.map(rule => (rule.id === ruleId ? { ...rule, ...updates } : rule))
+      setRules(updatedRules)
+      onRulesChange?.(updatedRules)
+    },
+    [rules, onRulesChange]
+  )
 
   // 删除规则
-  const removeRule = useCallback((ruleId: string) => {
-    const updatedRules = rules.filter(rule => rule.id !== ruleId)
-    setRules(updatedRules)
-    onRulesChange?.(updatedRules)
-  }, [rules, onRulesChange])
+  const removeRule = useCallback(
+    (ruleId: string) => {
+      const updatedRules = rules.filter(rule => rule.id !== ruleId)
+      setRules(updatedRules)
+      onRulesChange?.(updatedRules)
+    },
+    [rules, onRulesChange]
+  )
 
   // 应用预设
-  const applyPreset = useCallback((presetKey: string) => {
-    const preset = availablePresets[presetKey]
-    if (!preset) return
+  const applyPreset = useCallback(
+    (presetKey: string) => {
+      const preset = availablePresets[presetKey]
+      if (!preset) return
 
-    setRules(preset.rules)
-    onRulesChange?.(preset.rules)
-  }, [availablePresets, onRulesChange])
+      setRules(preset.rules)
+      onRulesChange?.(preset.rules)
+    },
+    [availablePresets, onRulesChange]
+  )
 
   // 测试验证
   const testValidation = useCallback(() => {
@@ -348,21 +383,24 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
     }
 
     // 测试长度规则
-    const minLengthRule = rules.find(rule => rule.enabled && rule.type === 'minLength')
-    if (minLengthRule && testValue.length < (minLengthRule.value || 0)) {
+    const minLengthRule = rules.find(rule => rule.enabled && rule.type === 'min_length')
+    if (minLengthRule && testValue.length < ((minLengthRule.config?.min_length as number) || 0)) {
       result.isValid = false
       result.errors.push(
-        minLengthRule.errorMessage?.replace('{{min}}', String(minLengthRule.value)) ||
-        `长度不能小于${minLengthRule.value}`
+        minLengthRule.errorMessage?.replace('{{min}}', String(minLengthRule.config?.min_length)) ||
+          `长度不能小于${minLengthRule.config?.min_length}`
       )
     }
 
-    const maxLengthRule = rules.find(rule => rule.enabled && rule.type === 'maxLength')
-    if (maxLengthRule && testValue.length > (maxLengthRule.value || Infinity)) {
+    const maxLengthRule = rules.find(rule => rule.enabled && rule.type === 'max_length')
+    if (
+      maxLengthRule &&
+      testValue.length > ((maxLengthRule.config?.max_length as number) || Infinity)
+    ) {
       result.isValid = false
       result.errors.push(
-        maxLengthRule.errorMessage?.replace('{{max}}', String(maxLengthRule.value)) ||
-        `长度不能大于${maxLengthRule.value}`
+        maxLengthRule.errorMessage?.replace('{{max}}', String(maxLengthRule.config?.max_length)) ||
+          `长度不能大于${maxLengthRule.config?.max_length}`
       )
     }
 
@@ -400,7 +438,11 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
 
   // 复制验证规则
   const copyRules = useCallback(() => {
-    const rulesJson = JSON.stringify(rules.map(({ id, ...rule }) => rule), null, 2)
+    const rulesJson = JSON.stringify(
+      rules.map(({ id, ...rule }) => rule),
+      null,
+      2
+    )
     navigator.clipboard.writeText(rulesJson)
   }, [rules])
 
@@ -417,7 +459,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
               <CardTitle className="text-sm">{ruleTypeConfig?.label || rule.type}</CardTitle>
               <Switch
                 checked={rule.enabled}
-                onCheckedChange={(enabled) => updateRule(rule.id, { enabled })}
+                onCheckedChange={enabled => updateRule(rule.id, { enabled })}
                 disabled={disabled || readonly}
               />
             </div>
@@ -443,15 +485,22 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
         </CardHeader>
         <CardContent className="space-y-3">
           {/* 规则参数配置 */}
-          {(rule.type === 'minLength' || rule.type === 'maxLength') && (
+          {(rule.type === 'min_length' || rule.type === 'max_length') && (
             <div className="flex items-center gap-2">
-              <Label className="text-sm min-w-20">
-                {rule.type === 'minLength' ? '最小长度' : '最大长度'}:
+              <Label className="min-w-20 text-sm">
+                {rule.type === 'min_length' ? '最小长度' : '最大长度'}:
               </Label>
               <Input
                 type="number"
-                value={rule.value || ''}
-                onChange={(e) => updateRule(rule.id, { value: parseInt(e.target.value) || 0 })}
+                value={(rule.config?.[rule.type] as number) || ''}
+                onChange={e =>
+                  updateRule(rule.id, {
+                    config: {
+                      ...rule.config,
+                      [rule.type]: parseInt(e.target.value) || 0,
+                    },
+                  })
+                }
                 placeholder="请输入长度"
                 disabled={disabled || readonly}
                 className="flex-1"
@@ -459,15 +508,22 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             </div>
           )}
 
-          {(rule.type === 'min' || rule.type === 'max') && (
+          {(rule.type === 'min_value' || rule.type === 'max_value') && (
             <div className="flex items-center gap-2">
-              <Label className="text-sm min-w-20">
-                {rule.type === 'min' ? '最小值' : '最大值'}:
+              <Label className="min-w-20 text-sm">
+                {rule.type === 'min_value' ? '最小值' : '最大值'}:
               </Label>
               <Input
                 type="number"
-                value={rule.value || ''}
-                onChange={(e) => updateRule(rule.id, { value: parseInt(e.target.value) || 0 })}
+                value={(rule.config?.[rule.type] as number) || ''}
+                onChange={e =>
+                  updateRule(rule.id, {
+                    config: {
+                      ...rule.config,
+                      [rule.type]: parseInt(e.target.value) || 0,
+                    },
+                  })
+                }
                 placeholder="请输入数值"
                 disabled={disabled || readonly}
                 className="flex-1"
@@ -479,8 +535,15 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             <div className="space-y-2">
               <Label className="text-sm">正则表达式:</Label>
               <Input
-                value={rule.value || ''}
-                onChange={(e) => updateRule(rule.id, { value: e.target.value })}
+                value={(rule.config?.pattern as string) || ''}
+                onChange={e =>
+                  updateRule(rule.id, {
+                    config: {
+                      ...rule.config,
+                      pattern: e.target.value,
+                    },
+                  })
+                }
                 placeholder="请输入正则表达式"
                 disabled={disabled || readonly}
               />
@@ -492,7 +555,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             <Label className="text-sm">错误消息:</Label>
             <Input
               value={rule.errorMessage || ''}
-              onChange={(e) => updateRule(rule.id, { errorMessage: e.target.value })}
+              onChange={e => updateRule(rule.id, { errorMessage: e.target.value })}
               placeholder="请输入错误提示消息"
               disabled={disabled || readonly}
             />
@@ -503,7 +566,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             <Label className="text-sm">描述信息:</Label>
             <Textarea
               value={rule.description || ''}
-              onChange={(e) => updateRule(rule.id, { description: e.target.value })}
+              onChange={e => updateRule(rule.id, { description: e.target.value })}
               placeholder="请输入规则描述"
               disabled={disabled || readonly}
               rows={2}
@@ -523,7 +586,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
   }
 
   return (
-    <div className={cn('validation-editor flex flex-col h-full', className)}>
+    <div className={cn('validation-editor flex h-full flex-col', className)}>
       {/* 头部工具栏 */}
       <div className="flex items-center justify-between border-b bg-background p-4">
         <div className="flex items-center gap-2">
@@ -545,7 +608,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             disabled={disabled || readonly}
             className="text-xs"
           >
-            <RefreshCw className="h-4 w-4 mr-1" />
+            <RefreshCw className="mr-1 h-4 w-4" />
             重置
           </Button>
           <Button
@@ -555,7 +618,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             disabled={disabled || readonly || rules.length === 0}
             className="text-xs"
           >
-            <Copy className="h-4 w-4 mr-1" />
+            <Copy className="mr-1 h-4 w-4" />
             复制
           </Button>
           <Button
@@ -565,7 +628,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             disabled={disabled || readonly || rules.length === 0}
             className="text-xs"
           >
-            <Download className="h-4 w-4 mr-1" />
+            <Download className="mr-1 h-4 w-4" />
             导出
           </Button>
         </div>
@@ -574,7 +637,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
       {/* 主内容区域 */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <TabsList className="grid w-full grid-cols-3 m-4">
+          <TabsList className="m-4 grid w-full grid-cols-3">
             <TabsTrigger value="rules">验证规则</TabsTrigger>
             {showPresets && <TabsTrigger value="presets">预设模板</TabsTrigger>}
             {showTestArea && <TabsTrigger value="test">测试验证</TabsTrigger>}
@@ -586,10 +649,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
               {/* 添加规则按钮 */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">添加验证规则</span>
-                <Select
-                  onValueChange={addRule}
-                  disabled={disabled || readonly}
-                >
+                <Select onValueChange={addRule} disabled={disabled || readonly}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="选择验证规则类型" />
                   </SelectTrigger>
@@ -609,15 +669,13 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
               {/* 规则列表 */}
               <ScrollArea className="h-[400px]">
                 {rules.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                    <AlertCircle className="h-8 w-8 mb-2" />
+                  <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
+                    <AlertCircle className="mb-2 h-8 w-8" />
                     <span className="text-sm">暂无验证规则</span>
                     <span className="text-xs">请添加验证规则以开始配置</span>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {rules.map(renderRuleEditor)}
-                  </div>
+                  <div className="space-y-4">{rules.map(renderRuleEditor)}</div>
                 )}
               </ScrollArea>
             </div>
@@ -628,14 +686,14 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
             <TabsContent value="presets" className="p-4 pt-0">
               <div className="space-y-4">
                 <div className="text-sm font-medium">选择预设模板</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {Object.entries(availablePresets).map(([key, preset]) => (
-                    <Card key={key} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <Card key={key} className="cursor-pointer transition-shadow hover:shadow-md">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm">{preset.label}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-xs text-muted-foreground mb-3">{preset.description}</p>
+                        <p className="mb-3 text-xs text-muted-foreground">{preset.description}</p>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
                             {preset.rules.length} 条规则
@@ -667,17 +725,14 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
                   <Label className="text-sm">测试值:</Label>
                   <Input
                     value={testValue}
-                    onChange={(e) => setTestValue(e.target.value)}
+                    onChange={e => setTestValue(e.target.value)}
                     placeholder="请输入测试值"
                     disabled={disabled || readonly}
                   />
                 </div>
 
                 {/* 测试按钮 */}
-                <Button
-                  onClick={testValidation}
-                  disabled={disabled || readonly || !testValue}
-                >
+                <Button onClick={testValidation} disabled={disabled || readonly || !testValue}>
                   开始验证
                 </Button>
 
@@ -697,11 +752,11 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
 
                     {!validationResult.isValid && validationResult.errors.length > 0 && (
                       <div className="mt-2">
-                        <div className="text-sm font-medium mb-1">错误信息:</div>
-                        <ul className="text-sm space-y-1">
+                        <div className="mb-1 text-sm font-medium">错误信息:</div>
+                        <ul className="space-y-1 text-sm">
                           {validationResult.errors.map((error, index) => (
                             <li key={index} className="flex items-center gap-2">
-                              <span className="w-1 h-1 bg-destructive rounded-full" />
+                              <span className="h-1 w-1 rounded-full bg-destructive" />
                               {error}
                             </li>
                           ))}
@@ -711,11 +766,11 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
 
                     {validationResult.warnings && validationResult.warnings.length > 0 && (
                       <div className="mt-2">
-                        <div className="text-sm font-medium mb-1">警告信息:</div>
-                        <ul className="text-sm space-y-1">
+                        <div className="mb-1 text-sm font-medium">警告信息:</div>
+                        <ul className="space-y-1 text-sm">
                           {validationResult.warnings.map((warning, index) => (
                             <li key={index} className="flex items-center gap-2">
-                              <span className="w-1 h-1 bg-yellow-500 rounded-full" />
+                              <span className="h-1 w-1 rounded-full bg-yellow-500" />
                               {warning}
                             </li>
                           ))}
@@ -728,9 +783,7 @@ export const ValidationEditor: React.FC<ValidationEditorProps> = ({
                 {rules.length === 0 && (
                   <Alert>
                     <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      请先添加验证规则，然后可以在此测试验证效果
-                    </AlertDescription>
+                    <AlertDescription>请先添加验证规则，然后可以在此测试验证效果</AlertDescription>
                   </Alert>
                 )}
               </div>

@@ -20,6 +20,7 @@ export interface FieldDefinition<T = unknown> {
   validation?: ValidationRule[]
   options?: Array<{ label: string; value: T; description?: string }>
   config?: Record<string, unknown>
+  key?: string
 }
 
 // 字段类型枚举

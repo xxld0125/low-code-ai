@@ -7,7 +7,6 @@
 // 主要组件
 export { Input } from './Input'
 export type { LowcodeInputProps } from './Input'
-export { useInputValidation } from './Input'
 
 // 验证组件
 export { ValidatedInput } from './ValidatedInput'

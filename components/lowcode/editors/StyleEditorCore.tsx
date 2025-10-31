@@ -18,6 +18,7 @@ interface StyleDefinition {
   editor_config?: Record<string, any>
   group?: string
   order?: number
+  options?: Array<{ value: any; label: string }>
 }
 
 interface StyleGroup {
@@ -85,17 +86,23 @@ export const useStyleGroups = (styleSchema: { groups: StyleGroup[] } | null) => 
       }))
   }, [styleSchema])
 
-  const getGroupById = useCallback((groupId: string) => {
-    return groups.find(group => group.id === groupId) || null
-  }, [groups])
+  const getGroupById = useCallback(
+    (groupId: string) => {
+      return groups.find(group => group.id === groupId) || null
+    },
+    [groups]
+  )
 
-  const getPropertyById = useCallback((propertyId: string) => {
-    for (const group of groups) {
-      const property = group.properties.find(prop => prop.id === propertyId)
-      if (property) return property
-    }
-    return null
-  }, [groups])
+  const getPropertyById = useCallback(
+    (propertyId: string) => {
+      for (const group of groups) {
+        const property = group.properties.find(prop => prop.id === propertyId)
+        if (property) return property
+      }
+      return null
+    },
+    [groups]
+  )
 
   return {
     groups,
@@ -106,82 +113,86 @@ export const useStyleGroups = (styleSchema: { groups: StyleGroup[] } | null) => 
 
 // 样式验证 Hook
 export const useStyleValidation = (styleDefinitions: StyleDefinition[]) => {
-  const validateStyleValue = useCallback((
-    styleDefinition: StyleDefinition,
-    value: any
-  ): StyleValidationResult => {
-    const errors: string[] = []
-    const warnings: string[] = []
+  const validateStyleValue = useCallback(
+    (styleDefinition: StyleDefinition, value: any): StyleValidationResult => {
+      const errors: string[] = []
+      const warnings: string[] = []
 
-    // 必填验证
-    if (styleDefinition.required && (value === undefined || value === null || value === '')) {
-      errors.push(`${styleDefinition.label}不能为空`)
-    }
-
-    // 类型验证
-    if (value !== undefined && value !== null && value !== '') {
-      switch (styleDefinition.type) {
-        case 'color':
-          if (typeof value !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(value)) {
-            errors.push(`${styleDefinition.label}必须是有效的颜色值`)
-          }
-          break
-        case 'size':
-          if (typeof value !== 'string' || !/^\d+(\.\d+)?(px|rem|em|%|vh|vw|auto)$/.test(value)) {
-            errors.push(`${styleDefinition.label}必须是有效的尺寸值`)
-          }
-          break
-        case 'number':
-          if (typeof value !== 'number' || isNaN(value)) {
-            errors.push(`${styleDefinition.label}必须是数字`)
-          } else {
-            const config = styleDefinition.editor_config || {}
-            if (config.min !== undefined && value < config.min) {
-              errors.push(`${styleDefinition.label}不能小于 ${config.min}`)
-            }
-            if (config.max !== undefined && value > config.max) {
-              errors.push(`${styleDefinition.label}不能大于 ${config.max}`)
-            }
-          }
-          break
-        case 'select':
-          const options = styleDefinition.options || styleDefinition.editor_config?.options || []
-          if (!options.some((opt: any) => opt.value === value)) {
-            errors.push(`${styleDefinition.label}选择了无效的选项`)
-          }
-          break
-        case 'border':
-          if (typeof value !== 'string' || !/^\d+px (solid|dashed|dotted|double) #[0-9A-Fa-f]{6}$/.test(value)) {
-            errors.push(`${styleDefinition.label}必须是有效的边框值`)
-          }
-          break
-        case 'shadow':
-          if (typeof value !== 'string' || !/^[\d\spxrgba%,-]+$/.test(value)) {
-            warnings.push(`${styleDefinition.label}可能不是有效的阴影值`)
-          }
-          break
+      // 必填验证
+      if (styleDefinition.required && (value === undefined || value === null || value === '')) {
+        errors.push(`${styleDefinition.label}不能为空`)
       }
-    }
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings: warnings.length > 0 ? warnings : undefined,
-    }
-  }, [])
+      // 类型验证
+      if (value !== undefined && value !== null && value !== '') {
+        switch (styleDefinition.type) {
+          case 'color':
+            if (typeof value !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(value)) {
+              errors.push(`${styleDefinition.label}必须是有效的颜色值`)
+            }
+            break
+          case 'size':
+            if (typeof value !== 'string' || !/^\d+(\.\d+)?(px|rem|em|%|vh|vw|auto)$/.test(value)) {
+              errors.push(`${styleDefinition.label}必须是有效的尺寸值`)
+            }
+            break
+          case 'number':
+            if (typeof value !== 'number' || isNaN(value)) {
+              errors.push(`${styleDefinition.label}必须是数字`)
+            } else {
+              const config = styleDefinition.editor_config || {}
+              if (config.min !== undefined && value < config.min) {
+                errors.push(`${styleDefinition.label}不能小于 ${config.min}`)
+              }
+              if (config.max !== undefined && value > config.max) {
+                errors.push(`${styleDefinition.label}不能大于 ${config.max}`)
+              }
+            }
+            break
+          case 'select':
+            const options = styleDefinition.options || styleDefinition.editor_config?.options || []
+            if (!options.some((opt: any) => opt.value === value)) {
+              errors.push(`${styleDefinition.label}选择了无效的选项`)
+            }
+            break
+          case 'border':
+            if (
+              typeof value !== 'string' ||
+              !/^\d+px (solid|dashed|dotted|double) #[0-9A-Fa-f]{6}$/.test(value)
+            ) {
+              errors.push(`${styleDefinition.label}必须是有效的边框值`)
+            }
+            break
+          case 'shadow':
+            if (typeof value !== 'string' || !/^[\d\spxrgba%,-]+$/.test(value)) {
+              warnings.push(`${styleDefinition.label}可能不是有效的阴影值`)
+            }
+            break
+        }
+      }
 
-  const validateAllStyles = useCallback((
-    styles: Record<string, any>
-  ): Record<string, StyleValidationResult> => {
-    const results: Record<string, StyleValidationResult> = {}
+      return {
+        isValid: errors.length === 0,
+        errors,
+        warnings: warnings.length > 0 ? warnings : undefined,
+      }
+    },
+    []
+  )
 
-    styleDefinitions.forEach(def => {
-      const value = styles[def.name]
-      results[def.name] = validateStyleValue(def, value)
-    })
+  const validateAllStyles = useCallback(
+    (styles: Record<string, any>): Record<string, StyleValidationResult> => {
+      const results: Record<string, StyleValidationResult> = {}
 
-    return results
-  }, [styleDefinitions, validateStyleValue])
+      styleDefinitions.forEach(def => {
+        const value = styles[def.name]
+        results[def.name] = validateStyleValue(def, value)
+      })
+
+      return results
+    },
+    [styleDefinitions, validateStyleValue]
+  )
 
   return {
     validateStyleValue,
@@ -197,11 +208,7 @@ export const useResponsiveStyles = (
   const [currentBreakpoint, setCurrentBreakpoint] = useState<Breakpoint>(breakpoints[0])
   const [styles, setStyles] = useState<ResponsiveStyles>(initialStyles)
 
-  const updateStyle = useCallback((
-    breakpointId: string,
-    styleKey: string,
-    value: any
-  ) => {
+  const updateStyle = useCallback((breakpointId: string, styleKey: string, value: any) => {
     setStyles(prev => ({
       ...prev,
       [breakpointId]: {
@@ -224,9 +231,12 @@ export const useResponsiveStyles = (
     return currentStyles
   }, [styles, breakpoints])
 
-  const getStyleAtBreakpoint = useCallback((breakpointId: string) => {
-    return styles[breakpointId] || {}
-  }, [styles])
+  const getStyleAtBreakpoint = useCallback(
+    (breakpointId: string) => {
+      return styles[breakpointId] || {}
+    },
+    [styles]
+  )
 
   const resetBreakpointStyles = useCallback((breakpointId: string) => {
     setStyles(prev => ({
@@ -239,31 +249,30 @@ export const useResponsiveStyles = (
     setStyles({})
   }, [])
 
-  const inheritFromBreakpoint = useCallback((
-    fromBreakpointId: string,
-    toBreakpointId: string,
-    styleKeys?: string[]
-  ) => {
-    const fromStyles = styles[fromBreakpointId] || {}
-    const toStyles = styles[toBreakpointId] || {}
+  const inheritFromBreakpoint = useCallback(
+    (fromBreakpointId: string, toBreakpointId: string, styleKeys?: string[]) => {
+      const fromStyles = styles[fromBreakpointId] || {}
+      const toStyles = styles[toBreakpointId] || {}
 
-    const stylesToInherit = styleKeys || Object.keys(fromStyles)
-    const inheritedStyles: Record<string, any> = {}
+      const stylesToInherit = styleKeys || Object.keys(fromStyles)
+      const inheritedStyles: Record<string, any> = {}
 
-    stylesToInherit.forEach(key => {
-      if (fromStyles[key] !== undefined) {
-        inheritedStyles[key] = fromStyles[key]
-      }
-    })
+      stylesToInherit.forEach(key => {
+        if (fromStyles[key] !== undefined) {
+          inheritedStyles[key] = fromStyles[key]
+        }
+      })
 
-    setStyles(prev => ({
-      ...prev,
-      [toBreakpointId]: {
-        ...toStyles,
-        ...inheritedStyles,
-      },
-    }))
-  }, [styles])
+      setStyles(prev => ({
+        ...prev,
+        [toBreakpointId]: {
+          ...toStyles,
+          ...inheritedStyles,
+        },
+      }))
+    },
+    [styles]
+  )
 
   return {
     currentBreakpoint,
@@ -279,31 +288,35 @@ export const useResponsiveStyles = (
 }
 
 // 样式预设管理 Hook
-export const useStylePresets = (presets: Array<{ name: string; styles: Record<string, any> }> = []) => {
+export const useStylePresets = (
+  presets: Array<{ name: string; styles: Record<string, any> }> = []
+) => {
   const [customPresets, setCustomPresets] = useState(presets)
 
-  const applyPreset = useCallback((
-    preset: { name: string; styles: Record<string, any> },
-    onUpdate: (styles: Record<string, any>) => void
-  ) => {
-    onUpdate(preset.styles)
-  }, [])
+  const applyPreset = useCallback(
+    (
+      preset: { name: string; styles: Record<string, any> },
+      onUpdate: (styles: Record<string, any>) => void
+    ) => {
+      onUpdate(preset.styles)
+    },
+    []
+  )
 
-  const savePreset = useCallback((
-    name: string,
-    styles: Record<string, any>,
-    description?: string
-  ) => {
-    const newPreset = {
-      name,
-      description,
-      styles: { ...styles },
-      createdAt: new Date().toISOString(),
-    }
+  const savePreset = useCallback(
+    (name: string, styles: Record<string, any>, description?: string) => {
+      const newPreset = {
+        name,
+        description,
+        styles: { ...styles },
+        createdAt: new Date().toISOString(),
+      }
 
-    setCustomPresets(prev => [...prev, newPreset])
-    return newPreset
-  }, [])
+      setCustomPresets(prev => [...prev, newPreset])
+      return newPreset
+    },
+    []
+  )
 
   const deletePreset = useCallback((presetName: string) => {
     setCustomPresets(prev => prev.filter(preset => preset.name !== presetName))
@@ -313,9 +326,12 @@ export const useStylePresets = (presets: Array<{ name: string; styles: Record<st
     return customPresets
   }, [customPresets])
 
-  const getPresetByName = useCallback((name: string) => {
-    return customPresets.find(preset => preset.name === name)
-  }, [customPresets])
+  const getPresetByName = useCallback(
+    (name: string) => {
+      return customPresets.find(preset => preset.name === name)
+    },
+    [customPresets]
+  )
 
   return {
     customPresets,
@@ -332,19 +348,22 @@ export const useStyleHistory = (initialStyles: Record<string, any> = {}) => {
   const [history, setHistory] = useState<Record<string, any>[]>([initialStyles])
   const [historyIndex, setHistoryIndex] = useState(0)
 
-  const addToHistory = useCallback((styles: Record<string, any>) => {
-    setHistory(prev => {
-      const newHistory = prev.slice(0, historyIndex + 1)
-      newHistory.push(styles)
-      // 限制历史记录数量
-      if (newHistory.length > 50) {
-        newHistory.shift()
+  const addToHistory = useCallback(
+    (styles: Record<string, any>) => {
+      setHistory(prev => {
+        const newHistory = prev.slice(0, historyIndex + 1)
+        newHistory.push(styles)
+        // 限制历史记录数量
+        if (newHistory.length > 50) {
+          newHistory.shift()
+          return newHistory
+        }
         return newHistory
-      }
-      return newHistory
-    })
-    setHistoryIndex(prev => Math.min(prev + 1, 49))
-  }, [historyIndex])
+      })
+      setHistoryIndex(prev => Math.min(prev + 1, 49))
+    },
+    [historyIndex]
+  )
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -385,42 +404,40 @@ export const useStyleHistory = (initialStyles: Record<string, any> = {}) => {
 
 // 样式代码生成 Hook
 export const useStyleCodeGeneration = () => {
-  const generateCSS = useCallback((
-    styles: Record<string, any>,
-    selector: string = '.component'
-  ): string => {
-    const cssRules: string[] = []
+  const generateCSS = useCallback(
+    (styles: Record<string, any>, selector: string = '.component'): string => {
+      const cssRules: string[] = []
 
-    Object.entries(styles).forEach(([property, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        // 转换驼峰属性名为kebab-case
-        const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase()
-        cssRules.push(`  ${cssProperty}: ${value};`)
+      Object.entries(styles).forEach(([property, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          // 转换驼峰属性名为kebab-case
+          const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase()
+          cssRules.push(`  ${cssProperty}: ${value};`)
+        }
+      })
+
+      if (cssRules.length === 0) {
+        return ''
       }
-    })
 
-    if (cssRules.length === 0) {
-      return ''
-    }
-
-    return `${selector} {\n${cssRules.join('\n')}\n}`
-  }, [])
+      return `${selector} {\n${cssRules.join('\n')}\n}`
+    },
+    []
+  )
 
   const generateInlineStyles = useCallback((styles: Record<string, any>): React.CSSProperties => {
     const inlineStyles: React.CSSProperties = {}
 
     Object.entries(styles).forEach(([property, value]) => {
       if (value !== undefined && value !== null && value !== '') {
-        (inlineStyles as any)[property] = value
+        ;(inlineStyles as any)[property] = value
       }
     })
 
     return inlineStyles
   }, [])
 
-  const generateTailwindClasses = useCallback((
-    styles: Record<string, any>
-  ): string[] => {
+  const generateTailwindClasses = useCallback((styles: Record<string, any>): string[] => {
     const classes: string[] = []
 
     // 简单的样式到Tailwind类的映射
@@ -474,23 +491,23 @@ export const useStyleCodeGeneration = () => {
 
 // 样式导入导出 Hook
 export const useStyleImportExport = () => {
-  const exportToJSON = useCallback((
-    styles: Record<string, any>,
-    metadata?: Record<string, any>
-  ): string => {
-    const exportData = {
-      version: '1.0.0',
-      timestamp: new Date().toISOString(),
-      styles,
-      metadata: {
-        totalStyles: Object.keys(styles).length,
-        styleKeys: Object.keys(styles),
-        ...metadata,
-      },
-    }
+  const exportToJSON = useCallback(
+    (styles: Record<string, any>, metadata?: Record<string, any>): string => {
+      const exportData = {
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        styles,
+        metadata: {
+          totalStyles: Object.keys(styles).length,
+          styleKeys: Object.keys(styles),
+          ...metadata,
+        },
+      }
 
-    return JSON.stringify(exportData, null, 2)
-  }, [])
+      return JSON.stringify(exportData, null, 2)
+    },
+    []
+  )
 
   const importFromJSON = useCallback((jsonString: string): Record<string, any> => {
     try {
@@ -509,25 +526,25 @@ export const useStyleImportExport = () => {
     }
   }, [])
 
-  const exportToCSS = useCallback((
-    styles: Record<string, any>,
-    selector: string = '.custom-component'
-  ): string => {
-    const cssRules: string[] = []
+  const exportToCSS = useCallback(
+    (styles: Record<string, any>, selector: string = '.custom-component'): string => {
+      const cssRules: string[] = []
 
-    Object.entries(styles).forEach(([property, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase()
-        cssRules.push(`  ${cssProperty}: ${value};`)
+      Object.entries(styles).forEach(([property, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase()
+          cssRules.push(`  ${cssProperty}: ${value};`)
+        }
+      })
+
+      if (cssRules.length === 0) {
+        return `/* 没有样式配置 */`
       }
-    })
 
-    if (cssRules.length === 0) {
-      return `/* 没有样式配置 */`
-    }
-
-    return `/* 导出的样式配置 */\n${selector} {\n${cssRules.join('\n')}\n}`
-  }, [])
+      return `/* 导出的样式配置 */\n${selector} {\n${cssRules.join('\n')}\n}`
+    },
+    []
+  )
 
   return {
     exportToJSON,

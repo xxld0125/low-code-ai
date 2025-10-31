@@ -7,16 +7,28 @@
 import React from 'react'
 import { Input as ShadcnInput } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { FieldValidationErrorDisplay } from '@/components/lowcode/validation/ValidationErrorDisplay'
+import { useInputValidation } from '@/hooks/useComponentValidation'
 import { cn } from '@/lib/utils'
 import type { InputProps } from '@/types/lowcode/component'
 
-export interface LowcodeInputProps extends InputProps {
+export interface LowcodeInputProps extends Omit<InputProps, 'error'> {
   className?: string
   id?: string
   defaultValue?: string
+  value?: string
+
+  // 事件处理
   onChange?: (value: string) => void
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
+
+  // 验证相关
+  error?: string // 向后兼容的错误属性
+  useValidation?: boolean // 是否启用验证Hook
+  validateOnChange?: boolean
+  validateOnBlur?: boolean
+  customValidator?: (value: unknown) => string | null
 }
 
 export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
@@ -33,29 +45,59 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
       maxlength,
       minlength,
       pattern,
-      error,
+      error: externalError,
       helper,
       className,
       id,
       onChange,
       onFocus,
       onBlur,
+      useValidation = false,
+      validateOnChange = true,
+      validateOnBlur = true,
+      customValidator,
       ...props
     },
     ref
   ) => {
-    // 确定是否为受控组件
-    const isControlled = value !== undefined
+    // 使用验证Hook（如果启用）
+    const validation = useInputValidation({
+      required,
+      minLength: minlength,
+      maxLength: maxlength,
+      pattern,
+      type,
+      customValidator,
+      initialValue: value !== undefined ? value : defaultValue,
+      validateOnChange: useValidation ? validateOnChange : false,
+      validateOnBlur: useValidation ? validateOnBlur : false,
+    })
 
-    // 如果是受控组件使用value，否则使用defaultValue
-    const inputValue = isControlled ? value : defaultValue
+    // 确定是否为受控组件
+    const isControlled = value !== undefined || useValidation
+
+    // 如果启用了验证，使用验证Hook的值，否则使用传入的值
+    const inputValue = useValidation
+      ? (validation.value as string)
+      : isControlled
+        ? value
+        : defaultValue
+
     // 生成唯一ID - 必须无条件调用Hook
     const generatedId = React.useId()
     const inputId = id || `input-${generatedId}`
 
+    // 确定最终使用的错误信息
+    const displayError = useValidation ? validation.error : externalError
+
     // 处理输入变化
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value
+
+      // 如果启用了验证，先更新验证状态
+      if (useValidation) {
+        validation.onChange(newValue)
+      }
 
       // 如果有自定义onChange处理器，执行它
       if (onChange) {
@@ -65,6 +107,11 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
 
     // 处理焦点事件
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      // 如果启用了验证，调用验证Hook的onFocus
+      if (useValidation) {
+        validation.onFocus()
+      }
+
       if (onFocus) {
         onFocus(e)
       }
@@ -72,6 +119,11 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
 
     // 处理失焦事件
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      // 如果启用了验证，调用验证Hook的onBlur
+      if (useValidation) {
+        validation.onBlur()
+      }
+
       if (onBlur) {
         onBlur(e)
       }
@@ -103,7 +155,7 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
 
     // 生成唯一的辅助文本ID
     const helperId = helper ? `${inputId}-helper` : undefined
-    const errorId = error ? `${inputId}-error` : undefined
+    const errorId = displayError ? `${inputId}-error` : undefined
 
     return (
       <div className={cn('space-y-2', className)}>
@@ -114,7 +166,7 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
             className={cn(
               'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
               required && 'after:ml-0.5 after:text-red-500 after:content-["*"]',
-              error && 'text-destructive'
+              displayError && 'text-destructive'
             )}
           >
             {label}
@@ -139,7 +191,7 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             data-testid="input"
-            {...(error && { 'aria-invalid': 'true' })}
+            {...(displayError && { 'aria-invalid': 'true' })}
             aria-describedby={cn(helperId, errorId)}
             tabIndex={disabled ? -1 : 0}
             className={cn(
@@ -152,7 +204,7 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
               'read-only:cursor-default read-only:bg-muted/50',
 
               // 错误状态
-              error && 'border-destructive focus-visible:ring-destructive',
+              displayError && 'border-destructive focus-visible:ring-destructive',
 
               // 不同类型的样式调整
               type === 'password' && 'font-mono',
@@ -173,26 +225,18 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
         </div>
 
         {/* 辅助文本 */}
-        {(error || helper) && (
+        {(displayError || helper) && (
           <div className="space-y-1">
-            {error && (
-              <p
-                id={errorId}
-                data-testid="error-message"
-                className="flex items-center gap-1 text-sm text-destructive"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                {error}
-              </p>
+            {displayError && (
+              <FieldValidationErrorDisplay
+                error={displayError}
+                field={label}
+                type="error"
+                showIcon={true}
+                className="text-sm"
+              />
             )}
-            {!error && helper && (
+            {!displayError && helper && (
               <p id={helperId} data-testid="helper-text" className="text-sm text-muted-foreground">
                 {helper}
               </p>
@@ -205,51 +249,3 @@ export const Input = React.forwardRef<HTMLInputElement, LowcodeInputProps>(
 )
 
 Input.displayName = 'LowcodeInput'
-
-// 输入框验证Hook
-export const useInputValidation = (
-  value: string,
-  rules: {
-    required?: boolean
-    minLength?: number
-    maxLength?: number
-    pattern?: string
-    custom?: (value: string) => string | null
-  }
-) => {
-  const [error, setError] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    const errors = []
-
-    if (rules.required && !value.trim()) {
-      errors.push('此字段为必填项')
-    }
-
-    if (rules.minLength && value.length < rules.minLength) {
-      errors.push(`最少需要输入${rules.minLength}个字符`)
-    }
-
-    if (rules.maxLength && value.length > rules.maxLength) {
-      errors.push(`最多只能输入${rules.maxLength}个字符`)
-    }
-
-    if (rules.pattern && value) {
-      const regex = new RegExp(rules.pattern)
-      if (!regex.test(value)) {
-        errors.push('输入格式不正确')
-      }
-    }
-
-    if (rules.custom) {
-      const customError = rules.custom(value)
-      if (customError) {
-        errors.push(customError)
-      }
-    }
-
-    setError(errors.length > 0 ? errors[0] : null)
-  }, [value, rules])
-
-  return error
-}

@@ -14,10 +14,15 @@ import {
   mergeStyles,
   type ResponsiveGridProps,
 } from '@/lib/lowcode/layout/utils'
+import {
+  GridSystemUtils,
+  type ResponsiveGridProps as NewResponsiveGridProps,
+  FLEX_ALIGN_SELF_CLASSES,
+} from '@/lib/lowcode/layout/grid-system'
 
 export const Col = React.forwardRef<
   HTMLDivElement,
-  ColProps & React.HTMLAttributes<HTMLDivElement>
+  ColProps & NewResponsiveGridProps & React.HTMLAttributes<HTMLDivElement>
 >(
   (
     {
@@ -31,6 +36,7 @@ export const Col = React.forwardRef<
       align_self = 'auto',
       padding = { x: 0, y: 0 },
       margin = { x: 0, y: 0 },
+      hidden,
       className,
       children,
       style,
@@ -92,7 +98,23 @@ export const Col = React.forwardRef<
       return 0 // 默认值
     }
 
-    // 定义响应式栅格属性
+    // 使用新的栅格系统生成类名
+    const spanClasses = GridSystemUtils.generateSpanClasses(span)
+    const offsetClasses = GridSystemUtils.generateOffsetClasses(offset)
+    const orderClasses = GridSystemUtils.generateOrderClasses(order)
+    const hiddenClasses = GridSystemUtils.generateHiddenClasses(hidden || false)
+    const flexClasses = GridSystemUtils.generateFlexClasses({
+      flex,
+      flexGrow: flex_grow,
+      flexShrink: flex_shrink,
+      flexBasis: flex_basis,
+    })
+    // 映射 flex 值到标准值
+    const normalizedAlignSelf =
+      typeof align_self === 'string' ? (align_self.replace('flex-', '') as any) : align_self
+    const alignSelfClasses = GridSystemUtils.generateAlignSelfClasses(normalizedAlignSelf)
+
+    // 定义响应式栅格属性（保持向后兼容）
     const responsiveProps: ResponsiveGridProps = {
       span: convertToResponsiveValue(span),
       offset: convertToResponsiveValue(offset),
@@ -111,7 +133,6 @@ export const Col = React.forwardRef<
       {
         display: 'flex',
         flexDirection: 'column',
-        alignSelf: align_self,
         padding: spacingToCss(padding),
         margin: spacingToCss(margin),
       },
@@ -121,7 +142,22 @@ export const Col = React.forwardRef<
     )
 
     return (
-      <div ref={ref} className={cn(className)} style={mergedStyle} {...props}>
+      <div
+        ref={ref}
+        className={cn(
+          // 栅格系统类名
+          spanClasses,
+          offsetClasses,
+          orderClasses,
+          hiddenClasses,
+          flexClasses,
+          alignSelfClasses,
+          // 用户自定义类名
+          className
+        )}
+        style={mergedStyle}
+        {...props}
+      >
         {children}
       </div>
     )

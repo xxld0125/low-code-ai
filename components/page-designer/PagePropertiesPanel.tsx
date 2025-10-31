@@ -790,13 +790,15 @@ export const PagePropertiesPanel: React.FC<PagePropertiesPanelProps> = ({
                       {showAdvanced && (
                         <div className="mt-6">
                           <ValidationEditor
-                            componentType={selectedComponent.component_type}
-                            propertyName="validation"
-                            propertyType={getComponentPropertyType(
-                              selectedComponent.component_type
-                            )}
-                            validationRules={(selectedComponent as any).validation || []}
-                            onValidationRulesChange={rules => {
+                            field={{
+                              name: 'validation',
+                              label: '验证规则',
+                              type: getComponentPropertyType(
+                                selectedComponent.component_type
+                              ) as any,
+                              validation: (selectedComponent as any).validation || [],
+                            }}
+                            onRulesChange={rules => {
                               handlePropertyChange('validation', rules, 'props')
                             }}
                           />
@@ -817,7 +819,7 @@ export const PagePropertiesPanel: React.FC<PagePropertiesPanelProps> = ({
                           category: selectedComponent.component_type,
                           styleDefinitions: getComponentStyleDefinition(
                             selectedComponent.component_type
-                          )
+                          ),
                         }}
                         value={(selectedComponent.styles as any) || {}}
                         onChange={styles => {

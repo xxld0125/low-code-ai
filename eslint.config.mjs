@@ -12,6 +12,12 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // 修复 structuredClone 错误，禁用有问题的 react/display-name 规则
+    rules: {
+      "react/display-name": "off",
+    },
+  },
+  {
     ignores: [
       // Dependencies
       "node_modules/**",
@@ -79,6 +85,15 @@ const eslintConfig = [
       "*.swo",
       "test-results/**",
       "playwright-report/**",
+
+      // From .eslintignore file
+      "*.test.ts",
+      "*.test.tsx",
+      "test/**",
+      "tests/**",
+      "*.test.js",
+      "jest.config.js",
+      "jest.setup.js",
     ],
   },
   {

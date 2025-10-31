@@ -4,6 +4,21 @@
  * 创建日期: 2025-10-29
  */
 
+// 导入高级验证器
+import {
+  AdvancedValidators,
+  EmailValidators,
+  NumberValidators,
+  PhoneValidators,
+  IdCardValidators,
+  PasswordValidators,
+  UrlValidators,
+  DateTimeValidators,
+  FileValidators,
+  BusinessValidators,
+  CustomValidationFunctions,
+} from './advanced-validators'
+
 // 核心验证器
 export {
   FormValidator,
@@ -58,6 +73,21 @@ import {
   FormValidator,
 } from './form-validators'
 import { createValidationRules, useFormValidation } from './form-validation-hook'
+
+// 导出高级验证器
+export {
+  AdvancedValidators,
+  EmailValidators,
+  NumberValidators,
+  PhoneValidators,
+  IdCardValidators,
+  PasswordValidators,
+  UrlValidators,
+  DateTimeValidators,
+  FileValidators,
+  BusinessValidators,
+  CustomValidationFunctions,
+} from './advanced-validators'
 
 // 常用验证器集合
 export const CommonValidators = {
@@ -200,6 +230,17 @@ const validationModule = {
   FormValidator,
   useFormValidation,
   CommonValidators,
+  AdvancedValidators,
+  EmailValidators,
+  NumberValidators,
+  PhoneValidators,
+  IdCardValidators,
+  PasswordValidators,
+  UrlValidators,
+  DateTimeValidators,
+  FileValidators,
+  BusinessValidators,
+  CustomValidationFunctions,
   ValidationRuleSets,
   ErrorMessages,
   ValidationConfig,
