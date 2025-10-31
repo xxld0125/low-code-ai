@@ -779,7 +779,7 @@ export const PagePropertiesPanel: React.FC<PagePropertiesPanelProps> = ({
                           selectedComponent.component_type
                         )}
                         onPropertyChange={event => {
-                          handlePropertyChange(event.property_key, event.value, 'props')
+                          handlePropertyChange(event.property_key || '', event.value, 'props')
                         }}
                         onPropertiesChange={newProps => {
                           handlePropertyChange('props', newProps, 'props')
@@ -811,31 +811,35 @@ export const PagePropertiesPanel: React.FC<PagePropertiesPanelProps> = ({
                     <div className="p-4">
                       {/* 使用新的StyleEditor组件 */}
                       <StyleEditor
-                        componentDefinition={getComponentStyleDefinition(
-                          selectedComponent.component_type
-                        )}
-                        componentStyles={(selectedComponent.styles as any) || {}}
-                        onStyleChange={(property, value, options) => {
-                          if (options?.breakpoint) {
-                            // 处理响应式样式
-                            handlePropertyChange(
-                              `responsive-${options.breakpoint}-${property}`,
-                              value,
-                              'styles'
-                            )
-                          } else {
-                            handlePropertyChange(property, value, 'styles')
-                          }
+                        component={{
+                          id: selectedComponent.id,
+                          name: selectedComponent.component_type || '未命名组件',
+                          category: selectedComponent.component_type,
+                          styleDefinitions: getComponentStyleDefinition(
+                            selectedComponent.component_type
+                          )
                         }}
-                        onValidationError={(property, error) => {
-                          console.warn(`Style validation error for ${property}:`, error)
+                        value={(selectedComponent.styles as any) || {}}
+                        onChange={styles => {
+                          handlePropertyChange('styles', styles, 'styles')
                         }}
                         onPreviewStyle={previewStyles => {
-                          // 实时预览样式变更
                           handlePropertyChange('preview', previewStyles, 'styles')
                         }}
-                        showResponsive={true}
-                        showPreview={true}
+                        config={{
+                          showPreview: true,
+                          showValidation: true,
+                          showReset: true,
+                          groups: ['layout', 'typography', 'spacing', 'visual', 'effects'],
+                          collapsible: true,
+                        }}
+                        previewConfig={{
+                          enabled: true,
+                          width: 300,
+                          height: 200,
+                          showBorder: true,
+                          backgroundColor: '#f8fafc',
+                        }}
                       />
                     </div>
                   )}

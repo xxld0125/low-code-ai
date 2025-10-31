@@ -9,6 +9,10 @@ export { Input } from './Input'
 export type { LowcodeInputProps } from './Input'
 export { useInputValidation } from './Input'
 
+// 验证组件
+export { ValidatedInput } from './ValidatedInput'
+export type { ValidatedInputProps } from './ValidatedInput'
+
 // 组件定义
 export { InputDefinition } from './definition'
 

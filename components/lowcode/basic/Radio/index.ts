@@ -4,8 +4,13 @@
  * 创建日期: 2025-10-29
  */
 
-import { Radio } from './Radio'
-import { RadioPreview } from './Preview'
-
-export { Radio, RadioPreview }
+// 主要组件
+export { Radio } from './Radio'
 export type { LowcodeRadioProps } from './Radio'
+
+// 验证组件
+export { ValidatedRadio } from './ValidatedRadio'
+export type { ValidatedRadioProps, RadioOption } from './ValidatedRadio'
+
+// 预览组件
+export { RadioPreview } from './Preview'

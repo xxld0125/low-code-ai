@@ -34,10 +34,9 @@ export type {
   ExtendedComponentStyles,
   StyleProcessingOptions,
   StyleProcessingResult,
-  ValidationError,
-  ValidationResult,
+  ValidationError as StyleValidationError,
   ValidationOptions,
-  ValidationRule,
+  ValidationRule as StyleValidationRule,
   CacheConfig,
   CacheStats,
   CacheEvents,
@@ -75,7 +74,12 @@ export {
 export type { BreakpointId } from './constants/breakpoints'
 export * from './constants/style-presets'
 export * from './utils/style-utils'
-export * from './utils/error-handling'
+export type {
+  ValidationError as StyleValidationError,
+  ValidationResult as StyleValidationResult,
+  ValidationSeverity,
+} from './validation/style-validator'
+export { STYLE_VALIDATION_RULES } from './validation/style-validator'
 // export {
 //   globalStyleValidator,
 //   validateStyles,

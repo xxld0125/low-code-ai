@@ -7,6 +7,7 @@
 // 核心组件
 export { PropertyEditor } from './PropertyEditor'
 export { PropertyField } from './PropertyField'
+export { StyleEditor } from './StyleEditor'
 
 // 字段类型编辑器
 export * from './FieldTypes'

@@ -5,8 +5,13 @@
  */
 
 // 主要组件
+export { Textarea } from './Textarea'
 export type { LowcodeTextareaProps } from './Textarea'
 export { useAutoResize, useCharacterCount } from './Textarea'
+
+// 验证组件
+export { ValidatedTextarea } from './ValidatedTextarea'
+export type { ValidatedTextareaProps } from './ValidatedTextarea'
 
 // 组件定义
 export { TextareaDefinition } from './definition'
@@ -36,4 +41,5 @@ export {
 export type { TextareaIconProps } from './Icon'
 
 // 默认导出
-export { Textarea } from './Textarea'
+import { Textarea as TextareaComponent } from './Textarea'
+export default TextareaComponent

@@ -289,13 +289,38 @@ export class FormValidator {
       }
     }
 
-    // 这里可以根据validatorName调用对应的自定义验证函数
-    // 为了简化，这里只是一个示例
+    // 根据validatorName调用对应的自定义验证函数
     switch (validatorName) {
       case 'validatePassword':
         return this.validatePassword(value)
       case 'validateUsername':
         return this.validateUsername(value)
+      case 'validatePasswordMatch':
+        return this.validatePasswordMatch(value, rule?.params)
+      case 'validateChecked':
+        return this.validateChecked(value)
+      case 'validateEmailFormat':
+        return this.validateEmailFormat(value)
+      case 'validatePhoneFormat':
+        return this.validatePhoneFormat(value)
+      case 'validateUrlFormat':
+        return this.validateUrlFormat(value)
+      case 'validateIdCard':
+        return this.validateIdCard(value)
+      case 'validateBankCard':
+        return this.validateBankCard(value)
+      case 'validateIpAddress':
+        return this.validateIpAddress(value)
+      case 'validateColorHex':
+        return this.validateColorHex(value)
+      case 'validateNumberRange':
+        return this.validateNumberRange(value, rule?.params)
+      case 'validateDateRange':
+        return this.validateDateRange(value, rule?.params)
+      case 'validateFileSize':
+        return this.validateFileSize(value, rule?.params)
+      case 'validateFileType':
+        return this.validateFileType(value, rule?.params)
       default:
         return {
           isValid: true,
@@ -369,6 +394,391 @@ export class FormValidator {
       errors,
       warnings: [],
     }
+  }
+
+  /**
+   * 密码匹配验证
+   */
+  private static validatePasswordMatch(value: unknown, params?: Record<string, unknown>): FormValidationResult {
+    const originalPassword = params?.originalPassword as string
+    if (!originalPassword) {
+      return {
+        isValid: false,
+        errors: ['缺少原始密码进行比较'],
+        warnings: [],
+      }
+    }
+
+    if (value !== originalPassword) {
+      return {
+        isValid: false,
+        errors: ['两次输入的密码不一致'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 复选框选中验证
+   */
+  private static validateChecked(value: unknown): FormValidationResult {
+    if (value !== true && value !== 'true') {
+      return {
+        isValid: false,
+        errors: ['请勾选此项'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 邮箱格式验证（增强版）
+   */
+  private static validateEmailFormat(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['邮箱必须是字符串'], warnings: [] }
+    }
+
+    // 更严格的邮箱正则表达式
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+
+    if (!emailRegex.test(value)) {
+      return {
+        isValid: false,
+        errors: ['请输入有效的邮箱地址'],
+        warnings: [],
+      }
+    }
+
+    // 检查邮箱长度
+    if (value.length > 254) {
+      return {
+        isValid: false,
+        errors: ['邮箱地址过长'],
+        warnings: [],
+      }
+    }
+
+    // 检查各部分长度
+    const [localPart] = value.split('@')
+    if (localPart.length > 64) {
+      return {
+        isValid: false,
+        errors: ['邮箱用户名部分过长'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 手机号格式验证（增强版）
+   */
+  private static validatePhoneFormat(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['手机号必须是字符串'], warnings: [] }
+    }
+
+    // 清理输入（移除空格、横线等）
+    const cleanPhone = value.replace(/\s|-|\(|\)/g, '')
+
+    // 中国手机号正则表达式
+    const phoneRegex = /^1[3-9]\d{9}$/
+
+    if (!phoneRegex.test(cleanPhone)) {
+      return {
+        isValid: false,
+        errors: ['请输入有效的中国手机号码'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * URL格式验证（增强版）
+   */
+  private static validateUrlFormat(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['URL必须是字符串'], warnings: [] }
+    }
+
+    try {
+      // 使用URL构造函数验证
+      new URL(value)
+      return { isValid: true, errors: [], warnings: [] }
+    } catch {
+      // 如果URL构造函数失败，使用正则表达式
+      const urlRegex = /^https?:\/\/(?:[-\w.])+(?:\:[0-9]+)?(?:\/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:\w.)*)?)?$/
+
+      if (!urlRegex.test(value)) {
+        return {
+          isValid: false,
+          errors: ['请输入有效的URL地址'],
+          warnings: [],
+        }
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 身份证号验证
+   */
+  private static validateIdCard(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['身份证号必须是字符串'], warnings: [] }
+    }
+
+    // 18位身份证号正则表达式
+    const idCardRegex = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/
+
+    if (!idCardRegex.test(value)) {
+      return {
+        isValid: false,
+        errors: ['请输入有效的18位身份证号码'],
+        warnings: [],
+      }
+    }
+
+    // 验证校验码
+    const weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+    const checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
+
+    let sum = 0
+    for (let i = 0; i < 17; i++) {
+      sum += parseInt(value[i]) * weights[i]
+    }
+
+    const checkCode = checkCodes[sum % 11]
+    if (value[17].toUpperCase() !== checkCode) {
+      return {
+        isValid: false,
+        errors: ['身份证号校验码不正确'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 银行卡号验证
+   */
+  private static validateBankCard(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['银行卡号必须是字符串'], warnings: [] }
+    }
+
+    // 移除空格和非数字字符
+    const cleanCard = value.replace(/\D/g, '')
+
+    // 银行卡号长度验证（通常16-19位）
+    if (cleanCard.length < 16 || cleanCard.length > 19) {
+      return {
+        isValid: false,
+        errors: ['银行卡号长度不正确'],
+        warnings: [],
+      }
+    }
+
+    // Luhn算法验证
+    let sum = 0
+    let isEven = false
+
+    for (let i = cleanCard.length - 1; i >= 0; i--) {
+      let digit = parseInt(cleanCard[i])
+
+      if (isEven) {
+        digit *= 2
+        if (digit > 9) {
+          digit -= 9
+        }
+      }
+
+      sum += digit
+      isEven = !isEven
+    }
+
+    if (sum % 10 !== 0) {
+      return {
+        isValid: false,
+        errors: ['银行卡号不正确'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * IP地址验证
+   */
+  private static validateIpAddress(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['IP地址必须是字符串'], warnings: [] }
+    }
+
+    const ipRegex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+
+    if (!ipRegex.test(value)) {
+      return {
+        isValid: false,
+        errors: ['请输入有效的IP地址'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 颜色值验证
+   */
+  private static validateColorHex(value: unknown): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['颜色值必须是字符串'], warnings: [] }
+    }
+
+    const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+
+    if (!colorRegex.test(value)) {
+      return {
+        isValid: false,
+        errors: ['请输入有效的十六进制颜色值（如 #FF0000 或 #F00）'],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 数字范围验证
+   */
+  private static validateNumberRange(value: unknown, params?: Record<string, unknown>): FormValidationResult {
+    const numValue = Number(value)
+    if (isNaN(numValue)) {
+      return { isValid: false, errors: ['请输入有效的数字'], warnings: [] }
+    }
+
+    const min = params?.min as number
+    const max = params?.max as number
+
+    if (min !== undefined && numValue < min) {
+      return {
+        isValid: false,
+        errors: [`数值不能小于${min}`],
+        warnings: [],
+      }
+    }
+
+    if (max !== undefined && numValue > max) {
+      return {
+        isValid: false,
+        errors: [`数值不能大于${max}`],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 日期范围验证
+   */
+  private static validateDateRange(value: unknown, params?: Record<string, unknown>): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['日期必须是字符串'], warnings: [] }
+    }
+
+    const date = new Date(value)
+    if (isNaN(date.getTime())) {
+      return { isValid: false, errors: ['请输入有效的日期'], warnings: [] }
+    }
+
+    const minDate = params?.minDate ? new Date(params.minDate as string) : undefined
+    const maxDate = params?.maxDate ? new Date(params.maxDate as string) : undefined
+
+    if (minDate && date < minDate) {
+      return {
+        isValid: false,
+        errors: [`日期不能早于${minDate.toLocaleDateString()}`],
+        warnings: [],
+      }
+    }
+
+    if (maxDate && date > maxDate) {
+      return {
+        isValid: false,
+        errors: [`日期不能晚于${maxDate.toLocaleDateString()}`],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 文件大小验证
+   */
+  private static validateFileSize(value: unknown, params?: Record<string, unknown>): FormValidationResult {
+    const size = Number(value)
+    if (isNaN(size) || size < 0) {
+      return { isValid: false, errors: ['请输入有效的文件大小'], warnings: [] }
+    }
+
+    const maxSize = params?.maxSize as number // 单位：字节
+    if (maxSize && size > maxSize) {
+      const maxSizeMB = (maxSize / 1024 / 1024).toFixed(2)
+      return {
+        isValid: false,
+        errors: [`文件大小不能超过${maxSizeMB}MB`],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
+  }
+
+  /**
+   * 文件类型验证
+   */
+  private static validateFileType(value: unknown, params?: Record<string, unknown>): FormValidationResult {
+    if (typeof value !== 'string') {
+      return { isValid: false, errors: ['文件名必须是字符串'], warnings: [] }
+    }
+
+    const allowedTypes = params?.allowedTypes as string[]
+    if (!allowedTypes || allowedTypes.length === 0) {
+      return { isValid: true, errors: [], warnings: [] }
+    }
+
+    const fileExtension = value.split('.').pop()?.toLowerCase()
+    if (!fileExtension) {
+      return {
+        isValid: false,
+        errors: ['无法确定文件类型'],
+        warnings: [],
+      }
+    }
+
+    if (!allowedTypes.includes(fileExtension)) {
+      return {
+        isValid: false,
+        errors: [`不支持的文件类型：${fileExtension}，支持的类型：${allowedTypes.join(', ')}`],
+        warnings: [],
+      }
+    }
+
+    return { isValid: true, errors: [], warnings: [] }
   }
 
   /**

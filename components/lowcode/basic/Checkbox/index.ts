@@ -5,7 +5,12 @@
  */
 
 // 主要组件
+export { Checkbox } from './Checkbox'
 export type { LowcodeCheckboxProps } from './Checkbox'
+
+// 验证组件
+export { ValidatedCheckbox } from './ValidatedCheckbox'
+export type { ValidatedCheckboxProps } from './ValidatedCheckbox'
 
 // 组件定义
 export { CheckboxDefinition } from './definition'
@@ -34,4 +39,5 @@ export {
 export type { CheckboxIconProps } from './Icon'
 
 // 默认导出
-export { Checkbox } from './Checkbox'
+import { Checkbox as CheckboxComponent } from './Checkbox'
+export default CheckboxComponent

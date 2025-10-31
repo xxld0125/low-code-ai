@@ -5,11 +5,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react'
-import {
-  PropertyDefinition,
-  PropertyEditorState,
-  PropertyUpdateEvent,
-} from '@/types/lowcode/property'
+import { FieldDefinition } from '@/lib/lowcode/types/editor'
 import { ComponentProps } from '@/types/lowcode/component'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +17,26 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { PropertyField } from './PropertyField'
 import { cn } from '@/lib/utils'
 
+// 临时适配器接口
+interface PropertyUpdateEvent {
+  component_id?: string
+  property_key?: string
+  propertyKey?: string
+  value: unknown
+  previous_value?: unknown
+  oldValue?: unknown
+}
+
+// 编辑器状态接口
+interface PropertyEditorState {
+  component_type: string
+  properties: ComponentProps
+  errors: Record<string, string[]>
+  touched: Record<string, boolean>
+  dirty: boolean
+  loading: boolean
+}
+
 interface PropertyEditorProps {
   // 组件信息
   componentType: string
@@ -29,7 +45,7 @@ interface PropertyEditorProps {
 
   // 属性数据
   properties: ComponentProps
-  propertyDefinitions: PropertyDefinition[]
+  propertyDefinitions: FieldDefinition[]
 
   // 事件处理
   onPropertyChange: (event: PropertyUpdateEvent) => void
@@ -69,6 +85,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
     properties,
     errors: {},
     touched: {},
+    dirty: false,
     loading: false,
   })
 
@@ -78,21 +95,32 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
   // 折叠状态
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
 
-  // 按组分类属性定义
+  // 按组分类属性定义 (使用简化的分组逻辑)
   const groupedProperties = useMemo(() => {
-    const groups: Record<string, PropertyDefinition[]> = {}
+    const groups: Record<string, FieldDefinition[]> = {
+      '基础属性': [],
+      '样式属性': [],
+      '高级属性': [],
+    }
 
     propertyDefinitions.forEach(def => {
-      const group = def.group || '基础属性'
-      if (!groups[group]) {
-        groups[group] = []
+      // 根据字段类型和名称进行分组
+      if (['text', 'select', 'switch'].includes(def.type) ||
+          ['text', 'variant', 'size', 'disabled', 'loading', 'type', 'ariaLabel'].includes(def.name)) {
+        groups['基础属性'].push(def)
+      } else if (['color', 'border-radius', 'spacing', 'shadow'].includes(def.type) ||
+                 ['backgroundColor', 'textColor', 'borderRadius', 'padding', 'hasShadow', 'shadowType'].includes(def.name)) {
+        groups['样式属性'].push(def)
+      } else {
+        groups['高级属性'].push(def)
       }
-      groups[group].push(def)
     })
 
-    // 对每个组内的属性按order排序
-    Object.keys(groups).forEach(group => {
-      groups[group].sort((a, b) => (a.order || 0) - (b.order || 0))
+    // 移除空分组
+    Object.keys(groups).forEach(key => {
+      if (groups[key].length === 0) {
+        delete groups[key]
+      }
     })
 
     return groups
@@ -100,22 +128,25 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
   // 基础属性和高级属性分组
   const { basicProperties, advancedProperties } = useMemo(() => {
-    const basic: PropertyDefinition[] = []
-    const advanced: PropertyDefinition[] = []
+    const basic: FieldDefinition[] = []
+    const advanced: FieldDefinition[] = []
 
     propertyDefinitions.forEach(def => {
-      // 如果属性没有组或者是基础属性，归为基础属性
-      if (!def.group || def.group === '基础属性' || !showAdvancedToggle) {
+      // 根据字段类型和名称进行简单分组
+      if (['text', 'select', 'switch'].includes(def.type) ||
+          ['text', 'variant', 'size', 'disabled', 'loading', 'type', 'ariaLabel'].includes(def.name)) {
         basic.push(def)
-      } else if (def.group?.includes('高级') || def.group?.includes('Advanced')) {
-        advanced.push(def)
-      } else {
-        // 其他属性根据order判断
-        if ((def.order || 0) < 100) {
-          basic.push(def)
-        } else {
+      } else if (['color', 'border-radius', 'spacing', 'shadow'].includes(def.type) ||
+                 ['backgroundColor', 'textColor', 'borderRadius', 'padding', 'hasShadow', 'shadowType'].includes(def.name)) {
+        // 样式属性根据showAdvancedToggle决定
+        if (showAdvancedToggle) {
           advanced.push(def)
+        } else {
+          basic.push(def)
         }
+      } else {
+        // 其他类型归为高级属性
+        advanced.push(def)
       }
     })
 
@@ -175,8 +206,8 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
     const defaultProperties: ComponentProps = {}
 
     propertyDefinitions.forEach(def => {
-      if (def.default !== undefined) {
-        ;(defaultProperties as any)[def.key] = def.default
+      if (def.default_value !== undefined) {
+        ;(defaultProperties as any)[def.name] = def.default_value
       }
     })
 
@@ -192,12 +223,14 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
   // 渲染属性字段
   const renderPropertyField = useCallback(
-    (def: PropertyDefinition) => {
-      const value = (state.properties as any)[def.key]
-      const error = state.errors[def.key]?.[0]
-      const touched = state.touched[def.key]
+    (def: FieldDefinition) => {
+      const value = (state.properties as any)[def.name]
+      const error = state.errors[def.name]?.[0]
+      const touched = state.touched[def.name]
 
-      // 检查条件显示
+      // TODO: 条件显示功能暂时移除，FieldDefinition中暂不支持conditional字段
+      // 未来可以通过config字段来实现条件显示逻辑
+      /*
       if (def.conditional) {
         const { property, operator, value: conditionValue } = def.conditional
         const conditionalValue = (state.properties as any)[property]
@@ -225,17 +258,20 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
           return null
         }
       }
+      */
 
       return (
         <PropertyField
-          key={def.key}
+          key={def.name}
           definition={def}
           value={value}
           error={error}
           touched={touched}
-          disabled={disabled}
-          readonly={readonly}
-          onChange={value => handlePropertyChange(def.key, value)}
+          config={{
+            disabled,
+            readonly,
+          }}
+          onChange={value => handlePropertyChange(def.name, value)}
         />
       )
     },
@@ -244,9 +280,9 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
   // 渲染属性组
   const renderPropertyGroup = useCallback(
-    (groupName: string, properties: PropertyDefinition[]) => {
+    (groupName: string, properties: FieldDefinition[]) => {
       const isCollapsed = collapsibleGroups && collapsedGroups[groupName]
-      const hasErrors = properties.some(def => state.errors[def.key]?.length > 0)
+      const hasErrors = properties.some(def => state.errors[def.name]?.length > 0)
 
       return (
         <Card key={groupName} className="mb-4">
@@ -342,10 +378,10 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
           Object.entries(groupedProperties).map(([groupName, properties]) => {
             // 过滤掉不应该在此模式下显示的属性
             const filteredProperties = properties.filter(def => {
-              if (!showAdvanced && def.group?.includes('高级')) {
-                return false
-              }
-              return true
+              // 简化逻辑：根据字段类型判断是否为高级属性
+              const isAdvanced = ['color', 'border-radius', 'spacing', 'shadow'].includes(def.type) &&
+                                ['backgroundColor', 'textColor', 'borderRadius', 'padding', 'hasShadow', 'shadowType'].includes(def.name)
+              return showAdvanced || !isAdvanced
             })
 
             if (filteredProperties.length === 0) {

@@ -5,8 +5,13 @@
  */
 
 // 主要组件
+export { Select } from './Select'
 export type { LowcodeSelectProps } from './Select'
 export { useSelectSearch, useSelectValidation } from './Select'
+
+// 验证组件
+export { ValidatedSelect } from './ValidatedSelect'
+export type { ValidatedSelectProps, SelectOption } from './ValidatedSelect'
 
 // 组件定义
 export { SelectDefinition } from './definition'
@@ -29,4 +34,5 @@ export {
 export type { SelectIconProps } from './Icon'
 
 // 默认导出
-export { Select } from './Select'
+import { Select as SelectComponent } from './Select'
+export default SelectComponent

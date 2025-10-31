@@ -42,6 +42,7 @@ export type FieldType =
   | 'textarea'
   | 'slider'
   | 'switch'
+  | 'transition'
 
 // 验证规则接口
 export interface ValidationRule {

@@ -2,38 +2,32 @@
  * 按钮属性编辑器示例
  * 功能模块: 基础组件库 (004-basic-component-library)
  * 创建日期: 2025-10-29
+ * 更新日期: 2025-10-30 (适配新的FieldDefinition类型)
  */
 
 import React from 'react'
 import { PropertyEditor } from '../PropertyEditor'
-import { PropertyDefinition } from '@/types/lowcode/property'
+import { FieldDefinition } from '@/lib/lowcode/types/editor'
 import { ComponentProps } from '@/types/lowcode/component'
 
 // 按钮属性定义
-export const buttonPropertyDefinitions: PropertyDefinition[] = [
+export const buttonPropertyDefinitions: FieldDefinition[] = [
   // 基础属性组
   {
-    key: 'text',
-    type: 'string',
+    name: 'text',
     label: '按钮文本',
-    description: '按钮上显示的文本内容',
+    type: 'text',
     required: true,
-    default: '点击按钮',
-    group: '基础属性',
-    order: 1,
-    validation: [
-      { type: 'required', message: '按钮文本不能为空' },
-      { type: 'max_length', params: { maxLength: 20 }, message: '按钮文本不能超过20个字符' },
-    ],
+    default_value: '点击按钮',
+    description: '按钮上显示的文本内容',
+    placeholder: '请输入按钮文本',
   },
   {
-    key: 'variant',
-    type: 'select',
+    name: 'variant',
     label: '按钮样式',
+    type: 'select',
+    default_value: 'primary',
     description: '选择按钮的视觉样式',
-    default: 'primary',
-    group: '基础属性',
-    order: 2,
     options: [
       { value: 'primary', label: '主要按钮', description: '用于主要操作' },
       { value: 'secondary', label: '次要按钮', description: '用于次要操作' },
@@ -43,274 +37,121 @@ export const buttonPropertyDefinitions: PropertyDefinition[] = [
     ],
   },
   {
-    key: 'size',
-    type: 'select',
+    name: 'size',
     label: '按钮大小',
+    type: 'select',
+    default_value: 'md',
     description: '选择按钮的尺寸',
-    default: 'medium',
-    group: '基础属性',
-    order: 3,
     options: [
-      { value: 'small', label: '小' },
-      { value: 'medium', label: '中' },
-      { value: 'large', label: '大' },
+      { value: 'sm', label: '小号', description: '紧凑的小按钮' },
+      { value: 'md', label: '中号', description: '标准大小的按钮' },
+      { value: 'lg', label: '大号', description: '突出的大按钮' },
+      { value: 'icon', label: '图标按钮', description: '仅显示图标的按钮' },
     ],
   },
   {
-    key: 'disabled',
-    type: 'boolean',
+    name: 'disabled',
     label: '禁用状态',
+    type: 'switch',
+    default_value: false,
     description: '是否禁用按钮',
-    default: false,
-    group: '基础属性',
-    order: 4,
   },
   {
-    key: 'loading',
-    type: 'boolean',
+    name: 'loading',
     label: '加载状态',
-    description: '是否显示加载中状态',
-    default: false,
-    group: '基础属性',
-    order: 5,
+    type: 'switch',
+    default_value: false,
+    description: '是否显示加载动画',
   },
-
-  // 图标属性组
-  {
-    key: 'hasIcon',
-    type: 'boolean',
-    label: '显示图标',
-    description: '是否在按钮中显示图标',
-    default: false,
-    group: '图标属性',
-    order: 10,
-  },
-  {
-    key: 'iconType',
-    type: 'select',
-    label: '图标类型',
-    description: '选择要显示的图标',
-    group: '图标属性',
-    order: 11,
-    conditional: {
-      property: 'hasIcon',
-      operator: 'equals',
-      value: true,
-    },
-    options: [
-      { value: 'arrow', label: '箭头图标' },
-      { value: 'check', label: '勾选图标' },
-      { value: 'close', label: '关闭图标' },
-      { value: 'download', label: '下载图标' },
-      { value: 'upload', label: '上传图标' },
-      { value: 'edit', label: '编辑图标' },
-      { value: 'delete', label: '删除图标' },
-    ],
-  },
-  {
-    key: 'iconPosition',
-    type: 'select',
-    label: '图标位置',
-    description: '选择图标相对于文本的位置',
-    default: 'left',
-    group: '图标属性',
-    order: 12,
-    conditional: {
-      property: 'hasIcon',
-      operator: 'equals',
-      value: true,
-    },
-    options: [
-      { value: 'left', label: '左侧' },
-      { value: 'right', label: '右侧' },
-    ],
-  },
-
   // 样式属性组
   {
-    key: 'backgroundColor',
+    name: 'backgroundColor',
+    label: '背景色',
     type: 'color',
-    label: '背景颜色',
-    description: '自定义按钮的背景颜色',
-    group: '样式属性',
-    order: 20,
+    description: '按钮的背景颜色',
   },
   {
-    key: 'textColor',
+    name: 'textColor',
+    label: '文字颜色',
     type: 'color',
-    label: '文本颜色',
-    description: '自定义按钮的文本颜色',
-    group: '样式属性',
-    order: 21,
+    description: '按钮文字的颜色',
   },
   {
-    key: 'borderColor',
-    type: 'color',
-    label: '边框颜色',
-    description: '自定义按钮的边框颜色',
-    group: '样式属性',
-    order: 22,
-  },
-  {
-    key: 'borderRadius',
-    type: 'spacing',
+    name: 'borderRadius',
     label: '圆角大小',
-    description: '设置按钮的圆角大小',
-    group: '样式属性',
-    order: 23,
+    type: 'border-radius',
+    default_value: '6px',
+    description: '按钮的圆角大小',
   },
   {
-    key: 'padding',
-    type: 'spacing',
+    name: 'padding',
     label: '内边距',
-    description: '设置按钮的内边距',
-    group: '样式属性',
-    order: 24,
+    type: 'spacing',
+    default_value: '8px 16px',
+    description: '按钮的内边距',
   },
-
-  // 阴影属性组
   {
-    key: 'hasShadow',
-    type: 'boolean',
-    label: '启用阴影',
+    name: 'hasShadow',
+    label: '显示阴影',
+    type: 'switch',
+    default_value: false,
     description: '是否为按钮添加阴影效果',
-    default: false,
-    group: '阴影属性',
-    order: 30,
   },
   {
-    key: 'shadowType',
-    type: 'shadow',
+    name: 'shadowType',
     label: '阴影样式',
-    description: '选择阴影的效果样式',
-    default: 'md',
-    group: '阴影属性',
-    order: 31,
-    conditional: {
-      property: 'hasShadow',
-      operator: 'equals',
-      value: true,
-    },
+    type: 'shadow',
+    default_value: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+    description: '按钮的阴影效果',
   },
-
   // 高级属性组
   {
-    key: 'onClick',
-    type: 'string',
-    label: '点击事件',
-    description: '按钮点击时触发的事件处理函数名',
-    group: '高级属性',
-    order: 40,
-    validation: [
-      {
-        type: 'pattern',
-        params: { pattern: '^[a-zA-Z_][a-zA-Z0-9_]*$' },
-        message: '事件名必须是有效的函数名',
-      },
-    ],
-  },
-  {
-    key: 'type',
-    type: 'select',
+    name: 'type',
     label: '按钮类型',
-    description: '按钮在表单中的类型',
-    default: 'button',
-    group: '高级属性',
-    order: 41,
+    type: 'select',
+    default_value: 'button',
+    description: 'HTML按钮类型',
     options: [
-      { value: 'button', label: '普通按钮' },
-      { value: 'submit', label: '提交按钮' },
-      { value: 'reset', label: '重置按钮' },
+      { value: 'button', label: '按钮', description: '普通按钮' },
+      { value: 'submit', label: '提交', description: '表单提交按钮' },
+      { value: 'reset', label: '重置', description: '表单重置按钮' },
     ],
   },
   {
-    key: 'ariaLabel',
-    type: 'string',
+    name: 'ariaLabel',
     label: '无障碍标签',
-    description: '为屏幕阅读器提供的描述文本',
-    group: '高级属性',
-    order: 42,
-    validation: [{ type: 'max_length', params: { maxLength: 100 } }],
+    type: 'text',
+    description: '屏幕阅读器识别的标签',
+    placeholder: '请输入无障碍标签',
   },
 ]
 
-// 按钮属性编辑器示例组件
+// 按钮属性编辑器组件
 export const ButtonPropertyEditor: React.FC<{
   componentId: string
   properties: ComponentProps
-  onPropertyChange: (event: any) => void
+  onPropertyChange: (event: { propertyKey: string; value: unknown; oldValue?: unknown }) => void
 }> = ({ componentId, properties, onPropertyChange }) => {
+  // 适配器函数，转换事件格式
+  const handlePropertyChange = (event: any) => {
+    onPropertyChange({
+      propertyKey: event.propertyKey || event.property_key,
+      value: event.value,
+      oldValue: event.oldValue || event.previous_value,
+    })
+  }
+
   return (
     <PropertyEditor
       componentType="button"
       componentId={componentId}
       properties={properties}
       propertyDefinitions={buttonPropertyDefinitions}
-      onPropertyChange={onPropertyChange}
+      onPropertyChange={handlePropertyChange}
       showGroups={true}
       collapsibleGroups={true}
-      showValidation={true}
-      showAdvancedToggle={true}
     />
   )
 }
 
-// 使用示例
-export const ButtonPropertyEditorExample: React.FC = () => {
-  const [properties, setProperties] = React.useState<ComponentProps>({
-    button: {
-      text: '点击按钮',
-      variant: 'default' as any,
-      size: 'default' as any,
-      disabled: false,
-      loading: false,
-    },
-  })
-
-  const handlePropertyChange = (event: any) => {
-    const { property_key, value } = event
-
-    // 解析属性键名，支持嵌套属性
-    const keys = property_key.split('.')
-    const newProperties = { ...properties }
-
-    if (keys.length === 1) {
-      // 直接属性
-      ;(newProperties as any)[keys[0]] = value
-    } else if (keys.length === 2) {
-      // 嵌套属性
-      if (!(newProperties as any)[keys[0]]) {
-        ;(newProperties as any)[keys[0]] = {}
-      }
-      ;(newProperties as any)[keys[0]] = {
-        ...(newProperties as any)[keys[0]],
-        [keys[1]]: value,
-      }
-    }
-
-    setProperties(newProperties)
-    console.log('属性变更:', event)
-  }
-
-  return (
-    <div className="w-full max-w-md">
-      <div className="mb-4">
-        <h3 className="text-lg font-medium">按钮属性编辑器示例</h3>
-        <p className="text-sm text-muted-foreground">
-          这个示例展示了如何使用属性编辑器来配置按钮组件的各种属性。
-        </p>
-      </div>
-
-      <ButtonPropertyEditor
-        componentId="button-example"
-        properties={properties}
-        onPropertyChange={handlePropertyChange}
-      />
-
-      <div className="mt-6 rounded-md border bg-muted/50 p-4">
-        <h4 className="mb-2 text-sm font-medium">当前属性值:</h4>
-        <pre className="max-h-40 overflow-auto text-xs">{JSON.stringify(properties, null, 2)}</pre>
-      </div>
-    </div>
-  )
-}
+export default ButtonPropertyEditor

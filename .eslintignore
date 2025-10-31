@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+dist/
+build/
+coverage/
+
+# Next.js
+.next/
+out/
+
+# Misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Test files
+*.test.ts
+*.test.tsx
+test/
+tests/
+
+# Config files
+*.config.js
+*.config.ts
+
+# Temporary files
+*.tmp
+*.temp

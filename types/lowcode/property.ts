@@ -35,6 +35,7 @@ export type PropertyType =
   | 'spacing'
   | 'border'
   | 'shadow'
+  | 'transition'
   | 'image'
   | 'icon'
   | 'array'
@@ -75,6 +76,7 @@ export type ValidationType =
   | 'pattern'
   | 'email'
   | 'url'
+  | 'phone'
   | 'custom'
 
 // 组件定义 - 简化版本，用于向后兼容

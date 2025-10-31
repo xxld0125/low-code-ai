@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react'
-import { PropertyDefinition } from '@/types/lowcode/property'
+import { FieldDefinition } from '@/lib/lowcode/types/editor'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,11 @@ import { ChevronDown, ChevronRight, Settings, Zap, Layout, Palette } from 'lucid
 
 interface PropertyGroupProps {
   title: string
-  properties: PropertyDefinition[]
+  properties: FieldDefinition[]
+  values?: Record<string, unknown>
+  onChange?: (propertyId: string, value: unknown) => void
+  readonly?: boolean
+  disabled?: boolean
   defaultOpen?: boolean
   collapsible?: boolean
   showIcon?: boolean
@@ -53,6 +57,10 @@ function getGroupBadgeVariant(title: string): 'default' | 'secondary' | 'destruc
 export const PropertyGroup: React.FC<PropertyGroupProps> = ({
   title,
   properties,
+  values,
+  onChange,
+  readonly = false,
+  disabled = false,
   defaultOpen = true,
   collapsible = true,
   showIcon = true,
@@ -131,7 +139,7 @@ export const PropertyGroup: React.FC<PropertyGroupProps> = ({
 interface PropertyGroupLayoutProps {
   groups: Array<{
     title: string
-    properties: PropertyDefinition[]
+    properties: FieldDefinition[]
     defaultOpen?: boolean
     collapsible?: boolean
     showIcon?: boolean
@@ -239,15 +247,15 @@ export const COMMON_PROPERTY_GROUPS = {
 
 // 按属性类型分组
 export function groupPropertiesByType(
-  properties: PropertyDefinition[]
-): Array<{ title: string; properties: PropertyDefinition[] }> {
-  const groups: Record<string, PropertyDefinition[]> = {}
+  properties: FieldDefinition[]
+): Array<{ title: string; properties: FieldDefinition[] }> {
+  const groups: Record<string, FieldDefinition[]> = {}
 
   properties.forEach(property => {
     let group = '其他属性'
 
     // 根据属性类型或名称推断分组
-    if (property.type === 'string' || property.type === 'number' || property.type === 'boolean') {
+    if (property.type === 'text' || property.type === 'number' || property.type === 'switch') {
       group = '基础属性'
     } else if (
       property.type === 'color' ||
@@ -257,15 +265,13 @@ export function groupPropertiesByType(
     ) {
       group = '样式属性'
     } else if (
-      property.key.includes('layout') ||
-      property.key.includes('position') ||
-      property.key.includes('display')
+      property.name.includes('layout') ||
+      property.name.includes('position') ||
+      property.name.includes('display')
     ) {
       group = '布局属性'
-    } else if (property.key.includes('advanced') || (property.order && property.order > 100)) {
+    } else if (property.name.includes('advanced')) {
       group = '高级属性'
-    } else if (property.group) {
-      group = property.group
     }
 
     if (!groups[group]) {

@@ -17,6 +17,7 @@ export { SizeFieldEditor } from './SizeFieldEditor'
 export { SpacingFieldEditor } from './SpacingFieldEditor'
 export { BorderFieldEditor } from './BorderFieldEditor'
 export { ShadowFieldEditor } from './ShadowFieldEditor'
+export { TransitionFieldEditor } from './TransitionFieldEditor'
 
 // 字段类型映射
 export type FieldEditorType =
@@ -25,12 +26,23 @@ export type FieldEditorType =
   | 'boolean'
   | 'select'
   | 'multiselect'
+  | 'checkbox'
+  | 'radio'
   | 'color'
-  | 'image'
+  | 'size'
+  | 'font-size'
+  | 'font-weight'
+  | 'line-height'
   | 'spacing'
   | 'border'
+  | 'border-radius'
+  | 'border-style'
   | 'shadow'
-  | 'font'
+  | 'transition'
+  | 'image'
+  | 'textarea'
+  | 'slider'
+  | 'switch'
   | 'icon'
   | 'array'
   | 'object'
@@ -42,13 +54,24 @@ export const FIELD_EDITOR_COMPONENTS = {
   number: 'NumberFieldEditor',
   boolean: 'BooleanFieldEditor',
   select: 'SelectFieldEditor',
+  checkbox: 'BooleanFieldEditor',
+  radio: 'SelectFieldEditor',
   multiselect: 'SelectFieldEditor',
   color: 'ColorFieldEditor',
   image: 'ImageFieldEditor',
+  size: 'SizeFieldEditor',
+  'font-size': 'SizeFieldEditor',
+  'font-weight': 'SelectFieldEditor',
+  'line-height': 'SizeFieldEditor',
   spacing: 'SpacingFieldEditor',
   border: 'BorderFieldEditor',
+  'border-radius': 'SizeFieldEditor',
+  'border-style': 'SelectFieldEditor',
   shadow: 'ShadowFieldEditor',
-  font: 'StringFieldEditor',
+  transition: 'TransitionFieldEditor',
+  textarea: 'StringFieldEditor',
+  slider: 'NumberFieldEditor',
+  switch: 'BooleanFieldEditor',
   icon: 'StringFieldEditor',
   array: 'StringFieldEditor',
   object: 'StringFieldEditor',
@@ -66,11 +89,11 @@ export function supportsMultipleValues(type: FieldEditorType): boolean {
 }
 
 export function supportsPresets(type: FieldEditorType): boolean {
-  return ['color', 'spacing', 'border', 'shadow'].includes(type)
+  return ['color', 'size', 'spacing', 'border', 'shadow', 'transition'].includes(type)
 }
 
 export function supportsPreview(type: FieldEditorType): boolean {
-  return ['color', 'image', 'border', 'shadow'].includes(type)
+  return ['color', 'image', 'size', 'border', 'shadow', 'transition'].includes(type)
 }
 
 export function requiresValidation(type: FieldEditorType): boolean {
