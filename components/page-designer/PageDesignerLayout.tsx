@@ -410,9 +410,13 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
 
         {/* 主要内容区域 */}
         <div className="flex flex-1 overflow-hidden">
-          <ResizablePanelGroup direction="horizontal" className="flex-1">
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="flex-1"
+            id="main-layout-panels"
+          >
             {/* 左侧组件面板 */}
-            <ResizablePanel defaultSize={15} minSize={12} maxSize={25}>
+            <ResizablePanel defaultSize={20} minSize={12} maxSize={25}>
               <ComponentPanel
                 onComponentSelect={type =>
                   handleComponentAdd({
@@ -477,7 +481,7 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
             <ResizableHandle className="w-px bg-gray-300 transition-colors hover:bg-gray-400" />
 
             {/* 右侧属性面板 */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
+            <ResizablePanel defaultSize={25} minSize={15} maxSize={35}>
               <PropertiesPanelPlaceholder
                 selectedComponents={selectedComponentsArray}
                 onComponentUpdate={handleComponentUpdate}

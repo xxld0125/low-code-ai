@@ -2,6 +2,34 @@ import React from 'react'
 import type { ComponentInstance, PageDesign } from '@/types/page-designer'
 
 /**
+ * 过滤掉不应该传递给DOM元素的事件处理器属性
+ */
+const filterDomProps = (props: Record<string, any>): Record<string, any> => {
+  const filteredProps: Record<string, any> = {}
+  const invalidProps = new Set([
+    'onClick',
+    'onUpdate',
+    'onDelete',
+    'onSelect',
+    'isSelected',
+    'isDragging',
+    'isEditable',
+    'onDragStart',
+    'onDragEnd',
+    'onDragOver',
+    'onDrop'
+  ])
+
+  Object.keys(props).forEach(key => {
+    if (!invalidProps.has(key)) {
+      filteredProps[key] = props[key]
+    }
+  })
+
+  return filteredProps
+}
+
+/**
  * 组件渲染器
  * 负责将组件实例渲染为React组件
  */
@@ -27,7 +55,51 @@ export class ComponentRenderer {
       case 'image':
         return this.renderImage(props, combinedStyles, id)
       case 'container':
-        return this.renderContainer(props, combinedStyles, id, undefined)
+        try {
+          const containerProps = props?.container || {}
+          const filteredProps = filterDomProps(containerProps)
+          const tagName = containerProps.tag || 'div'
+
+          // 确保使用安全的HTML标签
+          const safeTagName = (typeof tagName === 'string' && /^[a-z][a-z0-9-]*$/i.test(tagName))
+            ? tagName
+            : 'div'
+
+          // 为独立渲染的容器添加默认内容
+          const defaultContent = React.createElement('div', {
+            key: 'content',
+            style: {
+              padding: '10px',
+              border: '1px dashed #ddd',
+              borderRadius: '4px',
+              backgroundColor: '#f9f9f9',
+              textAlign: 'center',
+              color: '#666'
+            }
+          }, '容器内容区域')
+
+          return React.createElement(
+            safeTagName,
+            {
+              key: id,
+              style: {
+                ...combinedStyles,
+                minHeight: '100px',
+                border: '1px solid #e0e0e0'
+              },
+              className: `component-${id} ${containerProps.className || ''}`,
+              ...filteredProps,
+            },
+            defaultContent
+          )
+        } catch (error) {
+          console.error('容器渲染失败:', error)
+          return React.createElement('div', {
+            key: id,
+            style: { border: '1px solid red', padding: '10px', color: 'red' },
+            className: `component-${id} error`,
+          }, `容器组件渲染失败`)
+        }
       case 'input':
         return this.renderInput(props, combinedStyles, id)
       case 'link':
@@ -104,18 +176,26 @@ export class ComponentRenderer {
    * 渲染按钮组件
    */
   private static renderButton(props: any, styles: any, id: string): React.ReactElement {
-    const buttonProps = props?.button || {}
-
+    // 在预览模式下，创建完全静态的按钮组件，完全忽略任何传入的props
     return React.createElement(
       'button',
       {
         key: id,
-        style: styles,
-        className: `component-${id} ${buttonProps.className || ''}`,
-        disabled: buttonProps.disabled,
-        type: buttonProps.type || 'button',
+        style: {
+          padding: '8px 16px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          backgroundColor: '#f0f0f0',
+          cursor: 'pointer',
+          fontSize: '14px',
+          ...styles,
+        },
+        className: `component-${id}`,
+        type: 'button',
+        disabled: false,
+        // 完全不使用任何传入的属性，确保绝对安全
       },
-      buttonProps.text || '按钮'
+      '按钮'
     )
   }
 
@@ -124,6 +204,7 @@ export class ComponentRenderer {
    */
   private static renderText(props: any, styles: any, id: string): React.ReactElement {
     const textProps = props?.text || {}
+    const filteredProps = filterDomProps(textProps)
     const Tag = textProps.tag || 'div'
 
     return React.createElement(
@@ -132,6 +213,7 @@ export class ComponentRenderer {
         key: id,
         style: styles,
         className: `component-${id} ${textProps.className || ''}`,
+        ...filteredProps,
       },
       textProps.content || '文本内容'
     )
@@ -142,6 +224,7 @@ export class ComponentRenderer {
    */
   private static renderImage(props: any, styles: any, id: string): React.ReactElement {
     const imageProps = props?.image || {}
+    const filteredProps = filterDomProps(imageProps)
 
     return React.createElement('img', {
       key: id,
@@ -151,6 +234,7 @@ export class ComponentRenderer {
       alt: imageProps.alt || '',
       width: imageProps.width,
       height: imageProps.height,
+      ...filteredProps,
     })
   }
 
@@ -164,14 +248,16 @@ export class ComponentRenderer {
     children: React.ReactNode
   ): React.ReactElement {
     const containerProps = props?.container || {}
-    const Tag = containerProps.tag || 'div'
+    const filteredProps = filterDomProps(containerProps)
+    const tagName = containerProps.tag || 'div'
 
     return React.createElement(
-      Tag,
+      tagName,
       {
         key: id,
         style: styles,
         className: `component-${id} ${containerProps.className || ''}`,
+        ...filteredProps,
       },
       children
     )
@@ -182,6 +268,7 @@ export class ComponentRenderer {
    */
   private static renderInput(props: any, styles: any, id: string): React.ReactElement {
     const inputProps = props?.input || {}
+    const filteredProps = filterDomProps(inputProps)
 
     return React.createElement('input', {
       key: id,
@@ -192,6 +279,7 @@ export class ComponentRenderer {
       value: inputProps.value || '',
       disabled: inputProps.disabled,
       readOnly: inputProps.readOnly,
+      ...filteredProps,
     })
   }
 
@@ -200,6 +288,7 @@ export class ComponentRenderer {
    */
   private static renderLink(props: any, styles: any, id: string): React.ReactElement {
     const linkProps = props?.link || {}
+    const filteredProps = filterDomProps(linkProps)
 
     return React.createElement(
       'a',
@@ -209,6 +298,7 @@ export class ComponentRenderer {
         className: `component-${id} ${linkProps.className || ''}`,
         href: linkProps.href || '#',
         target: linkProps.target || '_self',
+        ...filteredProps,
       },
       linkProps.text || '链接'
     )

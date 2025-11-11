@@ -4,8 +4,61 @@ import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { ComponentRenderer } from '@/lib/page-designer/component-renderer'
 import { dataLoader } from '@/lib/page-designer/data-loader'
+import { DevicePreviewSwitcher } from '@/components/preview/DevicePreviewSwitcher'
+import { ErrorState } from '@/components/preview/ErrorState'
 import type { PageDesign, ComponentInstance } from '@/types/page-designer'
 // import { toast } from '@/hooks/use-toast' // 暂时未使用
+
+/**
+ * 清理组件属性中的事件处理器
+ */
+const cleanComponentProps = (props: any): any => {
+  if (!props || typeof props !== 'object') {
+    return props
+  }
+
+  const cleaned: any = {}
+  const eventHandlerKeys = [
+    'onClick', 'onUpdate', 'onDelete', 'onSelect', 'isSelected', 'isDragging',
+    'isEditable', 'onDragStart', 'onDragEnd', 'onDragOver', 'onDrop',
+    'onFocus', 'onBlur', 'onChange', 'onSubmit', 'onMouseEnter', 'onMouseLeave'
+  ]
+
+  Object.keys(props).forEach(key => {
+    const value = props[key]
+
+    // 检查是否是事件处理器键
+    if (eventHandlerKeys.includes(key)) {
+      return // 跳过事件处理器属性
+    }
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      // 递归清理嵌套对象
+      cleaned[key] = cleanComponentProps(value)
+    } else if (Array.isArray(value)) {
+      // 清理数组中的每个元素
+      cleaned[key] = value.map(item =>
+        (typeof item === 'object' && item !== null) ? cleanComponentProps(item) : item
+      )
+    } else if (typeof value === 'function') {
+      // 跳过函数类型的属性
+      return
+    } else if (typeof value === 'string' && (
+      value.startsWith('function') ||
+      value.includes('=>') ||
+      value.includes('onClick') ||
+      value.includes('onUpdate') ||
+      value.includes('onDelete')
+    )) {
+      // 跳过字符串形式的函数定义
+      return
+    } else {
+      cleaned[key] = value
+    }
+  })
+
+  return cleaned
+}
 
 export default function PreviewPage() {
   const params = useParams()
@@ -55,8 +108,102 @@ export default function PreviewPage() {
         }
 
         setPageDesign(designData.pageDesign)
-        setComponents(designData.components || [])
-      } catch (err) {
+
+        
+        // 创建完全清理的组件数据，确保没有事件处理器
+        const cleanedComponents = (designData.components || []).map(component => {
+          const cleaned: any = {
+            id: component.id,
+            page_design_id: component.page_design_id,
+            component_type: component.component_type,
+            parent_id: component.parent_id,
+            position: component.position,
+            styles: component.styles || {},
+            events: {}, // 清空所有事件处理器
+            responsive: component.responsive || {},
+            layout_props: component.layout_props || {},
+            created_at: component.created_at,
+            updated_at: component.updated_at,
+            version: component.version,
+            meta: component.meta || {},
+          }
+
+          // 根据组件类型创建安全的默认props
+          switch (component.component_type) {
+            case 'button':
+              cleaned.props = {
+                button: {
+                  text: component.props?.button?.text || '按钮',
+                  variant: component.props?.button?.variant || 'default',
+                  size: component.props?.button?.size || 'default',
+                  type: component.props?.button?.type || 'button',
+                  disabled: component.props?.button?.disabled || false,
+                  className: component.props?.button?.className || '',
+                  // 只包含安全的属性，排除所有事件处理器
+                }
+              }
+              break
+            case 'text':
+              cleaned.props = {
+                text: {
+                  content: component.props?.text?.content || '文本内容',
+                  variant: component.props?.text?.variant || 'body',
+                  tag: component.props?.text?.tag || 'div',
+                  className: component.props?.text?.className || '',
+                }
+              }
+              break
+            case 'image':
+              cleaned.props = {
+                image: {
+                  src: component.props?.image?.src || '/api/placeholder/300/200',
+                  alt: component.props?.image?.alt || '图片',
+                  width: component.props?.image?.width,
+                  height: component.props?.image?.height,
+                  className: component.props?.image?.className || '',
+                }
+              }
+              break
+            case 'container':
+              cleaned.props = {
+                container: {
+                  tag: component.props?.container?.tag || 'div',
+                  className: component.props?.container?.className || '',
+                }
+              }
+              break
+            case 'input':
+              cleaned.props = {
+                input: {
+                  type: component.props?.input?.type || 'text',
+                  placeholder: component.props?.input?.placeholder || '',
+                  value: component.props?.input?.value || '',
+                  disabled: component.props?.input?.disabled || false,
+                  readOnly: component.props?.input?.readOnly || false,
+                  className: component.props?.input?.className || '',
+                }
+              }
+              break
+            case 'link':
+              cleaned.props = {
+                link: {
+                  href: component.props?.link?.href || '#',
+                  target: component.props?.link?.target || '_self',
+                  text: component.props?.link?.text || '链接',
+                  className: component.props?.link?.className || '',
+                }
+              }
+              break
+            default:
+              cleaned.props = {}
+          }
+
+          return cleaned
+        })
+
+        setComponents(cleanedComponents)
+
+              } catch (err) {
         console.error('加载预览数据失败:', err)
         setError(err instanceof Error ? err.message : '加载失败，请重试')
       } finally {
@@ -98,12 +245,14 @@ export default function PreviewPage() {
 
   // 渲染页面内容
   const renderPageContent = () => {
+
     if (!pageDesign || components.length === 0) {
       return (
         <div className="flex h-64 items-center justify-center text-gray-500">
           <div className="text-center">
             <p className="mb-2 text-lg">暂无内容</p>
             <p className="text-sm">此页面设计还没有添加任何组件</p>
+            <p className="text-xs text-gray-400">pageDesign: {!!pageDesign}, components: {components.length}</p>
           </div>
         </div>
       )
@@ -124,8 +273,11 @@ export default function PreviewPage() {
           {renderedComponents.length > 0 ? (
             renderedComponents
           ) : (
-            <div className="py-8 text-center text-gray-500">
-              <p>请返回编辑器添加组件</p>
+            <div className="flex h-64 items-center justify-center text-gray-500">
+              <div className="text-center">
+                <p className="mb-2 text-lg">暂无内容</p>
+                <p className="text-sm">此页面设计还没有添加任何组件</p>
+              </div>
             </div>
           )}
         </div>
@@ -143,41 +295,7 @@ export default function PreviewPage() {
     }
   }
 
-  // 设备预览切换器
-  const DevicePreviewSwitcher = () => (
-    <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={() => setPreviewMode('desktop')}
-          className={`rounded p-2 ${previewMode === 'desktop' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
-          title="桌面预览"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5z" />
-          </svg>
-        </button>
-        <button
-          onClick={() => setPreviewMode('tablet')}
-          className={`rounded p-2 ${previewMode === 'tablet' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
-          title="平板预览"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zM3 4a4 4 0 014-4h6a4 4 0 014 4v12a4 4 0 01-4 4H7a4 4 0 01-4-4V4z" />
-          </svg>
-        </button>
-        <button
-          onClick={() => setPreviewMode('mobile')}
-          className={`rounded p-2 ${previewMode === 'mobile' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
-          title="手机预览"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M8 2a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V4a2 2 0 00-2-2H8zM6 4a4 4 0 014-4h4a4 4 0 014 4v12a4 4 0 01-4 4h-4a4 4 0 01-4-4V4z" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  )
-
+  
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -190,34 +308,16 @@ export default function PreviewPage() {
   }
 
   if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="mb-2 text-2xl font-bold text-red-600">加载失败</h1>
-          <p className="mb-4 text-gray-600">{error}</p>
-          <div className="space-x-4">
-            <button
-              onClick={() => window.location.reload()}
-              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-              重新加载
-            </button>
-            <a
-              href={`/protected/designer/page/${pageDesignId}`}
-              className="inline-block rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
-            >
-              返回编辑
-            </a>
-          </div>
-        </div>
-      </div>
-    )
+    return <ErrorState error={error} pageDesignId={pageDesignId} />
   }
 
   return (
     <>
       {/* 设备预览切换器 */}
-      <DevicePreviewSwitcher />
+      <DevicePreviewSwitcher
+        initialMode={previewMode}
+        onModeChange={setPreviewMode}
+      />
 
       {/* 预览内容区域 */}
       <div className="flex min-h-screen items-center justify-center py-8">

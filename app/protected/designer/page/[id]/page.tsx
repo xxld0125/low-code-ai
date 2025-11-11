@@ -258,7 +258,40 @@ export default function PageDesignerEditor() {
 
   // 预览页面
   const handlePreview = () => {
-    window.open(`/protected/designer/preview/${pageDesignId}`, '_blank')
+    try {
+      const previewUrl = `/protected/designer/preview/${pageDesignId}`
+      console.log('Opening preview:', previewUrl)
+
+      // 检查URL是否有效
+      if (!pageDesignId) {
+        toast({
+          title: '预览失败',
+          description: '页面设计ID不存在',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      const newWindow = window.open(previewUrl, '_blank', 'width=1200,height=800')
+
+      if (!newWindow) {
+        // 如果新窗口被阻止，尝试在当前窗口打开
+        console.warn('Popup blocked, trying current window')
+        router.push(previewUrl)
+      } else {
+        toast({
+          title: '预览已打开',
+          description: '在新窗口中打开页面预览',
+        })
+      }
+    } catch (err) {
+      console.error('预览失败:', err)
+      toast({
+        title: '预览失败',
+        description: '无法打开预览页面',
+        variant: 'destructive',
+      })
+    }
   }
 
   // 分享页面

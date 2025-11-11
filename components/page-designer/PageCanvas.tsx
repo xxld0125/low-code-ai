@@ -34,6 +34,28 @@ import { cn } from '@/lib/utils'
 import { COMPONENT_TYPES, ComponentInstance, DragState } from '@/types/page-designer/component'
 import type { CanvasState } from '@/types/page-designer'
 
+/**
+ * 过滤掉不应该传递给DOM元素的属性
+ */
+const filterDomProps = (props: Record<string, any>): Record<string, any> => {
+  const filteredProps: Record<string, any> = {}
+  const invalidProps = new Set([
+    'isSelected',
+    'isDragging',
+    'onUpdate',
+    'onDelete',
+    'onSelect'
+  ])
+
+  Object.keys(props).forEach(key => {
+    if (!invalidProps.has(key)) {
+      filteredProps[key] = props[key]
+    }
+  })
+
+  return filteredProps
+}
+
 // 导入基础组件
 import { Button } from '@/components/lowcode/basic/Button'
 import { Input } from '@/components/lowcode/basic/Input'
@@ -194,7 +216,7 @@ const SortableComponentWrapper: React.FC<{
       {/* 组件内容 */}
       <div className={cn('relative', isSelected && 'overflow-hidden rounded-lg')}>
         <Renderer
-          {...component.props}
+          {...filterDomProps(component.props)}
           id={component.id}
           type={component.component_type}
           styles={component.styles}

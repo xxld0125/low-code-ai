@@ -115,9 +115,9 @@ export default async function PreviewPageLayout({ children, params }: PreviewPag
               >
                 返回编辑
               </a>
-              <button onClick={() => window.close()} className="text-white hover:text-blue-200">
-                关闭窗口
-              </button>
+              <span className="text-white/60 text-xs">
+                提示：此窗口可在新标签中打开
+              </span>
             </div>
           </div>
         </div>
