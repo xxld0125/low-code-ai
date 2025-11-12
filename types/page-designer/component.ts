@@ -36,6 +36,7 @@ export const COMPONENT_TYPES = {
   TABLE: 'table',
   CARD: 'card',
   GRID: 'grid',
+  BADGE: 'badge',
 } as const
 
 export type ComponentType = (typeof COMPONENT_TYPES)[keyof typeof COMPONENT_TYPES]
@@ -99,6 +100,7 @@ export interface ComponentProps {
   input?: {
     placeholder?: string
     value?: string
+    defaultValue?: string
     type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url'
     required?: boolean
     disabled?: boolean
@@ -152,6 +154,7 @@ export interface ComponentProps {
   textarea?: {
     placeholder?: string
     value?: string
+    defaultValue?: string
     rows?: number
     required?: boolean
     disabled?: boolean
@@ -168,6 +171,7 @@ export interface ComponentProps {
   select?: {
     placeholder?: string
     value?: string | string[]
+    defaultValue?: string | string[]
     options?: Array<{ value: string; label: string; disabled?: boolean }>
     required?: boolean
     disabled?: boolean
@@ -181,6 +185,7 @@ export interface ComponentProps {
   // Checkbox属性
   checkbox?: {
     checked?: boolean
+    defaultChecked?: boolean
     label?: string
     value?: string
     required?: boolean
@@ -195,6 +200,7 @@ export interface ComponentProps {
   radio?: {
     label?: string
     value?: string
+    defaultValue?: string
     options?: Array<{ value: string; label: string; disabled?: boolean }>
     required?: boolean
     disabled?: boolean
@@ -446,7 +452,7 @@ export interface ComponentInstance {
   id: string
   page_design_id: string
   component_type: ComponentType
-  parent_id?: string
+  parent_id?: string | null
 
   // 层级和位置
   position: {
@@ -579,7 +585,7 @@ export interface ComponentTree {
 
 export interface HierarchyNode {
   component_id: string
-  parent_id?: string
+  parent_id?: string | null
   children: string[]
   depth: number
   path: string

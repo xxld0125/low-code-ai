@@ -93,7 +93,7 @@ export class DataLoader {
         this.loadPageComponents(pageDesignId),
       ])
 
-      // 如果任何一个加载失败，返回错误
+      // 如果页面设计加载失败，返回错误
       if (pageDesignResult.error) {
         return {
           pageDesign: null,
@@ -103,21 +103,41 @@ export class DataLoader {
         }
       }
 
-      if (componentsResult.error) {
+      const pageDesign = pageDesignResult.data
+      if (!pageDesign) {
         return {
-          pageDesign: pageDesignResult.data,
+          pageDesign: null,
           components: [],
           componentTree: null,
-          error: componentsResult.error,
+          error: '页面设计不存在',
         }
       }
 
-      // 构建组件树结构
-      const componentTree = this.buildComponentTree(componentsResult.data)
+      let components: ComponentInstance[] = []
+      let componentTree: any = null
+
+      // 优先从 component_tree 中加载组件数据
+      if (pageDesign.component_tree) {
+        const result = this.extractComponentsFromTree(pageDesign.component_tree, pageDesignId)
+        components = result.components
+        componentTree = pageDesign.component_tree
+      } else {
+        // 回退到从 component_instances 表加载
+        if (componentsResult.error) {
+          return {
+            pageDesign: pageDesign,
+            components: [],
+            componentTree: null,
+            error: componentsResult.error,
+          }
+        }
+        components = componentsResult.data
+        componentTree = this.buildComponentTree(components)
+      }
 
       return {
-        pageDesign: pageDesignResult.data,
-        components: componentsResult.data,
+        pageDesign,
+        components,
         componentTree,
         error: null,
       }
@@ -130,6 +150,87 @@ export class DataLoader {
         error: error instanceof Error ? error.message : '加载设计数据失败',
       }
     }
+  }
+
+  /**
+   * 从 component_tree 中提取组件数据
+   */
+  private extractComponentsFromTree(
+    componentTree: any,
+    pageDesignId: string
+  ): {
+    components: ComponentInstance[]
+  } {
+    const components: ComponentInstance[] = []
+
+    if (!componentTree || !componentTree.components) {
+      console.warn('component_tree 结构不完整')
+      return { components }
+    }
+
+    try {
+      // 首先处理层级关系
+      const hierarchyMap = new Map<string, string | null>()
+
+      // 从 hierarchy 中建立父子关系映射
+      if (componentTree.hierarchy && Array.isArray(componentTree.hierarchy)) {
+        componentTree.hierarchy.forEach((node: any) => {
+          // hierarchy 中的节点表示顶级组件，它们没有父组件
+          if (node && node.id) {
+            hierarchyMap.set(node.id, null)
+          }
+        })
+      }
+
+      // 处理根组件
+      if (componentTree.root_id) {
+        hierarchyMap.set(componentTree.root_id, null)
+      }
+
+      // 遍历 component_tree.components 中的所有组件
+      Object.values(componentTree.components).forEach((componentData: any) => {
+        if (this.isValidComponentData(componentData)) {
+          const componentInstance: ComponentInstance = {
+            id: componentData.id,
+            page_design_id: pageDesignId,
+            component_type: componentData.component_type,
+            parent_id: hierarchyMap.get(componentData.id) || null,
+            position: componentData.position || { order: 0, z_index: 0 },
+            props: componentData.props || {},
+            events: componentData.events || {},
+            styles: componentData.styles || {},
+            responsive: componentData.responsive || {},
+            layout_props: componentData.layout_props || {},
+            created_at: componentData.created_at || new Date().toISOString(),
+            updated_at: componentData.updated_at || new Date().toISOString(),
+            version: componentData.version || 1,
+            meta: componentData.meta || { hidden: false, locked: false },
+          }
+          components.push(componentInstance)
+        } else {
+          console.warn('跳过无效的组件数据:', componentData)
+        }
+      })
+
+      return { components }
+    } catch (error) {
+      console.error('提取组件数据时发生错误:', error)
+      return { components }
+    }
+  }
+
+  /**
+   * 验证组件数据是否有效
+   */
+  private isValidComponentData(data: any): boolean {
+    return (
+      data &&
+      typeof data === 'object' &&
+      data.id &&
+      data.component_type &&
+      typeof data.id === 'string' &&
+      typeof data.component_type === 'string'
+    )
   }
 
   /**

@@ -12,16 +12,30 @@ import type { PageDesign, ComponentInstance } from '@/types/page-designer'
 /**
  * 清理组件属性中的事件处理器
  */
-const cleanComponentProps = (props: any): any => {
+const cleanComponentProps = (props: Record<string, unknown>): Record<string, unknown> => {
   if (!props || typeof props !== 'object') {
     return props
   }
 
-  const cleaned: any = {}
+  const cleaned: Record<string, unknown> = {}
   const eventHandlerKeys = [
-    'onClick', 'onUpdate', 'onDelete', 'onSelect', 'isSelected', 'isDragging',
-    'isEditable', 'onDragStart', 'onDragEnd', 'onDragOver', 'onDrop',
-    'onFocus', 'onBlur', 'onChange', 'onSubmit', 'onMouseEnter', 'onMouseLeave'
+    'onClick',
+    'onUpdate',
+    'onDelete',
+    'onSelect',
+    'isSelected',
+    'isDragging',
+    'isEditable',
+    'onDragStart',
+    'onDragEnd',
+    'onDragOver',
+    'onDrop',
+    'onFocus',
+    'onBlur',
+    'onChange',
+    'onSubmit',
+    'onMouseEnter',
+    'onMouseLeave',
   ]
 
   Object.keys(props).forEach(key => {
@@ -34,22 +48,23 @@ const cleanComponentProps = (props: any): any => {
 
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       // 递归清理嵌套对象
-      cleaned[key] = cleanComponentProps(value)
+      cleaned[key] = cleanComponentProps(value as Record<string, unknown>)
     } else if (Array.isArray(value)) {
       // 清理数组中的每个元素
       cleaned[key] = value.map(item =>
-        (typeof item === 'object' && item !== null) ? cleanComponentProps(item) : item
+        typeof item === 'object' && item !== null ? cleanComponentProps(item) : item
       )
     } else if (typeof value === 'function') {
       // 跳过函数类型的属性
       return
-    } else if (typeof value === 'string' && (
-      value.startsWith('function') ||
-      value.includes('=>') ||
-      value.includes('onClick') ||
-      value.includes('onUpdate') ||
-      value.includes('onDelete')
-    )) {
+    } else if (
+      typeof value === 'string' &&
+      (value.startsWith('function') ||
+        value.includes('=>') ||
+        value.includes('onClick') ||
+        value.includes('onUpdate') ||
+        value.includes('onDelete'))
+    ) {
       // 跳过字符串形式的函数定义
       return
     } else {
@@ -58,6 +73,13 @@ const cleanComponentProps = (props: any): any => {
   })
 
   return cleaned
+}
+
+/**
+ * 简化版的属性清理方法，用于组件props
+ */
+const sanitizeProps = (props: Record<string, unknown>): Record<string, unknown> => {
+  return cleanComponentProps(props)
 }
 
 export default function PreviewPage() {
@@ -109,15 +131,15 @@ export default function PreviewPage() {
 
         setPageDesign(designData.pageDesign)
 
-        
         // 创建完全清理的组件数据，确保没有事件处理器
         const cleanedComponents = (designData.components || []).map(component => {
-          const cleaned: any = {
+          const cleaned: ComponentInstance = {
             id: component.id,
             page_design_id: component.page_design_id,
             component_type: component.component_type,
             parent_id: component.parent_id,
             position: component.position,
+            props: {}, // 初始化为空，后续会根据组件类型设置
             styles: component.styles || {},
             events: {}, // 清空所有事件处理器
             responsive: component.responsive || {},
@@ -140,7 +162,7 @@ export default function PreviewPage() {
                   disabled: component.props?.button?.disabled || false,
                   className: component.props?.button?.className || '',
                   // 只包含安全的属性，排除所有事件处理器
-                }
+                },
               }
               break
             case 'text':
@@ -150,7 +172,7 @@ export default function PreviewPage() {
                   variant: component.props?.text?.variant || 'body',
                   tag: component.props?.text?.tag || 'div',
                   className: component.props?.text?.className || '',
-                }
+                },
               }
               break
             case 'image':
@@ -161,7 +183,7 @@ export default function PreviewPage() {
                   width: component.props?.image?.width,
                   height: component.props?.image?.height,
                   className: component.props?.image?.className || '',
-                }
+                },
               }
               break
             case 'container':
@@ -169,7 +191,7 @@ export default function PreviewPage() {
                 container: {
                   tag: component.props?.container?.tag || 'div',
                   className: component.props?.container?.className || '',
-                }
+                },
               }
               break
             case 'input':
@@ -177,11 +199,11 @@ export default function PreviewPage() {
                 input: {
                   type: component.props?.input?.type || 'text',
                   placeholder: component.props?.input?.placeholder || '',
-                  value: component.props?.input?.value || '',
+                  defaultValue: component.props?.input?.value || '',
                   disabled: component.props?.input?.disabled || false,
                   readOnly: component.props?.input?.readOnly || false,
                   className: component.props?.input?.className || '',
-                }
+                },
               }
               break
             case 'link':
@@ -191,19 +213,90 @@ export default function PreviewPage() {
                   target: component.props?.link?.target || '_self',
                   text: component.props?.link?.text || '链接',
                   className: component.props?.link?.className || '',
-                }
+                },
+              }
+              break
+            case 'textarea':
+              cleaned.props = {
+                textarea: {
+                  placeholder: component.props?.textarea?.placeholder || '',
+                  defaultValue: component.props?.textarea?.value || '',
+                  rows: component.props?.textarea?.rows || 4,
+                  disabled: component.props?.textarea?.disabled || false,
+                  readOnly: component.props?.textarea?.readOnly || false,
+                  className: component.props?.textarea?.className || '',
+                },
+              }
+              break
+            case 'select':
+              cleaned.props = {
+                select: {
+                  placeholder: component.props?.select?.placeholder || '请选择',
+                  defaultValue: component.props?.select?.value || '',
+                  options: component.props?.select?.options || [],
+                  disabled: component.props?.select?.disabled || false,
+                  className: component.props?.select?.className || '',
+                },
+              }
+              break
+            case 'checkbox':
+              cleaned.props = {
+                checkbox: {
+                  defaultChecked: component.props?.checkbox?.checked || false,
+                  label: component.props?.checkbox?.label || '',
+                  disabled: component.props?.checkbox?.disabled || false,
+                  className: component.props?.checkbox?.className || '',
+                },
+              }
+              break
+            case 'radio':
+              cleaned.props = {
+                radio: {
+                  label: component.props?.radio?.label || '',
+                  defaultValue: component.props?.radio?.value || '',
+                  options: component.props?.radio?.options || [],
+                  disabled: component.props?.radio?.disabled || false,
+                  className: component.props?.radio?.className || '',
+                },
+              }
+              break
+            case 'heading':
+              cleaned.props = {
+                text: {
+                  content: component.props?.text?.content || '标题',
+                  variant: component.props?.text?.variant || 'heading1',
+                  tag: component.props?.text?.tag || 'h1',
+                  className: component.props?.text?.className || '',
+                },
+              }
+              break
+            case 'card':
+              cleaned.props = {
+                container: {
+                  tag: 'div',
+                  className: component.props?.container?.className || '',
+                },
+              }
+              break
+            case 'badge':
+              cleaned.props = {
+                text: {
+                  content: component.props?.text?.content || '徽章',
+                  variant: 'body',
+                  className: component.props?.text?.className || '',
+                },
               }
               break
             default:
-              cleaned.props = {}
+              // 对于未知的组件类型，保留原始props但清理事件处理器
+              cleaned.props = sanitizeProps(component.props || {})
           }
 
           return cleaned
         })
 
         setComponents(cleanedComponents)
-
-              } catch (err) {
+      } catch (err) {
         console.error('加载预览数据失败:', err)
         setError(err instanceof Error ? err.message : '加载失败，请重试')
       } finally {
@@ -245,14 +338,15 @@ export default function PreviewPage() {
 
   // 渲染页面内容
   const renderPageContent = () => {
-
     if (!pageDesign || components.length === 0) {
       return (
         <div className="flex h-64 items-center justify-center text-gray-500">
           <div className="text-center">
             <p className="mb-2 text-lg">暂无内容</p>
             <p className="text-sm">此页面设计还没有添加任何组件</p>
-            <p className="text-xs text-gray-400">pageDesign: {!!pageDesign}, components: {components.length}</p>
+            <p className="text-xs text-gray-400">
+              pageDesign: {!!pageDesign}, components: {components.length}
+            </p>
           </div>
         </div>
       )
@@ -295,7 +389,6 @@ export default function PreviewPage() {
     }
   }
 
-  
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -314,10 +407,7 @@ export default function PreviewPage() {
   return (
     <>
       {/* 设备预览切换器 */}
-      <DevicePreviewSwitcher
-        initialMode={previewMode}
-        onModeChange={setPreviewMode}
-      />
+      <DevicePreviewSwitcher initialMode={previewMode} onModeChange={setPreviewMode} />
 
       {/* 预览内容区域 */}
       <div className="flex min-h-screen items-center justify-center py-8">

@@ -296,10 +296,38 @@ export const ComponentRenderer = memo(
           )
         }
 
+        // 清理事件处理器，确保服务端渲染安全
+        const sanitizedProps = { ...mergedProps }
+        const eventHandlerKeys = [
+          'onClick',
+          'onUpdate',
+          'onDelete',
+          'onSelect',
+          'isSelected',
+          'isDragging',
+          'isEditable',
+          'onDragStart',
+          'onDragEnd',
+          'onDragOver',
+          'onDrop',
+          'onFocus',
+          'onBlur',
+          'onChange',
+          'onSubmit',
+          'onMouseEnter',
+          'onMouseLeave',
+        ]
+
+        eventHandlerKeys.forEach(key => {
+          if (key in sanitizedProps) {
+            delete sanitizedProps[key]
+          }
+        })
+
         return (
           <Component
             ref={ref}
-            {...mergedProps}
+            {...sanitizedProps}
             className={combinedClassName}
             style={computedStyles}
           >

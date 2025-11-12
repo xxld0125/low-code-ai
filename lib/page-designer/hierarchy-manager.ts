@@ -19,8 +19,8 @@ export type HierarchyOperationType = 'add' | 'remove' | 'move' | 'reorder' | 're
 export interface HierarchyOperation {
   type: HierarchyOperationType
   componentId: string
-  parentId?: string
-  oldParentId?: string
+  parentId?: string | null
+  oldParentId?: string | null
   position?: number
   oldPosition?: number
   timestamp: number

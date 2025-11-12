@@ -17,7 +17,7 @@ const filterDomProps = (props: Record<string, any>): Record<string, any> => {
     'onDragStart',
     'onDragEnd',
     'onDragOver',
-    'onDrop'
+    'onDrop',
   ])
 
   Object.keys(props).forEach(key => {
@@ -55,55 +55,25 @@ export class ComponentRenderer {
       case 'image':
         return this.renderImage(props, combinedStyles, id)
       case 'container':
-        try {
-          const containerProps = props?.container || {}
-          const filteredProps = filterDomProps(containerProps)
-          const tagName = containerProps.tag || 'div'
-
-          // 确保使用安全的HTML标签
-          const safeTagName = (typeof tagName === 'string' && /^[a-z][a-z0-9-]*$/i.test(tagName))
-            ? tagName
-            : 'div'
-
-          // 为独立渲染的容器添加默认内容
-          const defaultContent = React.createElement('div', {
-            key: 'content',
-            style: {
-              padding: '10px',
-              border: '1px dashed #ddd',
-              borderRadius: '4px',
-              backgroundColor: '#f9f9f9',
-              textAlign: 'center',
-              color: '#666'
-            }
-          }, '容器内容区域')
-
-          return React.createElement(
-            safeTagName,
-            {
-              key: id,
-              style: {
-                ...combinedStyles,
-                minHeight: '100px',
-                border: '1px solid #e0e0e0'
-              },
-              className: `component-${id} ${containerProps.className || ''}`,
-              ...filteredProps,
-            },
-            defaultContent
-          )
-        } catch (error) {
-          console.error('容器渲染失败:', error)
-          return React.createElement('div', {
-            key: id,
-            style: { border: '1px solid red', padding: '10px', color: 'red' },
-            className: `component-${id} error`,
-          }, `容器组件渲染失败`)
-        }
+        return this.renderContainer(props, combinedStyles, id, [])
       case 'input':
         return this.renderInput(props, combinedStyles, id)
       case 'link':
         return this.renderLink(props, combinedStyles, id)
+      case 'textarea':
+        return this.renderTextarea(props, combinedStyles, id)
+      case 'select':
+        return this.renderSelect(props, combinedStyles, id)
+      case 'checkbox':
+        return this.renderCheckbox(props, combinedStyles, id)
+      case 'radio':
+        return this.renderRadio(props, combinedStyles, id)
+      case 'heading':
+        return this.renderHeading(props, combinedStyles, id)
+      case 'card':
+        return this.renderCard(props, combinedStyles, id)
+      case 'badge':
+        return this.renderBadge(props, combinedStyles, id)
       default:
         return this.renderDefault(component, combinedStyles)
     }
@@ -117,14 +87,22 @@ export class ComponentRenderer {
     rootId: string | null
   ): React.ReactElement[] {
     if (!rootId) {
-      // 如果没有根组件，渲染所有顶级组件
-      return components.filter(c => !c.parent_id).map(c => this.renderComponent(c))
+      // 如果没有根组件，渲染所有顶级组件并按order字段排序
+      const topLevelComponents = components
+        .filter(c => !c.parent_id)
+        .sort((a, b) => (a.position?.order || 0) - (b.position?.order || 0))
+      return topLevelComponents.map(c => this.renderComponent(c))
     }
 
     // 找到根组件
     const rootComponent = components.find(c => c.id === rootId)
+
     if (!rootComponent) {
-      return []
+      // 如果指定的根组件ID不存在，回退到渲染所有顶级组件并按order字段排序
+      const topLevelComponents = components
+        .filter(c => !c.parent_id)
+        .sort((a, b) => (a.position?.order || 0) - (b.position?.order || 0))
+      return topLevelComponents.map(c => this.renderComponent(c))
     }
 
     // 递归渲染子组件
@@ -138,8 +116,10 @@ export class ComponentRenderer {
     component: ComponentInstance,
     allComponents: ComponentInstance[]
   ): React.ReactElement {
-    // 找到子组件
-    const children = allComponents.filter(c => c.parent_id === component.id)
+    // 找到子组件并按order字段排序
+    const children = allComponents
+      .filter(c => c.parent_id === component.id)
+      .sort((a, b) => (a.position?.order || 0) - (b.position?.order || 0))
 
     // 递归渲染子组件
     const renderedChildren = children.map(child =>
@@ -276,7 +256,7 @@ export class ComponentRenderer {
       className: `component-${id} ${inputProps.className || ''}`,
       type: inputProps.type || 'text',
       placeholder: inputProps.placeholder,
-      value: inputProps.value || '',
+      defaultValue: inputProps.value || '',
       disabled: inputProps.disabled,
       readOnly: inputProps.readOnly,
       ...filteredProps,
@@ -320,6 +300,268 @@ export class ComponentRenderer {
   }
 
   /**
+   * 渲染文本域组件
+   */
+  private static renderTextarea(props: any, styles: any, id: string): React.ReactElement {
+    const textareaProps = props?.textarea || {}
+    const filteredProps = filterDomProps(textareaProps)
+
+    return React.createElement('textarea', {
+      key: id,
+      style: styles,
+      className: `component-${id} ${textareaProps.className || ''}`,
+      placeholder: textareaProps.placeholder,
+      defaultValue: textareaProps.value || '',
+      rows: textareaProps.rows || 4,
+      disabled: textareaProps.disabled,
+      readOnly: textareaProps.readOnly,
+      ...filteredProps,
+    })
+  }
+
+  /**
+   * 渲染选择框组件
+   */
+  private static renderSelect(props: any, styles: any, id: string): React.ReactElement {
+    const selectProps = props?.select || {}
+    const filteredProps = filterDomProps(selectProps)
+
+    return React.createElement(
+      'select',
+      {
+        key: id,
+        style: styles,
+        className: `component-${id} ${selectProps.className || ''}`,
+        defaultValue: selectProps.value || '',
+        disabled: selectProps.disabled,
+        ...filteredProps,
+      },
+      [
+        React.createElement(
+          'option',
+          {
+            key: 'placeholder',
+            value: '',
+            disabled: true,
+          },
+          selectProps.placeholder || '请选择'
+        ),
+        ...(selectProps.options || []).map((option: any, index: number) =>
+          React.createElement(
+            'option',
+            {
+              key: index,
+              value: option.value || option.label,
+            },
+            option.label || option.value
+          )
+        ),
+      ]
+    )
+  }
+
+  /**
+   * 渲染复选框组件
+   */
+  private static renderCheckbox(props: any, styles: any, id: string): React.ReactElement {
+    const checkboxProps = props?.checkbox || {}
+    const filteredProps = filterDomProps(checkboxProps)
+
+    return React.createElement(
+      'label',
+      {
+        key: id,
+        style: {
+          ...styles,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+        },
+        className: `component-${id} ${checkboxProps.className || ''}`,
+      },
+      [
+        React.createElement('input', {
+          key: 'input',
+          type: 'checkbox',
+          defaultChecked: checkboxProps.defaultChecked || false,
+          disabled: checkboxProps.disabled,
+          ...filteredProps,
+        }),
+        React.createElement(
+          'span',
+          {
+            key: 'label',
+          },
+          checkboxProps.label || ''
+        ),
+      ]
+    )
+  }
+
+  /**
+   * 渲染单选框组件
+   */
+  private static renderRadio(props: any, styles: any, id: string): React.ReactElement {
+    const radioProps = props?.radio || {}
+    const filteredProps = filterDomProps(radioProps)
+
+    return React.createElement(
+      'div',
+      {
+        key: id,
+        style: styles,
+        className: `component-${id} ${radioProps.className || ''}`,
+      },
+      [
+        React.createElement(
+          'div',
+          {
+            key: 'label',
+            style: { marginBottom: '8px', fontWeight: 'bold' },
+          },
+          radioProps.label || ''
+        ),
+        React.createElement(
+          'div',
+          {
+            key: 'options',
+            style: { display: 'flex', flexDirection: 'column', gap: '4px' },
+          },
+          ...(radioProps.options || []).map((option: any, index: number) =>
+            React.createElement(
+              'label',
+              {
+                key: index,
+                style: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                },
+              },
+              [
+                React.createElement('input', {
+                  key: 'input',
+                  type: 'radio',
+                  name: `radio-${id}`,
+                  value: option.value || option.label,
+                  defaultChecked:
+                    (radioProps.defaultValue || '') === (option.value || option.label),
+                  disabled: radioProps.disabled,
+                }),
+                React.createElement(
+                  'span',
+                  {
+                    key: 'label',
+                  },
+                  option.label || option.value
+                ),
+              ]
+            )
+          )
+        ),
+      ]
+    )
+  }
+
+  /**
+   * 渲染标题组件
+   */
+  private static renderHeading(props: any, styles: any, id: string): React.ReactElement {
+    const textProps = props?.text || {}
+    const filteredProps = filterDomProps(textProps)
+
+    // 根据标题级别选择标签
+    let tag = 'h1'
+    if (textProps.tag) {
+      tag = textProps.tag
+    } else if (textProps.variant) {
+      const level = textProps.variant.replace('heading', '')
+      tag = `h${level || '1'}`
+    }
+
+    return React.createElement(
+      tag,
+      {
+        key: id,
+        style: styles,
+        className: `component-${id} ${textProps.className || ''}`,
+        ...filteredProps,
+      },
+      textProps.content || '标题'
+    )
+  }
+
+  /**
+   * 渲染卡片组件
+   */
+  private static renderCard(props: any, styles: any, id: string): React.ReactElement {
+    const containerProps = props?.container || {}
+    const filteredProps = filterDomProps(containerProps)
+
+    return React.createElement(
+      'div',
+      {
+        key: id,
+        style: {
+          ...styles,
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          padding: '16px',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        },
+        className: `component-${id} ${containerProps.className || ''}`,
+        ...filteredProps,
+      },
+      React.createElement(
+        'div',
+        {
+          style: {
+            padding: '20px',
+            textAlign: 'center',
+            color: '#666',
+            border: '2px dashed #ddd',
+            borderRadius: '4px',
+            backgroundColor: '#f9f9f9',
+          },
+        },
+        '卡片组件'
+      )
+    )
+  }
+
+  /**
+   * 渲染徽章组件
+   */
+  private static renderBadge(props: any, styles: any, id: string): React.ReactElement {
+    const textProps = props?.text || {}
+    const filteredProps = filterDomProps(textProps)
+
+    return React.createElement(
+      'span',
+      {
+        key: id,
+        style: {
+          ...styles,
+          display: 'inline-block',
+          padding: '4px 8px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          borderRadius: '12px',
+          backgroundColor: '#007bff',
+          color: '#ffffff',
+          border: '1px solid #0056b3',
+        },
+        className: `component-${id} ${textProps.className || ''}`,
+        ...filteredProps,
+      },
+      textProps.content || '徽章'
+    )
+  }
+
+  /**
    * 获取组件的默认样式
    */
   private static getDefaultStyles(componentType: string): any {
@@ -354,6 +596,40 @@ export class ComponentRenderer {
         borderRadius: '4px',
         fontSize: '14px',
         width: '100%',
+      },
+      textarea: {
+        padding: '8px 12px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        fontSize: '14px',
+        width: '100%',
+        minHeight: '100px',
+        resize: 'vertical',
+      },
+      select: {
+        padding: '8px 12px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        fontSize: '14px',
+        width: '100%',
+        backgroundColor: '#ffffff',
+      },
+      checkbox: {
+        margin: '4px 0',
+      },
+      radio: {
+        margin: '8px 0',
+      },
+      heading: {
+        margin: '16px 0 8px 0',
+        fontWeight: 'bold',
+      },
+      card: {
+        margin: '16px 0',
+        maxWidth: '100%',
+      },
+      badge: {
+        margin: '2px 4px',
       },
       link: {
         color: '#0066cc',
