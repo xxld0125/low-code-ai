@@ -1,0 +1,705 @@
+# FlowBase 组件属性配置面板 GraphQL Schema
+# 版本: 1.0.0
+# 描述: 组件属性配置面板的GraphQL接口定义
+
+# 标量类型定义
+scalar UUID
+scalar DateTime
+scalar JSON
+scalar Color
+scalar Size
+
+# 根查询类型
+type Query {
+  # 组件属性配置相关查询
+  componentProperties(
+    projectId: UUID!
+    componentId: UUID
+    search: String
+    page: Int = 1
+    limit: Int = 20
+    sortBy: String = "updated_at"
+    sortOrder: SortOrder = DESC
+  ): ComponentPropertyConnection!
+
+  componentProperty(id: UUID!): ComponentProperty
+
+  # 属性模板相关查询
+  propertyTemplates(
+    componentType: String
+    includeSystem: Boolean = true
+    page: Int = 1
+    limit: Int = 20
+  ): PropertyTemplateConnection!
+
+  propertyTemplate(id: UUID!): PropertyTemplate
+
+  # 样式预设相关查询
+  stylePresets(
+    category: StylePresetCategory
+    componentType: String
+  ): [StylePreset!]!
+
+  stylePreset(id: UUID!): StylePreset
+
+  # 事件处理器相关查询
+  eventHandlers(
+    componentId: UUID!
+    eventType: EventType
+  ): [EventHandler!]!
+
+  eventHandler(id: UUID!): EventHandler
+
+  # 配置历史相关查询
+  propertyHistory(
+    componentId: UUID!
+    propertyId: UUID
+    page: Int = 1
+    limit: Int = 20
+  ): PropertyHistoryConnection!
+
+  # 实用查询
+  validateProperties(
+    projectId: UUID!
+    componentId: UUID!
+    componentType: String!
+    properties: [PropertyValidationInput!]!
+    validationTypes: [ValidationType!] = [SCHEMA]
+  ): PropertyValidationResult!
+}
+
+# 根变更类型
+type Mutation {
+  # 组件属性配置相关变更
+  createComponentProperties(
+    input: CreateComponentPropertiesInput!
+  ): CreateComponentPropertiesPayload!
+
+  updateComponentProperty(
+    id: UUID!
+    input: UpdateComponentPropertyInput!
+  ): UpdateComponentPropertyPayload!
+
+  deleteComponentProperty(id: UUID!): DeleteComponentPropertyPayload!
+
+  # 批量操作
+  batchPropertyOperations(
+    operations: [BatchPropertyOperationInput!]!
+  ): BatchPropertyOperationsPayload!
+
+  # 属性模板相关变更
+  createPropertyTemplate(
+    input: CreatePropertyTemplateInput!
+  ): CreatePropertyTemplatePayload!
+
+  updatePropertyTemplate(
+    id: UUID!
+    input: UpdatePropertyTemplateInput!
+  ): UpdatePropertyTemplatePayload!
+
+  deletePropertyTemplate(id: UUID!): DeletePropertyTemplatePayload!
+
+  # 样式预设相关变更
+  createStylePreset(
+    input: CreateStylePresetInput!
+  ): CreateStylePresetPayload!
+
+  updateStylePreset(
+    id: UUID!
+    input: UpdateStylePresetInput!
+  ): UpdateStylePresetPayload!
+
+  deleteStylePreset(id: UUID!): DeleteStylePresetPayload!
+
+  # 事件处理器相关变更
+  createEventHandler(
+    input: CreateEventHandlerInput!
+  ): CreateEventHandlerPayload!
+
+  updateEventHandler(
+    id: UUID!
+    input: UpdateEventHandlerInput!
+  ): UpdateEventHandlerPayload!
+
+  deleteEventHandler(id: UUID!): DeleteEventHandlerPayload!
+
+  # 历史恢复
+  restorePropertyHistory(historyId: UUID!): RestorePropertyHistoryPayload!
+}
+
+# 根订阅类型（实时功能）
+type Subscription {
+  # 组件属性变更订阅
+  componentPropertyChanged(
+    projectId: UUID!
+    componentId: UUID
+  ): ComponentPropertyChangedPayload!
+
+  # 属性配置实时预览
+  propertyPreviewUpdated(
+    projectId: UUID!
+    componentId: UUID!
+  ): PropertyPreviewUpdatedPayload!
+}
+
+# 基础类型定义
+interface Node {
+  id: UUID!
+}
+
+interface Edge {
+  node: Node!
+  cursor: String!
+}
+
+interface Connection {
+  edges: [Edge!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# 组件属性配置类型
+type ComponentProperty implements Node {
+  id: UUID!
+  projectId: UUID!
+  componentId: UUID!
+  propertyName: String!
+  propertyValue: JSON!
+  propertyType: PropertyType!
+  propertySchema: PropertySchema
+  validation: PropertyValidation
+  metadata: PropertyMetadata
+  isRequired: Boolean!
+  isDefault: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: UUID
+  updatedBy: UUID!
+}
+
+type ComponentPropertyEdge implements Edge {
+  node: ComponentProperty!
+  cursor: String!
+}
+
+type ComponentPropertyConnection implements Connection {
+  edges: [ComponentPropertyEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+# 属性模板类型
+type PropertyTemplate implements Node {
+  id: UUID!
+  name: String!
+  description: String
+  componentType: String!
+  isSystem: Boolean!
+  category: String!
+  version: String!
+  properties: [TemplateProperty!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type PropertyTemplateEdge implements Edge {
+  node: PropertyTemplate!
+  cursor: String!
+}
+
+type PropertyTemplateConnection implements Connection {
+  edges: [PropertyTemplateEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+# 样式预设类型
+type StylePreset implements Node {
+  id: UUID!
+  name: String!
+  description: String
+  category: StylePresetCategory!
+  styles: StyleDefinition!
+  thumbnail: String
+  applicableTypes: [String!]!
+  isDefault: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# 事件处理器类型
+type EventHandler implements Node {
+  id: UUID!
+  componentId: UUID!
+  eventType: EventType!
+  actionType: ActionType!
+  actionConfig: JSON!
+  isActive: Boolean!
+  order: Int!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# 配置历史类型
+type PropertyHistory implements Node {
+  id: UUID!
+  componentId: UUID!
+  propertyId: UUID
+  operation: HistoryOperation!
+  oldValue: JSON
+  newValue: JSON
+  changeSummary: String!
+  userId: UUID
+  changeReason: String
+  createdAt: DateTime!
+}
+
+type PropertyHistoryEdge implements Edge {
+  node: PropertyHistory!
+  cursor: String!
+}
+
+type PropertyHistoryConnection implements Connection {
+  edges: [PropertyHistoryEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+# 相关数据结构类型
+type PropertySchema {
+  type: String!
+  format: String
+  pattern: String
+  minimum: Float
+  maximum: Float
+  minLength: Int
+  maxLength: Int
+  enum: [String!]
+  default: JSON
+  nullable: Boolean = false
+}
+
+type PropertyValidation {
+  required: Boolean!
+  rules: [ValidationRule!]!
+  customValidator: String
+}
+
+type ValidationRule {
+  type: ValidationRuleType!
+  value: JSON
+  message: String!
+}
+
+type PropertyMetadata {
+  category: String
+  group: String
+  order: Int
+  description: String
+}
+
+type TemplateProperty {
+  propertyName: String!
+  propertyValue: JSON!
+  propertyType: PropertyType!
+  propertySchema: PropertySchema
+  validation: PropertyValidation
+  metadata: PropertyMetadata
+  isRequired: Boolean!
+  order: Int!
+  group: String
+}
+
+type StyleDefinition {
+  colors: JSON
+  typography: JSON
+  spacing: JSON
+  borders: JSON
+}
+
+# 验证相关类型
+type PropertyValidationResult {
+  valid: Boolean!
+  errors: [ValidationError!]!
+  warnings: [ValidationWarning!]!
+}
+
+type ValidationError {
+  code: String!
+  message: String!
+  property: String!
+  value: JSON
+}
+
+type ValidationWarning {
+  code: String!
+  message: String!
+  property: String
+  suggestion: String
+}
+
+# 输入类型定义
+input CreateComponentPropertiesInput {
+  projectId: UUID!
+  componentId: UUID!
+  properties: [CreateComponentPropertyInput!]!
+}
+
+input CreateComponentPropertyInput {
+  propertyName: String!
+  propertyValue: JSON!
+  propertyType: PropertyType!
+  propertySchema: PropertySchemaInput
+  validation: PropertyValidationInput
+  metadata: PropertyMetadataInput
+  isRequired: Boolean = false
+}
+
+input UpdateComponentPropertyInput {
+  propertyValue: JSON
+  validation: PropertyValidationInput
+  metadata: PropertyMetadataInput
+}
+
+input PropertySchemaInput {
+  type: String!
+  format: String
+  pattern: String
+  minimum: Float
+  maximum: Float
+  minLength: Int
+  maxLength: Int
+  enum: [String!]
+  default: JSON
+  nullable: Boolean = false
+}
+
+input PropertyValidationInput {
+  required: Boolean!
+  rules: [ValidationRuleInput!]!
+  customValidator: String
+}
+
+input ValidationRuleInput {
+  type: ValidationRuleType!
+  value: JSON
+  message: String!
+}
+
+input PropertyMetadataInput {
+  category: String
+  group: String
+  order: Int
+  description: String
+}
+
+input BatchPropertyOperationInput {
+  operation: BatchOperationType!
+  type: BatchOperationObjectType!
+  data: JSON!
+  propertyId: UUID
+}
+
+input CreatePropertyTemplateInput {
+  name: String!
+  description: String
+  componentType: String!
+  category: String!
+  version: String!
+  properties: [CreateComponentPropertyInput!]!
+}
+
+input UpdatePropertyTemplateInput {
+  name: String
+  description: String
+  category: String
+  version: String
+  properties: [CreateComponentPropertyInput!]
+}
+
+input CreateStylePresetInput {
+  name: String!
+  description: String
+  category: StylePresetCategory!
+  styles: StyleDefinitionInput!
+  thumbnail: String
+  applicableTypes: [String!]!
+}
+
+input StyleDefinitionInput {
+  colors: JSON
+  typography: JSON
+  spacing: JSON
+  borders: JSON
+}
+
+input UpdateStylePresetInput {
+  name: String
+  description: String
+  category: StylePresetCategory
+  styles: StyleDefinitionInput
+  thumbnail: String
+  applicableTypes: [String!]
+}
+
+input CreateEventHandlerInput {
+  componentId: UUID!
+  eventType: EventType!
+  actionType: ActionType!
+  actionConfig: JSON!
+  isActive: Boolean = true
+  order: Int = 0
+  description: String
+}
+
+input UpdateEventHandlerInput {
+  eventType: EventType
+  actionType: ActionType
+  actionConfig: JSON
+  isActive: Boolean
+  order: Int
+  description: String
+}
+
+input PropertyValidationInput {
+  propertyName: String!
+  propertyValue: JSON!
+  propertySchema: PropertySchemaInput
+}
+
+# 载荷类型（Payloads）
+type CreateComponentPropertiesPayload {
+  success: Boolean!
+  message: String
+  properties: [ComponentProperty!]!
+  errors: [String!]!
+}
+
+type UpdateComponentPropertyPayload {
+  success: Boolean!
+  message: String
+  property: ComponentProperty
+  errors: [String!]!
+}
+
+type DeleteComponentPropertyPayload {
+  success: Boolean!
+  message: String
+  errors: [String!]!
+}
+
+type BatchPropertyOperationsPayload {
+  success: Boolean!
+  message: String
+  results: [BatchOperationResult!]!
+  failedOperations: [BatchOperationError!]!
+}
+
+type BatchOperationResult {
+  operation: String!
+  success: Boolean!
+  data: JSON
+  message: String
+}
+
+type BatchOperationError {
+  operation: String!
+  error: String!
+  data: JSON
+}
+
+type CreatePropertyTemplatePayload {
+  success: Boolean!
+  message: String
+  template: PropertyTemplate
+  errors: [String!]!
+}
+
+type UpdatePropertyTemplatePayload {
+  success: Boolean!
+  message: String
+  template: PropertyTemplate
+  errors: [String!]!
+}
+
+type DeletePropertyTemplatePayload {
+  success: Boolean!
+  message: String
+  errors: [String!]!
+}
+
+type CreateStylePresetPayload {
+  success: Boolean!
+  message: String
+  preset: StylePreset
+  errors: [String!]!
+}
+
+type UpdateStylePresetPayload {
+  success: Boolean!
+  message: String
+  preset: StylePreset
+  errors: [String!]!
+}
+
+type DeleteStylePresetPayload {
+  success: Boolean!
+  message: String
+  errors: [String!]!
+}
+
+type CreateEventHandlerPayload {
+  success: Boolean!
+  message: String
+  eventHandler: EventHandler
+  errors: [String!]!
+}
+
+type UpdateEventHandlerPayload {
+  success: Boolean!
+  message: String
+  eventHandler: EventHandler
+  errors: [String!]!
+}
+
+type DeleteEventHandlerPayload {
+  success: Boolean!
+  message: String
+  errors: [String!]!
+}
+
+type RestorePropertyHistoryPayload {
+  success: Boolean!
+  message: String
+  properties: [ComponentProperty!]!
+  errors: [String!]!
+}
+
+# 订阅载荷类型
+type ComponentPropertyChangedPayload {
+  componentId: UUID!
+  propertyId: UUID!
+  operation: HistoryOperation!
+  property: ComponentProperty
+  timestamp: DateTime!
+}
+
+type PropertyPreviewUpdatedPayload {
+  componentId: UUID!
+  propertyUpdates: [PropertyPreviewUpdate!]!
+  timestamp: DateTime!
+}
+
+type PropertyPreviewUpdate {
+  propertyName: String!
+  newValue: JSON!
+  oldValue: JSON
+}
+
+# 枚举类型定义
+enum PropertyType {
+  STRING
+  NUMBER
+  BOOLEAN
+  OBJECT
+  ARRAY
+  COLOR
+  SIZE
+  SPACING
+}
+
+enum ValidationRuleType {
+  MIN
+  MAX
+  MIN_LENGTH
+  MAX_LENGTH
+  PATTERN
+  CUSTOM
+}
+
+enum ValidationType {
+  SCHEMA
+  BUSINESS
+  DEPENDENCY
+}
+
+enum BatchOperationType {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum BatchOperationObjectType {
+  PROPERTY
+  TEMPLATE
+  STYLE
+  EVENT
+}
+
+enum StylePresetCategory {
+  BASIC
+  MODERN
+  CLASSIC
+  MINIMALIST
+  COLORFUL
+}
+
+enum EventType {
+  CLICK
+  SUBMIT
+  CHANGE
+  FOCUS
+  BLUR
+}
+
+enum ActionType {
+  NAVIGATE
+  SUBMIT
+  API_CALL
+  CUSTOM_LOGIC
+  SHOW_MESSAGE
+}
+
+enum HistoryOperation {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+# 自定义标量实现
+"""
+UUID 标量类型，用于表示UUID格式的字符串
+"""
+scalar UUID
+
+"""
+DateTime 标量类型，用于表示ISO 8601格式的日期时间
+"""
+scalar DateTime
+
+"""
+JSON 标量类型，用于表示任意的JSON值
+"""
+scalar JSON
+
+"""
+Color 标量类型，用于表示颜色值（如：#FF0000、red、rgb(255,0,0)）
+"""
+scalar Color
+
+"""
+Size 标量类型，用于表示尺寸值（如：100px、2rem、50%）
+"""
+scalar Size
