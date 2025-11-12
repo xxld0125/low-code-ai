@@ -105,7 +105,7 @@ export function validateLockRequest(request: AcquireLockRequest): {
   }
 
   // Validate reason
-  if (!request.reason || request.reason.trim().length === 0) {
+  if (request.reason?.trim().length === 0) {
     errors.push('Lock reason is required')
   }
 

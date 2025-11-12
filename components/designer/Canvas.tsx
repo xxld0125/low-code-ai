@@ -242,7 +242,7 @@ export function Canvas({
 
   // Prepare relationship data for rendering
   const relationshipData = useMemo(() => {
-    if (!relationships || relationships.length === 0) {
+    if (relationships?.length === 0) {
       return []
     }
 

@@ -3,7 +3,7 @@
  * 管理组件属性的实时预览和更新
  */
 
-import type { PropertyValue, ComponentInstance } from '@/types/designer'
+import type { PropertyValue } from '@/types/designer'
 
 export interface PreviewConfig {
   debounceMs: number
@@ -41,7 +41,12 @@ export class PreviewManager {
   /**
    * 添加预览更新
    */
-  addUpdate(componentId: string, propertyPath: string, oldValue: PropertyValue, newValue: PropertyValue): void {
+  addUpdate(
+    componentId: string,
+    propertyPath: string,
+    oldValue: PropertyValue,
+    newValue: PropertyValue
+  ): void {
     const update: PreviewUpdate = {
       componentId,
       propertyPath,
@@ -63,12 +68,14 @@ export class PreviewManager {
   /**
    * 批量添加更新
    */
-  addUpdates(updates: Array<{
-    componentId: string
-    propertyPath: string
-    oldValue: PropertyValue
-    newValue: PropertyValue
-  }>): void {
+  addUpdates(
+    updates: Array<{
+      componentId: string
+      propertyPath: string
+      oldValue: PropertyValue
+      newValue: PropertyValue
+    }>
+  ): void {
     updates.forEach(({ componentId, propertyPath, oldValue, newValue }) =>
       this.addUpdate(componentId, propertyPath, oldValue, newValue)
     )
@@ -99,7 +106,10 @@ export class PreviewManager {
   /**
    * 计算差异
    */
-  calculateDiff(componentId: string, newProperties: Record<string, PropertyValue>): PreviewUpdate[] {
+  calculateDiff(
+    componentId: string,
+    newProperties: Record<string, PropertyValue>
+  ): PreviewUpdate[] {
     const snapshot = this.getSnapshot(componentId)
     if (!snapshot) {
       return []
@@ -223,7 +233,12 @@ export class PreviewManager {
         for (let i = 0; i < keysA.length; i++) {
           const key = keysA[i]
           if (key !== keysB[i]) return false
-          if (!this.deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) {
+          if (
+            !this.deepEqual(
+              (a as Record<string, unknown>)[key],
+              (b as Record<string, unknown>)[key]
+            )
+          ) {
             return false
           }
         }
@@ -238,7 +253,7 @@ export class PreviewManager {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // 转换为32位整数
     }
     return hash.toString(36)

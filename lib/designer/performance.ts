@@ -169,7 +169,7 @@ export function useDeepMemo<T>(value: T, deps: React.DependencyList): T {
     ref.current = { value, deps }
   }
 
-  return ref.current!.value
+  return ref.current.value
 }
 
 /**

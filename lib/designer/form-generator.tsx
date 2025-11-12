@@ -12,7 +12,6 @@ import type {
   FormLayout,
   FormGroup,
 } from '@/types/designer'
-import { validationEngine } from './validation'
 
 /**
  * 动态表单生成器
@@ -165,7 +164,10 @@ export class FormGenerator {
   /**
    * 渲染表单字段
    */
-  renderField(fieldConfig: FormFieldConfig, onChange: (propertyPath: string, value: PropertyValue) => void): React.ReactNode {
+  renderField(
+    fieldConfig: FormFieldConfig,
+    onChange: (propertyPath: string, value: PropertyValue) => void
+  ): React.ReactNode {
     const { property, value, error, disabled } = fieldConfig
     const editorType = property.type
 
@@ -186,7 +188,7 @@ export class FormGenerator {
           value={value}
           error={error}
           disabled={disabled}
-          onChange={(newValue) => onChange(property.key, newValue)}
+          onChange={newValue => onChange(property.key, newValue)}
         />
       )
     }
@@ -196,8 +198,8 @@ export class FormGenerator {
       <input
         key={property.key}
         type="text"
-        value={value as string || ''}
-        onChange={(e) => onChange(property.key, e.target.value)}
+        value={(value as string) || ''}
+        onChange={e => onChange(property.key, e.target.value)}
         disabled={disabled}
         placeholder={property.ui?.placeholder}
         className={property.ui?.className}
@@ -256,8 +258,10 @@ export class FormGenerator {
     propertyDefinition: PropertyDefinition,
     allProperties: Record<string, PropertyValue>
   ): boolean {
-    return (propertyDefinition.dependencies || []).some(dependency =>
-      dependency.effect === 'disable' && this.evaluateCondition(dependency.condition, allProperties)
+    return (propertyDefinition.dependencies || []).some(
+      dependency =>
+        dependency.effect === 'disable' &&
+        this.evaluateCondition(dependency.condition, allProperties)
     )
   }
 

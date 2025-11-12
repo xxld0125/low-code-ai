@@ -1,141 +1,153 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { FlatCompat } from '@eslint/eslintrc'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
-});
+})
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     // 修复 structuredClone 错误，禁用有问题的 react/display-name 规则
     rules: {
-      "react/display-name": "off",
+      'react/display-name': 'off',
     },
   },
   {
     ignores: [
       // Dependencies
-      "node_modules/**",
-      ".pnpm-store/**",
+      'node_modules/**',
+      '.pnpm-store/**',
 
       // Next.js
-      ".next/**",
-      "out/**",
-      "dist/**",
-      "build/**",
+      '.next/**',
+      'out/**',
+      'dist/**',
+      'build/**',
 
       // Production
-      "build/**",
+      'build/**',
 
       // Coverage
-      "coverage/**",
-      ".nyc_output/**",
+      'coverage/**',
+      '.nyc_output/**',
 
       // TypeScript
-      "*.tsbuildinfo",
-      "next-env.d.ts",
+      '*.tsbuildinfo',
+      'next-env.d.ts',
 
       // Environment
-      ".env",
-      ".env.local",
-      ".env.development.local",
-      ".env.test.local",
-      ".env.production.local",
+      '.env',
+      '.env.local',
+      '.env.development.local',
+      '.env.test.local',
+      '.env.production.local',
 
       // IDE
-      ".vscode/**",
-      ".idea/**",
+      '.vscode/**',
+      '.idea/**',
 
       // OS
-      ".DS_Store",
-      "Thumbs.db",
+      '.DS_Store',
+      'Thumbs.db',
 
       // Logs
-      "*.log",
-      "npm-debug.log*",
-      "yarn-debug.log*",
-      "yarn-error.log*",
+      '*.log',
+      'npm-debug.log*',
+      'yarn-debug.log*',
+      'yarn-error.log*',
 
       // Vercel
-      ".vercel",
+      '.vercel',
 
-      // Legacy ignore files (from .eslintignore)
-      "*.min.js",
-      "*.min.css",
-      "public/static/**",
-      ".cache/**",
-      "temp/**",
-      ".tmp/**",
-      "*.tmp",
-      "*.temp",
-      "*.pem",
-      "designer-temp/**",
-      "designer-exports/**",
-      "designer-thumbnails/**",
+      // Minified files
+      '*.min.js',
+      '*.min.css',
 
-      // Additional ignore patterns from .eslintignore
-      "*.generated.js",
-      "*.generated.ts",
-      "*.swp",
-      "*.swo",
-      "test-results/**",
-      "playwright-report/**",
+      // Generated files
+      '*.generated.js',
+      '*.generated.ts',
+      'public/static/**',
+
+      // Cache and temporary directories
+      '.cache/**',
+      'temp/**',
+      '.tmp/**',
+      '*.tmp',
+      '*.temp',
+      '*.pem',
+      '*.swp',
+      '*.swo',
+
+      // Designer-specific directories
+      'designer-temp/**',
+      'designer-exports/**',
+      'designer-thumbnails/**',
+
+      // Test results and reports
+      'test-results/**',
+      'playwright-report/**',
 
       // From .eslintignore file
-      "*.test.ts",
-      "*.test.tsx",
-      "test/**",
-      "tests/**",
-      "*.test.js",
-      "jest.config.js",
-      "jest.setup.js",
+      '*.test.ts',
+      '*.test.tsx',
+      'test/**',
+      'tests/**',
+      '*.test.js',
+      'jest.config.js',
+      'jest.setup.js',
     ],
   },
   {
     // 页面设计器相关文件的规则放宽
     files: [
-      "app/api/page-designer/**/*",
-      "stores/page-designer/**/*",
-      "types/page-designer/**/*",
-      "lib/page-designer/**/*",
-      "hooks/use-page-*",
-      "components/page-designer/**/*",
-      "components/lowcode/**/*",
+      'app/api/page-designer/**/*',
+      'stores/page-designer/**/*',
+      'types/page-designer/**/*',
+      'lib/page-designer/**/*',
+      'hooks/use-page-*',
+      'components/page-designer/**/*',
+      'components/lowcode/**/*',
     ],
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-non-null-assertion": "off",
-      "react-hooks/exhaustive-deps": "warn",
-      "prefer-const": "warn",
-      "@typescript-eslint/no-empty-object-type": "off",
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
+      'prefer-const': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'off',
     },
   },
   {
     // 属性配置面板文件 - 严格类型检查
     files: [
-      "components/designer/**/*",
-      "stores/property-*/**/*",
-      "types/designer/**/*",
-      "lib/designer/**/*",
-      "hooks/useProperty*",
-      "tests/components/designer/**/*",
+      'components/designer/**/*',
+      'stores/property-*/**/*',
+      'types/designer/**/*',
+      'lib/designer/**/*',
+      'hooks/useProperty*',
+      'tests/components/designer/**/*',
     ],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/prefer-nullish-coalescing": "warn",
-      "@typescript-eslint/prefer-optional-chain": "warn",
-      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
-      "react-hooks/exhaustive-deps": "warn",
-      "prefer-const": "warn",
-      "no-console": "warn",
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      '@typescript-eslint/prefer-optional-chain': 'warn',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      'react-hooks/exhaustive-deps': 'warn',
+      'prefer-const': 'warn',
+      'no-console': 'warn',
     },
   },
-];
+]
 
-export default eslintConfig;
+export default eslintConfig

@@ -404,7 +404,7 @@ export class ErrorHandler {
     this.errorCallbacks.forEach((callback, code) => {
       if (error instanceof APIError && error.code === code) {
         try {
-          callback(error as APIError)
+          callback(error)
         } catch (callbackError) {
           console.error('Error in error callback:', callbackError)
         }

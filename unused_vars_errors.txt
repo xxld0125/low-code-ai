@@ -1,0 +1,16 @@
+   18:5   error    'startRenderTiming' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+   19:5   error    'startUpdateTiming' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+  244:5   error    'startRenderTiming' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+  245:5   error    'startUpdateTiming' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+  246:5   error    'recordMemoryUsage' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+    8:10  error    'Checkbox' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    9:10  error    'Button' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+   10:10  error    'Card' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+   10:16  error    'CardContent' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+   10:29  error    'CardHeader' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+   10:41  error    'CardTitle' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+    6:30  error    'ComponentInstance' is defined but never used                                                              @typescript-eslint/no-unused-vars
+    6:31  error    'ValidationType' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+   31:43  error    'message' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+   50:37  error    'message' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+    8:3   error    'ValidationRule' is defined but never used                                                                 @typescript-eslint/no-unused-vars

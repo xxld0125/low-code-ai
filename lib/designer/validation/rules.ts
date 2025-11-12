@@ -3,7 +3,7 @@
  * 提供预定义的验证规则配置
  */
 
-import type { ValidationRule, ValidationType } from '@/types/designer'
+import type { ValidationRule } from '@/types/designer'
 
 // 基础验证规则
 export const ValidationRules = {
@@ -28,7 +28,7 @@ export const ValidationRules = {
   }),
 
   // 长度范围规则
-  lengthRange: (min: number, max: number, message?: string): ValidationRule[] => [
+  lengthRange: (min: number, max: number): ValidationRule[] => [
     ValidationRules.minLength(min),
     ValidationRules.maxLength(max),
   ],
@@ -47,7 +47,7 @@ export const ValidationRules = {
   }),
 
   // 数值范围规则
-  range: (min: number, max: number, message?: string): ValidationRule[] => [
+  range: (min: number, max: number): ValidationRule[] => [
     ValidationRules.min(min),
     ValidationRules.max(max),
   ],
@@ -144,7 +144,10 @@ export const ValidationRuleSets = {
     ValidationRules.required('用户名不能为空'),
     ValidationRules.minLength(2, '用户名至少需要2个字符'),
     ValidationRules.maxLength(20, '用户名不能超过20个字符'),
-    ValidationRules.pattern(/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/, '用户名只能包含字母、数字、下划线和中文'),
+    ValidationRules.pattern(
+      /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
+      '用户名只能包含字母、数字、下划线和中文'
+    ),
   ],
 
   // 密码验证
@@ -155,22 +158,13 @@ export const ValidationRuleSets = {
   ],
 
   // 强密码验证
-  strongPassword: [
-    ValidationRules.required('密码不能为空'),
-    ValidationRules.password(),
-  ],
+  strongPassword: [ValidationRules.required('密码不能为空'), ValidationRules.password()],
 
   // 邮箱验证
-  email: [
-    ValidationRules.required('邮箱不能为空'),
-    ValidationRules.email(),
-  ],
+  email: [ValidationRules.required('邮箱不能为空'), ValidationRules.email()],
 
   // 手机号验证
-  phone: [
-    ValidationRules.required('手机号不能为空'),
-    ValidationRules.phone(),
-  ],
+  phone: [ValidationRules.required('手机号不能为空'), ValidationRules.phone()],
 
   // 年龄验证
   age: [
@@ -194,12 +188,8 @@ export const ValidationRuleSets = {
   ],
 
   // 描述验证
-  description: [
-    ValidationRules.maxLength(500, '描述不能超过500个字符'),
-  ],
+  description: [ValidationRules.maxLength(500, '描述不能超过500个字符')],
 
   // 网址验证
-  website: [
-    ValidationRules.url(),
-  ],
+  website: [ValidationRules.url()],
 }

@@ -918,7 +918,7 @@ export const getRelationshipsWithTables = async (
 
     if (relationshipsError) throw relationshipsError
 
-    if (!relationships || relationships.length === 0) {
+    if (relationships?.length === 0) {
       return []
     }
 

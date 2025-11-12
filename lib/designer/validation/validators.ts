@@ -3,11 +3,7 @@
  * 提供常用的验证规则实现
  */
 
-import type {
-  PropertyValue,
-  ValidationRule,
-  ValidationType
-} from '@/types/designer'
+import type { PropertyValue, ValidationType } from '@/types/designer'
 import type { ValidatorFunction, ValidationContext } from './ValidationEngine'
 
 // 验证器注册表
@@ -52,11 +48,12 @@ function registerBuiltinValidators(): void {
 
   // 最小长度验证器
   registerValidator('minLength', async (value, rule, context) => {
-    const minLength = (rule.params?.minLength as number) || rule.params?.min as number
+    const minLength = (rule.params?.minLength as number) || (rule.params?.min as number)
     if (typeof value === 'string' && value.length < minLength) {
       return {
         propertyPath: context.propertyPath || '',
-        message: rule.message || `${context.propertyPath || '此字段'}长度不能少于${minLength}个字符`,
+        message:
+          rule.message || `${context.propertyPath || '此字段'}长度不能少于${minLength}个字符`,
         code: 'MIN_LENGTH',
         severity: 'error',
         rule,
@@ -67,11 +64,12 @@ function registerBuiltinValidators(): void {
 
   // 最大长度验证器
   registerValidator('maxLength', async (value, rule, context) => {
-    const maxLength = (rule.params?.maxLength as number) || rule.params?.max as number
+    const maxLength = (rule.params?.maxLength as number) || (rule.params?.max as number)
     if (typeof value === 'string' && value.length > maxLength) {
       return {
         propertyPath: context.propertyPath || '',
-        message: rule.message || `${context.propertyPath || '此字段'}长度不能超过${maxLength}个字符`,
+        message:
+          rule.message || `${context.propertyPath || '此字段'}长度不能超过${maxLength}个字符`,
         code: 'MAX_LENGTH',
         severity: 'error',
         rule,
@@ -257,7 +255,9 @@ function registerBuiltinValidators(): void {
     if (allowedValues && !allowedValues.includes(value)) {
       return {
         propertyPath: context.propertyPath || '',
-        message: rule.message || `${context.propertyPath || '此字段'}的值必须是: ${allowedValues.join(', ')}`,
+        message:
+          rule.message ||
+          `${context.propertyPath || '此字段'}的值必须是: ${allowedValues.join(', ')}`,
         code: 'INVALID_ENUM_VALUE',
         severity: 'error',
         rule,
@@ -285,7 +285,7 @@ function registerBuiltinValidators(): void {
             rule,
           }
         }
-      } catch (error) {
+      } catch {
         return {
           propertyPath: context.propertyPath || '',
           message: rule.message || '自定义验证失败',
@@ -321,7 +321,7 @@ function registerBuiltinValidators(): void {
             rule,
           }
         }
-      } catch (error) {
+      } catch {
         return {
           propertyPath: context.propertyPath || '',
           message: rule.message || '唯一性验证失败',
@@ -357,7 +357,7 @@ function registerBuiltinValidators(): void {
             rule,
           }
         }
-      } catch (error) {
+      } catch {
         return {
           propertyPath: context.propertyPath || '',
           message: rule.message || '存在性验证失败',

@@ -570,7 +570,7 @@ export function validateMigrationOperation(operation: MigrationOperation): strin
       if (!operation.table_name || !/^[a-z][a-z0-9_]*$/.test(operation.table_name)) {
         errors.push('Invalid table name')
       }
-      if (!operation.fields || operation.fields.length === 0) {
+      if (operation.fields?.length === 0) {
         errors.push('Table must have at least one field')
       }
       break
@@ -641,7 +641,7 @@ export function generateFieldConstraintSQL(
   }
 
   // DEFAULT value
-  if (defaultValue && defaultValue.trim()) {
+  if (defaultValue?.trim()) {
     constraints.push(`DEFAULT ${defaultValue}`)
   }
 

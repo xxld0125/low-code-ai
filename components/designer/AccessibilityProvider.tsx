@@ -63,7 +63,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 
     const focusableElements = element.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    ) as NodeListOf<HTMLElement>
+    )
 
     if (focusableElements.length === 0) return () => {}
 

@@ -81,7 +81,7 @@ export function useFocusTrap(isActive: boolean = true) {
     const container = containerRef.current
     const focusableElements = container.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    ) as NodeListOf<HTMLElement>
+    )
 
     if (focusableElements.length === 0) return
 

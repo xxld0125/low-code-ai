@@ -881,7 +881,7 @@ export const validateFieldConstraints = (
   }
 
   // Validate default value if provided
-  if (default_value && default_value.trim()) {
+  if (default_value?.trim()) {
     const defaultValidation = validateDefaultValue(data_type, default_value.trim(), field_config)
     if (!defaultValidation.isValid) {
       errors.push(...defaultValidation.errors)
@@ -975,14 +975,14 @@ export const validateFieldNaming = (
   const errors: string[] = []
 
   // Validate display name
-  if (!name || !name.trim()) {
+  if (!name?.trim()) {
     errors.push('Display name is required')
   } else if (name.length > 100) {
     errors.push('Display name cannot exceed 100 characters')
   }
 
   // Validate field name
-  if (!field_name || !field_name.trim()) {
+  if (!field_name?.trim()) {
     errors.push('Field name is required')
   } else if (!/^[a-z][a-z0-9_]*$/.test(field_name)) {
     errors.push(
@@ -1063,8 +1063,8 @@ export const validateFieldForMigration = (
 
   // Check if max length is being reduced
   if (newField.field_config?.max_length && oldField.field_config?.max_length) {
-    const newMaxLength = newField.field_config.max_length as number
-    const oldMaxLength = oldField.field_config.max_length as number
+    const newMaxLength = newField.field_config.max_length
+    const oldMaxLength = oldField.field_config.max_length
 
     if (newMaxLength < oldMaxLength) {
       warnings.push('Reducing max length may truncate existing data')

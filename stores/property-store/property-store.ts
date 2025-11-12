@@ -6,7 +6,7 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { PropertyConfigState, PropertyConfigActions, ComponentInstance } from '@/types/designer'
+import type { PropertyConfigState, PropertyConfigActions } from '@/types/designer'
 
 interface PropertyConfigStore extends PropertyConfigState, PropertyConfigActions {}
 
@@ -61,7 +61,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
         // 选中组件管理
         selectComponent: (componentId: string | null) => {
-          set((state) => {
+          set(state => {
             state.selectedComponentId = componentId
 
             if (componentId) {
@@ -70,7 +70,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
               if (component) {
                 state.selectedComponent = component
                 state.properties = component.properties || {}
-                state.previewProperties = { ...component.properties || {} }
+                state.previewProperties = { ...(component.properties || {}) }
                 state.eventHandlers = component.eventHandlers || {}
                 state.customStyles = component.customStyles || {}
 
@@ -104,7 +104,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         updateProperty: (propertyPath: string, value: unknown) => {
-          set((state) => {
+          set(state => {
             const oldValue = state.previewProperties[propertyPath]
 
             // 更新预览属性
@@ -123,7 +123,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         updateProperties: (updates: Record<string, unknown>) => {
-          set((state) => {
+          set(state => {
             Object.entries(updates).forEach(([propertyPath, value]) => {
               const oldValue = state.previewProperties[propertyPath]
 
@@ -151,7 +151,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
             return
           }
 
-          set((state) => {
+          set(state => {
             state.saving = true
             state.error = null
           })
@@ -176,7 +176,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
             const result = await response.json()
 
-            set((state) => {
+            set(state => {
               // 更新保存状态
               state.properties = { ...previewProperties }
               state.dirtyProperties.clear()
@@ -197,7 +197,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
             return result.data
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '保存失败'
-            set((state) => {
+            set(state => {
               state.error = errorMessage
               state.saving = false
             })
@@ -206,7 +206,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         resetProperties: () => {
-          set((state) => {
+          set(state => {
             state.previewProperties = { ...state.properties }
             state.dirtyProperties.clear()
             state.validationErrors = {}
@@ -216,7 +216,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
         // 历史管理
         undo: () => {
-          set((state) => {
+          set(state => {
             const { past, present } = state.history
             if (past.length > 0) {
               const previous = past[past.length - 1]
@@ -238,7 +238,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         redo: () => {
-          set((state) => {
+          set(state => {
             const { future, present } = state.history
             if (future.length > 0) {
               const next = future[0]
@@ -260,7 +260,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         saveToHistory: (description?: string) => {
-          set((state) => {
+          set(state => {
             const snapshot = {
               properties: { ...state.previewProperties },
               eventHandlers: { ...state.eventHandlers },
@@ -279,21 +279,21 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
         // 验证管理
         setValidationError: (propertyPath: string, error: string) => {
-          set((state) => {
+          set(state => {
             state.validationErrors[propertyPath] = error
             state.validationState[propertyPath] = 'invalid'
           })
         },
 
         clearValidationError: (propertyPath: string) => {
-          set((state) => {
+          set(state => {
             delete state.validationErrors[propertyPath]
             delete state.validationState[propertyPath]
           })
         },
 
         clearAllValidationErrors: () => {
-          set((state) => {
+          set(state => {
             state.validationErrors = {}
             state.validationState = {}
             state.eventValidationErrors = {}
@@ -302,7 +302,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
         // 事件管理
         addEventHandler: (eventType: string, handler: EventHandlerConfig) => {
-          set((state) => {
+          set(state => {
             if (!state.eventHandlers[eventType]) {
               state.eventHandlers[eventType] = []
             }
@@ -312,7 +312,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         updateEventHandler: (eventType: string, index: number, handler: EventHandlerConfig) => {
-          set((state) => {
+          set(state => {
             if (state.eventHandlers[eventType]?.[index]) {
               state.eventHandlers[eventType][index] = handler
               state.dirtyProperties.add(`eventHandlers.${eventType}`)
@@ -321,7 +321,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         removeEventHandler: (eventType: string, index: number) => {
-          set((state) => {
+          set(state => {
             if (state.eventHandlers[eventType]) {
               state.eventHandlers[eventType].splice(index, 1)
               if (state.eventHandlers[eventType].length === 0) {
@@ -333,21 +333,21 @@ export const usePropertyStore = create<PropertyConfigStore>()(
         },
 
         setEventValidationError: (eventType: string, error: string) => {
-          set((state) => {
+          set(state => {
             state.eventValidationErrors[eventType] = error
           })
         },
 
         // 样式管理
         setCustomStyle: (propertyPath: string, style: CSSProperties) => {
-          set((state) => {
+          set(state => {
             state.customStyles[propertyPath] = style
             state.dirtyProperties.add(`customStyles.${propertyPath}`)
           })
         },
 
         removeCustomStyle: (propertyPath: string) => {
-          set((state) => {
+          set(state => {
             delete state.customStyles[propertyPath]
             state.dirtyProperties.add(`customStyles.${propertyPath}`)
           })
@@ -355,7 +355,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
         // 预览模式切换
         setPreviewMode: (enabled: boolean) => {
-          set((state) => {
+          set(state => {
             state.isPreviewMode = enabled
             if (!enabled) {
               // 退出预览模式时恢复到保存状态
@@ -368,26 +368,26 @@ export const usePropertyStore = create<PropertyConfigStore>()(
 
         // 状态管理
         setLoading: (loading: boolean) => {
-          set((state) => {
+          set(state => {
             state.loading = loading
           })
         },
 
         setError: (error: string | null) => {
-          set((state) => {
+          set(state => {
             state.error = error
           })
         },
 
         clearError: () => {
-          set((state) => {
+          set(state => {
             state.error = null
           })
         },
 
         // 重置
         reset: () => {
-          set((state) => {
+          set(state => {
             Object.assign(state, initialState)
           })
         },

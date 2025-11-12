@@ -574,7 +574,7 @@ export function FeatureFlagDebug() {
           ) : (
             <div className="space-y-2">
               {Object.entries(flags).map(([key, flagValue]) => {
-                const flag = DEFAULT_FEATURE_FLAGS[key as keyof typeof DEFAULT_FEATURE_FLAGS]
+                const flag = DEFAULT_FEATURE_FLAGS[key]
                 if (!flag) return null
 
                 return (
