@@ -32,7 +32,18 @@ const config: Config = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    // Mock CSS and image imports
+    '\\.(css|module\\.css|scss|sass)$': 'identity-obj-proxy',
+    '\\.(gif|jpe?g|png|svg|webp)$': '<rootDir>/tests/mocks/fileMock.js',
   },
+  // Add specific configuration for property configuration tests
+  projects: [
+    {
+      displayName: 'property-config',
+      testMatch: ['<rootDir>/tests/components/designer/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+      setupFilesAfterEnv: ['<rootDir>/tests/setup/designer-setup.ts'],
+    },
+  ],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

@@ -116,6 +116,26 @@ const eslintConfig = [
       "@typescript-eslint/no-empty-object-type": "off",
     },
   },
+  {
+    // 属性配置面板文件 - 严格类型检查
+    files: [
+      "components/designer/**/*",
+      "stores/property-*/**/*",
+      "types/designer/**/*",
+      "lib/designer/**/*",
+      "hooks/useProperty*",
+      "tests/components/designer/**/*",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/prefer-nullish-coalescing": "warn",
+      "@typescript-eslint/prefer-optional-chain": "warn",
+      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "prefer-const": "warn",
+      "no-console": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

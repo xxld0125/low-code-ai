@@ -16,7 +16,10 @@
     "test:api": "jest tests/projects/api",
     "test:database": "jest tests/projects/database",
     "test:integration": "jest tests/projects/integration",
-    "test:projects": "jest tests/projects"
+    "test:projects": "jest tests/projects",
+    "test:property-config": "jest tests/components/designer",
+    "test:property-config:watch": "jest tests/components/designer --watch",
+    "test:property-config:coverage": "jest tests/components/designer --coverage"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [
@@ -69,12 +72,17 @@
     "react-zoom-pan-pinch": "^3.7.0",
     "tailwind-merge": "^3.3.0",
     "zod": "^4.1.12",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "immer": "^10.1.1",
+    "react-hook-form": "^7.54.2",
+    "react-colorful": "^5.6.1",
+    "deep-equal": "^2.2.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/eslintrc": "^3",
+    "@types/deep-equal": "^1.0.4",
     "@faker-js/faker": "^10.1.0",
     "@jest/globals": "^30.2.0",
     "@testing-library/jest-dom": "^6.9.1",
