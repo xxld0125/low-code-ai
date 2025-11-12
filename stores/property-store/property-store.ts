@@ -6,7 +6,7 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { PropertyConfigState, PropertyConfigActions } from '@/types/designer'
+import type { PropertyConfigState, PropertyConfigActions, EventHandlerConfig, CSSProperties } from '@/types/designer'
 
 interface PropertyConfigStore extends PropertyConfigState, PropertyConfigActions {}
 
@@ -399,15 +399,3 @@ export const usePropertyStore = create<PropertyConfigStore>()(
   )
 )
 
-// 类型定义
-export interface EventHandlerConfig {
-  id: string
-  action: 'navigate' | 'api' | 'custom' | 'setState'
-  target?: string
-  parameters?: Record<string, unknown>
-  enabled: boolean
-}
-
-export interface CSSProperties {
-  [key: string]: string | number
-}

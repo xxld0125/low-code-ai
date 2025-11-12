@@ -5,6 +5,8 @@
  * 创建日期: 2025-10-31
  */
 
+'use client'
+
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GridEditor, type GridRowConfig } from './GridEditor'

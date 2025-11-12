@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { ComponentPanel } from './ComponentPanel'
 import { Canvas } from './Canvas'
 import { PropertiesPanel } from './PropertiesPanel'
+import { PropertyConfigPanel } from './PropertyConfigPanel'
 import { ErrorDisplay } from './ErrorDisplay'
 import { ErrorBoundary } from './ErrorBoundary'
 import { LoadingOverlay, useLoadingStates } from './LoadingStates'
 import { useDesignerStore } from '@/stores/designer/useDesignerStore'
 import { DataTableWithFields } from '@/types/designer/table'
+import type { ComponentInstance } from '@/types/designer'
 import { cn } from '@/lib/utils'
 import { AlertTriangle } from 'lucide-react'
 
@@ -18,6 +20,9 @@ interface DesignerLayoutProps {
 
 export function DesignerLayout({ projectId }: DesignerLayoutProps) {
   const [selectedTable, setSelectedTable] = useState<DataTableWithFields | null>(null)
+  const [selectedComponent, setSelectedComponent] = useState<ComponentInstance | null>(null)
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
+  const [activePanel, setActivePanel] = useState<'table' | 'component'>('component')
   const [sidebarCollapsed, setSidebarCollapsed] = useState({
     left: false,
     right: false,
@@ -49,6 +54,13 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
 
   const handleTableSelect = (table: DataTableWithFields) => {
     setSelectedTable(table)
+    setActivePanel('table')
+  }
+
+  const handleComponentSelect = (component: ComponentInstance | null) => {
+    setSelectedComponent(component)
+    setSelectedComponentId(component?.id || null)
+    setActivePanel('component')
   }
 
   const toggleSidebar = (side: 'left' | 'right') => {
@@ -133,10 +145,16 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
             <div className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
               <div className="flex items-center gap-4">
                 <h1 className="text-lg font-semibold">Data Model Designer</h1>
-                {selectedTable && (
+                {selectedTable && activePanel === 'table' && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Selected:</span>
+                    <span>Selected Table:</span>
                     <span className="font-medium text-foreground">{selectedTable.name}</span>
+                  </div>
+                )}
+                {selectedComponent && activePanel === 'component' && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Selected Component:</span>
+                    <span className="font-medium text-foreground">{selectedComponent.name || selectedComponent.type}</span>
                   </div>
                 )}
               </div>
@@ -171,7 +189,11 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
                     </div>
                   }
                 >
-                  <Canvas onTableSelect={handleTableSelect} />
+                  <Canvas
+                    onTableSelect={handleTableSelect}
+                    onComponentSelect={handleComponentSelect}
+                    selectedComponentId={selectedComponentId}
+                  />
                 </ErrorBoundary>
               </div>
             </div>
@@ -220,13 +242,54 @@ export function DesignerLayout({ projectId }: DesignerLayoutProps) {
                   </div>
                 }
               >
-                <PropertiesPanel
-                  projectId={projectId}
-                  selectedTable={selectedTable}
-                  onFieldUpdate={() => {}}
-                  onFieldDelete={() => {}}
-                  onAddField={() => {}}
-                />
+                {/* Panel切换器 */}
+                <div className="mb-4 flex gap-1 border-b border-border">
+                  <button
+                    onClick={() => setActivePanel('component')}
+                    className={cn(
+                      'px-3 py-2 text-sm font-medium transition-colors',
+                      activePanel === 'component'
+                        ? 'border-b-2 border-primary text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    组件属性
+                  </button>
+                  <button
+                    onClick={() => setActivePanel('table')}
+                    className={cn(
+                      'px-3 py-2 text-sm font-medium transition-colors',
+                      activePanel === 'table'
+                        ? 'border-b-2 border-primary text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    数据表
+                  </button>
+                </div>
+
+                {/* 根据激活的面板显示对应内容 */}
+                {activePanel === 'component' ? (
+                  <PropertyConfigPanel
+                    selectedComponentId={selectedComponentId}
+                    selectedComponent={selectedComponent}
+                    onComponentSelect={handleComponentSelect}
+                    projectId={projectId}
+                    showValidation={true}
+                    showHistory={true}
+                    showPreview={true}
+                    autoSave={false}
+                    readOnly={false}
+                  />
+                ) : (
+                  <PropertiesPanel
+                    projectId={projectId}
+                    selectedTable={selectedTable}
+                    onFieldUpdate={() => {}}
+                    onFieldDelete={() => {}}
+                    onAddField={() => {}}
+                  />
+                )}
               </ErrorBoundary>
             </div>
           </div>
