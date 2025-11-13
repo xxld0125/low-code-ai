@@ -28,6 +28,11 @@ interface UsePropertyEditorOptions {
   enablePreview?: boolean
   previewDelay?: number
 
+  // 性能优化配置
+  enablePerformanceOptimization?: boolean
+  batchUpdateDelay?: number
+  maxUpdatesPerSecond?: number
+
   // 调试配置
   debug?: boolean
 }
@@ -88,6 +93,9 @@ export function usePropertyEditor(
     showValidationErrors = true,
     enablePreview = true,
     previewDelay = 100,
+    enablePerformanceOptimization = true,
+    batchUpdateDelay = 16,
+    maxUpdatesPerSecond = 60,
     debug = false
   } = options
 
@@ -190,8 +198,17 @@ export function usePropertyEditor(
 
     const oldValue = store.previewProperties[key]
 
-    // 更新store中的属性
-    store.updateProperty(key, value)
+    // 检查是否为样式属性
+    const isStyleProperty = key.startsWith('style.')
+
+    if (enablePerformanceOptimization && isStyleProperty && componentId) {
+      // 使用性能优化的样式更新
+      const styleProperty = key.replace('style.', '')
+      store.updateStylePropertyOptimized(componentId, styleProperty, value)
+    } else {
+      // 使用常规属性更新
+      store.updateProperty(key, value)
+    }
 
     // 添加到预览管理器
     if (componentId && enablePreview) {
@@ -206,7 +223,16 @@ export function usePropertyEditor(
 
     // 调度自动保存
     scheduleAutoSave()
-  }, [store, autoValidate, validateOnChange, scheduleAutoSave, debugLog, componentId, enablePreview])
+  }, [
+    store,
+    autoValidate,
+    validateOnChange,
+    scheduleAutoSave,
+    debugLog,
+    componentId,
+    enablePreview,
+    enablePerformanceOptimization
+  ])
 
   // 批量更新属性
   const updateProperties = useCallback((
@@ -214,7 +240,34 @@ export function usePropertyEditor(
   ) => {
     debugLog('Updating properties', { updates })
 
-    store.updateProperties(updates)
+    // 分离样式属性和常规属性
+    const styleUpdates: Record<string, PropertyValue> = {}
+    const regularUpdates: Record<string, PropertyValue> = {}
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (key.startsWith('style.')) {
+        const styleProperty = key.replace('style.', '')
+        styleUpdates[styleProperty] = value
+      } else {
+        regularUpdates[key] = value
+      }
+    })
+
+    // 分别处理样式和常规属性更新
+    if (enablePerformanceOptimization && Object.keys(styleUpdates).length > 0 && componentId) {
+      // 使用性能优化的批量样式更新
+      store.updateStylePropertiesOptimized(componentId, styleUpdates)
+    } else if (Object.keys(styleUpdates).length > 0) {
+      // 常规样式更新
+      Object.entries(styleUpdates).forEach(([property, value]) => {
+        store.updateStyleProperty(`style.${property}`, value)
+      })
+    }
+
+    // 更新常规属性
+    if (Object.keys(regularUpdates).length > 0) {
+      store.updateProperties(regularUpdates)
+    }
 
     // 批量验证
     if (autoValidate && validateOnChange) {
@@ -224,7 +277,15 @@ export function usePropertyEditor(
     }
 
     scheduleAutoSave()
-  }, [store, autoValidate, validateOnChange, scheduleAutoSave, debugLog])
+  }, [
+    store,
+    autoValidate,
+    validateOnChange,
+    scheduleAutoSave,
+    debugLog,
+    componentId,
+    enablePerformanceOptimization
+  ])
 
   // 保存更改
   const saveChanges = useCallback(async () => {

@@ -6,7 +6,8 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { PropertyConfigState, PropertyConfigActions, EventHandlerConfig, CSSProperties } from '@/types/designer'
+import type { PropertyConfigState, PropertyConfigActions, EventHandlerConfig, CSSProperties, StylePreset } from '@/types/designer'
+import { useStyleStore } from '../style-store'
 
 interface PropertyConfigStore extends PropertyConfigState, PropertyConfigActions {}
 
@@ -338,7 +339,7 @@ export const usePropertyStore = create<PropertyConfigStore>()(
           })
         },
 
-        // 样式管理
+        // 样式管理 - 扩展样式相关功能
         setCustomStyle: (propertyPath: string, style: CSSProperties) => {
           set(state => {
             state.customStyles[propertyPath] = style
@@ -350,6 +351,84 @@ export const usePropertyStore = create<PropertyConfigStore>()(
           set(state => {
             delete state.customStyles[propertyPath]
             state.dirtyProperties.add(`customStyles.${propertyPath}`)
+          })
+        },
+
+        // 样式属性更新（集成样式store）
+        updateStyleProperty: (property: string, value: unknown) => {
+          const styleStore = useStyleStore.getState()
+          styleStore.updateStyle(property, value)
+
+          // 同时更新到属性配置中以保持一致性
+          set(state => {
+            const stylePropertyKey = `style.${property}`
+            state.previewProperties[stylePropertyKey] = value
+            state.dirtyProperties.add(stylePropertyKey)
+          })
+        },
+
+        updateStyleProperties: (updates: Record<string, unknown>) => {
+          const styleStore = useStyleStore.getState()
+          styleStore.updateStyles(updates)
+
+          // 同时更新到属性配置中
+          set(state => {
+            Object.entries(updates).forEach(([property, value]) => {
+              const stylePropertyKey = `style.${property}`
+              state.previewProperties[stylePropertyKey] = value
+              state.dirtyProperties.add(stylePropertyKey)
+            })
+          })
+        },
+
+        // 性能优化的样式属性更新
+        updateStylePropertyOptimized: (componentId: string, property: string, value: unknown) => {
+          const styleStore = useStyleStore.getState()
+          styleStore.updateStyleOptimized(componentId, property, value)
+
+          // 同时更新到属性配置中以保持一致性
+          set(state => {
+            const stylePropertyKey = `style.${property}`
+            state.previewProperties[stylePropertyKey] = value
+            state.dirtyProperties.add(stylePropertyKey)
+          })
+        },
+
+        updateStylePropertiesOptimized: (componentId: string, updates: Record<string, unknown>) => {
+          const styleStore = useStyleStore.getState()
+          styleStore.updateStylesOptimized(componentId, updates)
+
+          // 同时更新到属性配置中
+          set(state => {
+            Object.entries(updates).forEach(([property, value]) => {
+              const stylePropertyKey = `style.${property}`
+              state.previewProperties[stylePropertyKey] = value
+              state.dirtyProperties.add(stylePropertyKey)
+            })
+          })
+        },
+
+        // 样式预设管理
+        applyStylePreset: (presetId: string) => {
+          const styleStore = useStyleStore.getState()
+          styleStore.applyStylePreset(presetId)
+
+          set(state => {
+            state.appliedPreset = presetId
+          })
+        },
+
+        saveStylePreset: async (preset: Omit<StylePreset, 'id'>) => {
+          const styleStore = useStyleStore.getState()
+          return await styleStore.saveStylePreset(preset)
+        },
+
+        loadStylePresets: async () => {
+          const styleStore = useStyleStore.getState()
+          await styleStore.loadStylePresets()
+
+          set(state => {
+            state.stylePresets = styleStore.stylePresets
           })
         },
 

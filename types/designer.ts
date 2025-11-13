@@ -116,6 +116,16 @@ export interface PropertyConfigActions {
   removeCustomStyle: (propertyPath: string) => void
   loadStylePresets: () => Promise<void>
 
+  // 扩展样式操作
+  updateStyleProperty: (property: string, value: PropertyValue) => void
+  updateStyleProperties: (updates: Record<string, PropertyValue>) => void
+  applyStylePreset: (presetId: string) => void
+  saveStylePreset: (preset: Omit<StylePreset, 'id'>) => Promise<StylePreset>
+
+  // 性能优化的样式操作
+  updateStylePropertyOptimized: (componentId: string, property: string, value: PropertyValue) => void
+  updateStylePropertiesOptimized: (componentId: string, updates: Record<string, PropertyValue>) => void
+
   // 状态管理
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
@@ -319,4 +329,4 @@ export interface PreviewManagerConfig {
 export type PropertyConfigStore = PropertyConfigState & PropertyConfigActions
 
 // 导出常用的PropertyType和PropertySchema，方便其他地方使用
-export { PropertyType, PropertySchema, ValidationResult, ValidationError }
+export type { PropertyType, PropertySchema, ValidationResult, ValidationError }

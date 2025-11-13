@@ -57,20 +57,20 @@ description: 'Task list for implementing component property configuration panel 
 
 **NOTE**: Write these tests FIRST, ensure they FAIL before implementation
 
-- [ ] T018 [P] [US1] Unit test for property validation in tests/property/validation.test.ts
+- [x] T018 [P] [US1] Unit test for property validation in tests/property/validation.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Create basic property store slice in stores/property-config-store.ts
-- [ ] T020 [P] [US1] Implement usePropertyEditor hook in hooks/usePropertyEditor.ts
-- [ ] T021 [P] [US1] Create PropertiesPanel main component in components/designer/PropertiesPanel.tsx
-- [ ] T022 [P] [US1] Implement TextPropertyEditor component in components/designer/PropertiesPanel/components/TextPropertyEditor.tsx
-- [ ] T023 [P] [US1] Implement BooleanPropertyEditor component in components/designer/PropertiesPanel/components/BooleanPropertyEditor.tsx
-- [ ] T024 [P] [US1] Create PropertyForm dynamic form component in components/designer/PropertiesPanel/components/PropertyForm.tsx
-- [ ] T025 [P] [US1] Implement property validation with real-time feedback in lib/designer/validation/
-- [ ] T026 [P] [US1] Create validation error handling and user feedback system
-- [ ] T027 [P] [US1] Create save/changes management with dirty state tracking
-- [ ] T028 [P] [US1] Integrate property panel with existing DesignerLayout in components/designer/DesignerLayout.tsx
+- [x] T019 [P] [US1] Create basic property store slice in stores/property-store/property-store.ts
+- [x] T020 [P] [US1] Implement usePropertyEditor hook in hooks/usePropertyEditor.ts
+- [x] T021 [P] [US1] Create PropertiesPanel main component in components/designer/PropertiesPanel/ComponentPropertiesPanel.tsx
+- [x] T022 [P] [US1] Implement TextPropertyEditor component in components/designer/PropertiesPanel/components/TextPropertyEditor.tsx
+- [x] T023 [P] [US1] Implement BooleanPropertyEditor component in components/designer/PropertiesPanel/components/BooleanPropertyEditor.tsx
+- [x] T024 [P] [US1] Create PropertyForm dynamic form component in components/designer/PropertiesPanel/components/PropertyForm.tsx
+- [x] T025 [P] [US1] Implement property validation with real-time feedback in lib/designer/validation/
+- [x] T026 [P] [US1] Create validation error handling and user feedback system
+- [x] T027 [P] [US1] Create save/changes management with dirty state tracking
+- [x] T028 [P] [US1] Integrate property panel with existing DesignerLayout in components/designer/DesignerLayout.tsx
 
 **验收标准**: 用户10秒内完成基础属性配置（属性修改实时预览，用户点击保存按钮确认持久化）
 
@@ -84,19 +84,19 @@ description: 'Task list for implementing component property configuration panel 
 
 ### Tests for User Story 2 (Basic Testing)
 
-- [ ] T029 [P] [US2] Unit test for style property validation in tests/property/style-validation.test.ts
+- [x] T029 [P] [US2] Unit test for style property validation in tests/property/style-validation.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T030 [P] [US1] Create style property store slice extension in stores/property-config-store.ts
-- [ ] T031 [P] [US2] Implement ColorPropertyEditor component in components/designer/PropertiesPanel/components/ColorPropertyEditor.tsx
-- [ ] T032 [P] [US2] Implement SizePropertyEditor component in components/designer/PropertiesPanel/components/SizePropertyEditor.tsx
-- [ ] T033 [P] [US2] Implement SpacingPropertyEditor component in components/designer/PropertiesPanel/components/SpacingPropertyEditor.tsx
-- [ ] T034 [P] [US2] Create StyleConfig component in components/designer/PropertiesPanel/components/StyleConfig.tsx
-- [ ] T035 [P] [US2] Implement style preset management system in lib/designer/style-presets.ts
-- [ ] T036 [P] [US2] Create style validation and transformation utilities in lib/designer/style-utils.ts
-- [ ] T037 [P] [US2] Implement responsive style configuration support
-- [ ] T038 [P] [US2] Add style preview functionality with real-time canvas updates
+- [x] T030 [P] [US1] Create style property store slice extension in stores/property-config-store.ts
+- [x] T031 [P] [US2] Implement ColorPropertyEditor component in components/designer/PropertiesPanel/components/ColorPropertyEditor.tsx
+- [x] T032 [P] [US2] Implement SizePropertyEditor component in components/designer/PropertiesPanel/components/SizePropertyEditor.tsx
+- [x] T033 [P] [US2] Implement SpacingPropertyEditor component in components/designer/PropertiesPanel/components/SpacingPropertyEditor.tsx
+- [x] T034 [P] [US2] Create StyleConfig component in components/designer/PropertiesPanel/components/StyleConfig.tsx
+- [x] T035 [P] [US2] Implement style preset management system in lib/designer/style-presets.ts
+- [x] T036 [P] [US2] Create style validation and transformation utilities in lib/designer/style-utils.ts
+- [x] T037 [P] [US2] Implement responsive style configuration support
+- [x] T038 [P] [US2] Add style preview functionality with real-time canvas updates
 
 **验收标准**: 用户30秒内完成样式配置（样式修改实时预览，用户点击保存按钮确认持久化）
 

@@ -216,11 +216,11 @@ export interface StyleEditorState {
   current_styles: StyleValue
   active_breakpoint: Breakpoint
   theme: Theme
-  preset_styles: StylePreset[]
+  preset_styles: LowCodeStylePreset[]
   custom_properties: Record<string, string>
 }
 
-export interface StylePreset {
+export interface LowCodeStylePreset {
   id: string
   name: string
   description?: string
@@ -228,3 +228,6 @@ export interface StylePreset {
   category: string
   tags?: string[]
 }
+
+// 向后兼容的别名（如果需要的话）
+// export type StylePreset = LowCodeStylePreset

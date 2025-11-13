@@ -114,20 +114,8 @@ export interface HistorySnapshot {
 // 验证状态
 export type ValidationState = 'idle' | 'validating' | 'valid' | 'invalid'
 
-// 样式预设
-export interface StylePreset {
-  id: string
-  name: string
-  description?: string
-  styles: Record<string, CSSProperties>
-  category: 'layout' | 'typography' | 'spacing' | 'colors' | 'borders' | 'effects'
-  isDefault?: boolean
-}
-
-// CSS属性
-export interface CSSProperties {
-  [property: string]: string | number
-}
+// 从主设计器类型导入相关类型，避免重复定义
+export type { StylePreset, CSSProperties } from '../designer'
 
 // 组件实例
 export interface ComponentInstance {
