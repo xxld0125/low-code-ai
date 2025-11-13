@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Settings, Palette, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePropertyEditor } from '@/hooks/usePropertyEditor'
@@ -40,7 +39,7 @@ export function ComponentPropertiesPanel({
   })
 
   // 本地状态
-  const [activeTab, setActiveTab] = useState<'properties' | 'styles' | 'events'>('properties')
+  const [activeTab] = useState<'properties' | 'styles' | 'events'>('properties')
 
   // 获取组件属性定义
   const componentProperties = useMemo(() => {
