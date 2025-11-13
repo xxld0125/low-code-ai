@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils'
 import { usePropertyEditor } from '@/hooks/usePropertyEditor'
 import { PropertyForm, PropertyDefinition } from './components/PropertyForm'
+import { EventHandler } from './components/EventHandler'
 
 interface ComponentPropertiesPanelProps {
   selectedComponentId: string | null
@@ -260,14 +261,20 @@ export function ComponentPropertiesPanel({
 
       case 'events':
         return (
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center text-muted-foreground">
-                <Settings className="mx-auto h-8 w-8 mb-2" />
-                <p className="text-sm">事件配置功能即将推出</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="p-4">
+            {propertyEditor.selectedComponent && (
+              <EventHandler
+                componentId={propertyEditor.selectedComponent.id}
+                componentType={propertyEditor.selectedComponent.type}
+                componentEvents={propertyEditor.selectedComponent.eventHandlers || {}}
+                disabled={propertyEditor.saving}
+                onEventChange={(events) => {
+                  // 这里需要通过propertyEditor更新组件事件
+                  console.log('Events updated:', events)
+                }}
+              />
+            )}
+          </div>
         )
 
       default:

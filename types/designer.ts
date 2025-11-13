@@ -176,7 +176,86 @@ export interface ComponentInstance {
   updated_at: string
 }
 
-// 事件处理器配置
+// 事件动作类型
+export type EventActionType =
+  | 'navigate'           // 页面导航
+  | 'api-call'           // API调用
+  | 'show-message'       // 显示消息
+  | 'set-state'          // 设置状态
+  | 'toggle-state'       // 切换状态
+  | 'reset-form'         // 重置表单
+  | 'submit-form'        // 提交表单
+  | 'scroll-to'          // 滚动到位置
+  | 'open-modal'         // 打开模态框
+  | 'close-modal'        // 关闭模态框
+  | 'download-file'      // 下载文件
+  | 'copy-to-clipboard'  // 复制到剪贴板
+  | 'refresh-data'       // 刷新数据
+
+// 事件动作配置
+export interface EventAction {
+  id: string
+  type: EventActionType
+  payload: Record<string, unknown>
+  order: number
+  enabled?: boolean
+  delay?: number // 延迟执行时间（毫秒）
+  condition?: string // 执行条件表达式
+  description?: string
+}
+
+// 事件配置
+export interface EventConfig {
+  id: string
+  type: string // 事件类型：click, submit, change, focus, blur等
+  actions: EventAction[]
+  enabled: boolean
+  order: number
+  description?: string
+}
+
+// 事件验证结果
+export interface EventValidationResult {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+}
+
+// 事件执行结果
+export interface EventExecutionResult {
+  success: boolean
+  executedActions: string[]
+  errors: string[]
+  executionTime: number
+}
+
+// 事件执行上下文
+export interface EventExecutionContext {
+  componentId: string
+  eventType: string
+  timestamp: number
+  userInfo: {
+    userId: string
+    permissions: string[]
+  }
+  environment: 'designer' | 'preview' | 'production'
+  metadata?: Record<string, unknown>
+}
+
+// 事件验证上下文
+export interface EventValidationContext {
+  componentId: string
+  userInfo: {
+    userId: string
+    permissions: string[]
+  }
+  environment: 'designer' | 'preview' | 'production'
+  existingEvents?: EventConfig[]
+  maxActions?: number
+  allowedDomains?: string[]
+}
+
+// 事件处理器配置（保持向后兼容）
 export interface EventHandlerConfig {
   id: string
   action: 'navigate' | 'api' | 'custom' | 'setState'

@@ -110,18 +110,18 @@ description: 'Task list for implementing component property configuration panel 
 
 ### Tests for User Story 3 (Basic Testing)
 
-- [ ] T039 [P] [US3] Unit test for event validation and execution in tests/property/event-validation.test.ts
+- [x] T039 [P] [US3] Unit test for event validation and execution in tests/property/event-validation.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T040 [P] [US3] Create event handler store slice in stores/property-config-store.ts
-- [ ] T041 [P] [US3] Implement EventConfig component in components/designer/PropertiesPanel/components/EventConfig.tsx
-- [ ] T042 [P] [US3] Create EventHandler component in components/designer/PropertiesPanel/components/EventHandler.tsx
-- [ ] T043 [P] [US3] Implement event action configuration UI in components/designer/PropertiesPanel/components/EventActionConfig.tsx
-- [ ] T044 [P] [US3] Create event execution engine in lib/designer/event-engine.ts
-- [ ] T045 [P] [US3] Implement event validation and security checks in lib/designer/event-validation.ts
-- [ ] T046 [P] [US3] Add event ordering and execution flow management
-- [ ] T047 [P] [US3] Integrate event configuration with property panel
+- [x] T040 [P] [US3] Create event handler store slice in stores/property-config-store.ts
+- [x] T041 [P] [US3] Implement EventConfig component in components/designer/PropertiesPanel/components/EventConfig.tsx
+- [x] T042 [P] [US3] Create EventHandler component in components/designer/PropertiesPanel/components/EventHandler.tsx
+- [x] T043 [P] [US3] Implement event action configuration UI in components/designer/PropertiesPanel/components/EventActionConfig.tsx
+- [x] T044 [P] [US3] Create event execution engine in lib/designer/event-engine.ts
+- [x] T045 [P] [US3] Implement event validation and security checks in lib/designer/event-validation.ts
+- [x] T046 [P] [US3] Add event ordering and execution flow management
+- [x] T047 [P] [US3] Integrate event configuration with property panel
 
 **验收标准**: 事件绑定功能独立可用，支持点击事件和提交事件配置
 
