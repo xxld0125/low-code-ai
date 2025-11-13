@@ -23,18 +23,20 @@ import {
   Terminal
 } from 'lucide-react'
 
-import type { EventConfig, EventValidationResult, EventExecutionResult } from '@/types/designer'
+import type { EventValidationResult, EventExecutionResult } from '@/types/designer'
 
 interface EventDebugProps {
-  componentId: string
-  currentEvents: EventConfig[]
+  currentEvents: Array<{
+    id: string
+    type: string
+    description?: string
+  }>
   validationResult: Record<string, EventValidationResult>
   lastExecutionResult: EventExecutionResult | null
   onTestEvent: (eventId: string) => void
 }
 
 export function EventDebug({
-  componentId: _componentId,
   currentEvents,
   validationResult,
   lastExecutionResult,
