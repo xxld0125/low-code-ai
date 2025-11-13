@@ -14,6 +14,7 @@ const config: Config = {
   testMatch: [
     '<rootDir>/tests/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/tests/**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '<rootDir>/tests/**/*.test.{js,jsx,ts,tsx}',
   ],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',

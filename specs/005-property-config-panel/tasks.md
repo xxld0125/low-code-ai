@@ -133,17 +133,17 @@ description: 'Task list for implementing component property configuration panel 
 
 ### Tests for Basic Features
 
-- [ ] T048 [P] Unit test for undo/redo functionality in tests/property/undo-redo.test.ts
+- [x] T048 [P] Unit test for undo/redo functionality in tests/property/undo-redo.test.ts
 
 ### Implementation
 
-- [ ] T049 [P] Implement undo/redo functionality with history management in lib/designer/history/
-- [ ] T050 [P] Create custom property editor extension system in lib/designer/custom-editers/
-- [ ] T051 [P] Implement virtualized property list for performance optimization
-- [ ] T052 [P] Add basic property validation with custom rules support
-- [ ] T053 [P] Create property template management system in lib/designer/property-templates.ts
-- [ ] T054 [P] Add comprehensive error handling and user feedback system
-- [ ] T055 [P] Create basic documentation and user guides
+- [x] T049 [P] Implement undo/redo functionality with history management in lib/designer/history/
+- [x] T050 [P] Create custom property editor extension system in lib/designer/custom-editers/
+- [x] T051 [P] Implement virtualized property list for performance optimization
+- [x] T052 [P] Add basic property validation with custom rules support
+- [x] T053 [P] Create property template management system in lib/designer/property-templates.ts
+- [x] T054 [P] Add comprehensive error handling and user feedback system
+- [x] T055 [P] Create basic documentation and user guides
 
 ---
 
@@ -151,9 +151,9 @@ description: 'Task list for implementing component property configuration panel 
 
 **Purpose**: 跨领域关注点和完善，确保整体质量和用户体验
 
-- [ ] T056 [P] Conduct basic accessibility audit and fixes
-- [ ] T057 [P] Finalize error handling and user experience improvements
-- [ ] T058 [P] Create deployment configuration and scripts
+- [x] T056 [P] Conduct basic accessibility audit and fixes
+- [x] T057 [P] Finalize error handling and user experience improvements
+- [x] T058 [P] Create deployment configuration and scripts
 
 ---
 
