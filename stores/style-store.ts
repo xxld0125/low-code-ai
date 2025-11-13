@@ -6,8 +6,12 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { enableMapSet } from 'immer'
 import type { StylePreset, CSSProperties, PropertyValue } from '@/types/designer'
 import { StyleUpdateOptimizer } from '@/lib/utils/performance'
+
+// 在模块加载时启用MapSet插件
+enableMapSet()
 
 // 样式属性类型定义
 export type StylePropertyType =

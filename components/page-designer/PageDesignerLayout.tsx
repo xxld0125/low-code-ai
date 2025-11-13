@@ -13,6 +13,7 @@ import { ComponentPanel } from './ComponentPanel'
 import { PageCanvas } from './PageCanvas'
 import { PageDragOverlay } from './DragOverlay'
 import { DragStats } from './DragVisualFeedback'
+import { ComponentPropertiesPanel } from '@/components/designer/PropertiesPanel/ComponentPropertiesPanel'
 
 // 拖拽轨迹组件（临时简化实现）
 const DragTrail: React.FC<{
@@ -130,58 +131,13 @@ const DesignerStatusBar: React.FC<{
   )
 }
 
-// 属性面板占位符（后续实现）
-const PropertiesPanelPlaceholder: React.FC<{
-  selectedComponents: ComponentInstance[]
-  onComponentUpdate: (id: string, updates: Partial<ComponentInstance>) => void
-}> = ({ selectedComponents, onComponentUpdate }) => {
-  return (
-    <div className="flex h-full flex-col border-l border-gray-200 bg-white">
-      <div className="border-b border-gray-200 p-4">
-        <h2 className="text-lg font-semibold text-gray-900">属性面板</h2>
-      </div>
-
-      <div className="flex-1 p-4">
-        {selectedComponents.length === 0 ? (
-          <div className="text-center text-sm text-gray-600">
-            <div className="py-8">
-              <svg
-                className="mx-auto mb-4 h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-              <p>选择组件以查看属性</p>
-            </div>
-          </div>
-        ) : selectedComponents.length === 1 ? (
-          <div>
-            <h3 className="mb-3 font-medium text-gray-900">
-              {selectedComponents[0].meta.custom_name || selectedComponents[0].component_type}
-            </h3>
-            <div className="text-sm text-gray-600">
-              <p>ID: {selectedComponents[0].id}</p>
-              <p>类型: {selectedComponents[0].component_type}</p>
-              <p>创建时间: {new Date(selectedComponents[0].created_at).toLocaleString()}</p>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center text-sm text-gray-600">
-            <p>已选择 {selectedComponents.length} 个组件</p>
-            <p>批量编辑功能开发中...</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+// 属性面板占位符（已替换为ComponentPropertiesPanel）
+// const PropertiesPanelPlaceholder: React.FC<{
+//   selectedComponents: ComponentInstance[]
+//   onComponentUpdate: (id: string, updates: Partial<ComponentInstance>) => void
+// }> = ({ selectedComponents, onComponentUpdate }) => {
+//   // 已移除此组件，使用ComponentPropertiesPanel替代
+// }
 
 export interface PageDesignerLayoutProps {
   className?: string
@@ -482,9 +438,9 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
 
             {/* 右侧属性面板 */}
             <ResizablePanel defaultSize={25} minSize={15} maxSize={35}>
-              <PropertiesPanelPlaceholder
-                selectedComponents={selectedComponentsArray}
-                onComponentUpdate={handleComponentUpdate}
+              <ComponentPropertiesPanel
+                selectedComponentId={selectionState.selectedComponentIds[0] || null}
+                className="border-l border-gray-200 bg-white"
               />
             </ResizablePanel>
           </ResizablePanelGroup>

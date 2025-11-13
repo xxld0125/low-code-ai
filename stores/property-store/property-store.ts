@@ -6,8 +6,26 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { enableMapSet } from 'immer'
 import type { PropertyConfigState, PropertyConfigActions, EventHandlerConfig, CSSProperties, StylePreset } from '@/types/designer'
 import { useStyleStore } from '../style-store'
+
+// 在模块加载时启用MapSet插件
+enableMapSet()
+
+// Helper function to get component from designer store
+const getComponentFromDesignerStore = (componentId: string | null) => {
+  if (!componentId) return null
+
+  try {
+    // 尝试从全局状态或通过其他方式访问designer store
+    // 这里需要动态导入以避免循环依赖
+    return null // 临时返回null，稍后修复
+  } catch (error) {
+    console.warn('无法从designer store获取组件:', error)
+    return null
+  }
+}
 
 interface PropertyConfigStore extends PropertyConfigState, PropertyConfigActions {}
 

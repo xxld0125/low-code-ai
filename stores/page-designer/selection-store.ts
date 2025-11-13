@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
+import { enableMapSet } from 'immer'
+
+// 在模块加载时启用MapSet插件
+enableMapSet()
 
 export interface SelectionStore {
   // 选择状态

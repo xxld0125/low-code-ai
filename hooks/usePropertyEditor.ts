@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { usePropertyStore } from '@/stores/property-store'
+import { useDesignerStore } from '@/stores/page-designer/designer-store'
 import { PropertyValidator, PropertySchema, ValidationResult } from '@/lib/designer/validation/property-validator'
 import { previewManager } from '@/lib/designer/preview-manager'
 import type {
@@ -101,12 +102,20 @@ export function usePropertyEditor(
 
   // 状态管理
   const store = usePropertyStore()
+  const designerStore = useDesignerStore()
   const validatorRef = useRef(new PropertyValidator())
 
   // 本地状态
   const [validationState, setValidationState] = useState<Record<string, ValidationResult>>({})
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
   const previewTimeoutRef = useRef<NodeJS.Timeout>()
+
+  // 调试日志
+  const debugLog = useCallback((message: string, data?: any) => {
+    if (debug) {
+      console.log(`[usePropertyEditor] ${message}`, data)
+    }
+  }, [debug])
 
   // 预览管理器订阅
   useEffect(() => {
@@ -124,19 +133,26 @@ export function usePropertyEditor(
     return unsubscribe
   }, [componentId, debugLog])
 
-  // 调试日志
-  const debugLog = useCallback((message: string, data?: any) => {
-    if (debug) {
-      console.log(`[usePropertyEditor] ${message}`, data)
-    }
-  }, [debug])
-
   // 选择组件
   useEffect(() => {
     if (componentId !== store.selectedComponentId) {
+      // 从designer store获取组件数据
+      const component = componentId ? designerStore.components[componentId] : null
+      debugLog('Selecting component', { componentId, component: component?.component_type })
+
+      // 手动设置property store的状态
       store.selectComponent(componentId)
+
+      if (component) {
+        // 确保属性数据正确初始化
+        store.updateProperties({
+          ...component.props,
+          styles: component.styles || {},
+          events: component.events || {}
+        })
+      }
     }
-  }, [componentId, store.selectedComponentId, store])
+  }, [componentId, store.selectedComponentId, store, designerStore, debugLog])
 
   // 自动保存逻辑
   const scheduleAutoSave = useCallback(() => {
@@ -420,7 +436,7 @@ export function usePropertyEditor(
 
     // 组件状态
     selectedComponentId: store.selectedComponentId,
-    selectedComponent: store.selectedComponent,
+    selectedComponent: componentId ? designerStore.components[componentId] : null,
     loading: store.loading,
     saving: store.saving,
     error: store.error,

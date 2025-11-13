@@ -42,7 +42,7 @@ import {
   useAddActionToEvent,
   useUpdateEventAction,
   useRemoveEventAction,
-  useReorderEventActions
+  useReorderEventConfigs
 } from '@/stores/property-config-store'
 
 interface EventActionConfigProps {
@@ -444,7 +444,7 @@ export function EventActionConfig({
   // Store actions
   const updateEventAction = useUpdateEventAction()
   const removeEventAction = useRemoveEventAction()
-  const reorderEventActions = useReorderEventActions()
+  const reorderEventActions = useReorderEventConfigs()
   const addActionToEvent = useAddActionToEvent()
 
   // 本地状态

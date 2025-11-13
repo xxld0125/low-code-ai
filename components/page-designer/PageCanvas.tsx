@@ -44,7 +44,19 @@ const filterDomProps = (props: Record<string, any>): Record<string, any> => {
     'isDragging',
     'onUpdate',
     'onDelete',
-    'onSelect'
+    'onSelect',
+    'onDuplicate',
+    'onMouseEnter',
+    'onMouseLeave',
+    'component_type',
+    'styles',
+    'events',
+    'position',
+    'meta',
+    'parent_id',
+    'created_at',
+    'updated_at',
+    'version'
   ])
 
   Object.keys(props).forEach(key => {
@@ -221,11 +233,7 @@ const SortableComponentWrapper: React.FC<{
           type={component.component_type}
           styles={component.styles}
           events={component.events}
-          isSelected={isSelected}
-          isDragging={isDragging}
-          onSelect={onSelect}
-          onUpdate={onUpdate}
-          onDelete={onDelete}
+          // 注意：不传递内部控制属性给DOM元素
         />
       </div>
 

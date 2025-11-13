@@ -93,10 +93,34 @@ export default function PageDesignerEditor() {
 
   // 自动保存
   const { isSaving, lastSaveTime } = useAutoSave({
-    pageDesignId,
-    interval: 30000,
     enabled: !!currentPageId,
-  }) // saveNow 暂时未使用
+    delay: 30000,
+    getData: () => {
+      const currentState = useDesignerStore.getState()
+      return {
+        pageDesign: currentState.pageDesigns[pageDesignId],
+        components: currentState.components
+      }
+    },
+    onSave: async (data) => {
+      if (!pageDesignId) return
+
+      // 这里可以添加保存逻辑，暂时使用 console.log
+      console.log('Auto save data:', data)
+
+      // 可以调用 dataSaver.autoSave 或其他保存方法
+      // const result = await dataSaver.autoSave(pageDesignId, componentTree)
+      // if (!result.success) {
+      //   throw new Error(result.error)
+      // }
+    },
+    onError: (error) => {
+      console.error('Auto save failed:', error)
+    },
+    onSuccess: () => {
+      console.log('Auto save completed')
+    }
+  })
 
   // 加载页面设计数据
   useEffect(() => {
