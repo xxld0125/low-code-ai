@@ -38,6 +38,7 @@ const DragTrail: React.FC<{
   )
 }
 import { useDesignerStore } from '@/stores/page-designer/designer-store'
+import { usePropertyStore } from '@/stores/property-store/property-store'
 import type { DragItem, ComponentInstance, ComponentType } from '@/types/page-designer/component'
 import type { CanvasState as PageDesignerCanvasState } from '@/types/page-designer'
 
@@ -163,8 +164,28 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
     redo,
   } = useDesignerStore()
 
-  // 转换为数组格式以兼容现有组件
-  const componentsArray = Object.values(components)
+  // 获取属性预览数据
+  const { previewProperties } = usePropertyStore()
+
+  // 转换为数组格式以兼容现有组件，并混合预览数据
+  const componentsArray = Object.values(components).map(component => {
+    // 如果有预览数据，则使用预览数据替换组件的props
+    const selectedComponentId = component.id
+    const hasPreviewData = previewProperties && Object.keys(previewProperties).length > 0
+
+    if (hasPreviewData && selectedComponentId) {
+      // 混合预览数据到组件props中
+      return {
+        ...component,
+        props: {
+          ...component.props,
+          ...previewProperties // 预览属性会覆盖原始属性
+        }
+      }
+    }
+
+    return component
+  })
   const selectedComponentsArray = selectionState.selectedComponentIds
     .map(id => components[id])
     .filter(Boolean)

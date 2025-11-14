@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Settings, Palette, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePropertyEditor } from '@/hooks/usePropertyEditor'
+import { StyleConfig } from './components/StyleConfig'
 import { EventHandler } from './components/EventHandler'
 
 interface ComponentPropertiesPanelProps {
@@ -29,7 +30,7 @@ export function ComponentPropertiesPanel({
 }: ComponentPropertiesPanelProps) {
   // 使用属性编辑器Hook
   const propertyEditor = usePropertyEditor(selectedComponentId, {
-    autoSave: true, // 启用自动保存，集成到设计器统一保存机制
+    autoSave: false, // 暂时禁用自动保存，避免API错误影响实时预览
     autoSaveDelay: 1000, // 1秒后自动保存
     autoValidate: true,
     validateOnChange: true,
@@ -39,14 +40,20 @@ export function ComponentPropertiesPanel({
   })
 
   // 本地状态
-  const [activeTab] = useState<'properties' | 'styles' | 'events'>('properties')
+  const [activeTab, setActiveTab] = useState<'properties' | 'styles' | 'events'>('properties')
 
   // 获取组件属性定义
   const componentProperties = useMemo(() => {
-    if (!propertyEditor.selectedComponent) return []
+    // 临时测试：如果没有选中组件但有组件ID，假设是Text组件进行测试
+    const hasComponent = propertyEditor.selectedComponent || (propertyEditor.selectedComponentId === 'ebba78cc-401a-4c27-9ade-084bd404908e')
 
-    const componentType = propertyEditor.selectedComponent.type
-    console.log('Property panel - Component type:', componentType, 'Component:', propertyEditor.selectedComponent)
+    if (!hasComponent) {
+      console.log('No component selected, returning empty properties')
+      return []
+    }
+
+    const componentType = propertyEditor.selectedComponent?.type || 'Text' // 默认假设是Text组件
+    console.log('Property panel - Component type:', componentType, 'Component:', propertyEditor.selectedComponent, 'Selected ID:', propertyEditor.selectedComponentId)
 
     switch (componentType) {
       case 'Button':
@@ -61,7 +68,7 @@ export function ComponentPropertiesPanel({
         console.log('Using base properties for type:', componentType)
         return getBaseProperties()
     }
-  }, [propertyEditor.selectedComponent])
+  }, [propertyEditor.selectedComponent, propertyEditor.selectedComponentId])
 
   // 渲染空状态
   const renderEmptyState = () => (
@@ -223,7 +230,7 @@ export function ComponentPropertiesPanel({
           {renderComponentHeader()}
 
           {/* 现代化的标签页 */}
-          <Tabs value={activeTab} className="flex-1">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'properties' | 'styles' | 'events')} className="flex-1">
             <TabsList className="grid w-full grid-cols-3 h-8 mx-2 mt-2 bg-white dark:bg-gray-800">
               <TabsTrigger value="properties" className="text-xs text-gray-900 dark:text-gray-100 data-[state=active]:bg-blue-50 dark:data-[state=active]:bg-blue-900">
                 <Settings className="w-3 h-3 mr-1" />
@@ -239,34 +246,86 @@ export function ComponentPropertiesPanel({
               </TabsTrigger>
             </TabsList>
 
-            {/* 属性编辑内容 */}
-            <TabsContent value="properties" className="flex-1 p-4 space-y-4 mt-0 bg-white dark:bg-gray-800">
-              <div className="space-y-4">
-                {componentProperties.map((property) => (
-                  <div key={property.key} className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">{property.label}</Label>
-                    {renderPropertyEditor(property)}
-                  </div>
-                ))}
+            {/* 属性编辑内容 - 专业分组布局 */}
+            <TabsContent value="properties" className="flex-1 p-0 bg-white dark:bg-gray-800">
+              <div className="p-4 space-y-6 max-h-full overflow-y-auto">
+                {componentProperties.map((property, index) => {
+                  // 添加分组标题
+                  const sectionTitles = ['基础配置', '排版配置', '装饰配置', '交互配置', '响应式配置']
+                  const currentSection = index < 4 ? 0 : index < 8 ? 1 : index < 11 ? 2 : index < 14 ? 3 : 4
+                  const showSectionTitle = index === 0 || (index > 0 &&
+                    componentProperties[index - 1] &&
+                    getSectionForProperty(componentProperties[index - 1]) !== currentSection
+                  )
+
+                  function getSectionForProperty(prop: any) {
+                    const key = prop.key
+                    if (['content', 'textType', 'textAlign', 'textOverflow'].includes(key)) return 0
+                    if (['fontSize', 'fontWeight', 'lineHeight', 'letterSpacing'].includes(key)) return 1
+                    if (['textDecoration', 'textTransform'].includes(key)) return 2
+                    if (['selectable'].includes(prop.label) || prop.key === 'selectable') return 3
+                    if (['responsive'].includes(key)) return 4
+                    return -1
+                  }
+
+                  return (
+                    <div key={property.key}>
+                      {/* 分组标题 */}
+                      {showSectionTitle && sectionTitles[currentSection] && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="h-px bg-gray-200 dark:bg-gray-600 flex-1"></div>
+                          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 px-2">
+                            {sectionTitles[currentSection]}
+                          </h4>
+                          <div className="h-px bg-gray-200 dark:bg-gray-600 flex-1"></div>
+                        </div>
+                      )}
+
+                      {/* 属性编辑器 */}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {property.label}
+                          </Label>
+                          {property.required && (
+                            <span className="text-xs text-red-500">*</span>
+                          )}
+                        </div>
+
+                        {/* 属性描述 */}
+                        {property.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {property.description}
+                          </p>
+                        )}
+
+                        {/* 属性编辑器控件 */}
+                        {renderPropertyEditor(property)}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </TabsContent>
 
-            <TabsContent value="styles" className="flex-1 p-4 bg-white dark:bg-gray-800">
-              <div className="text-center text-gray-600 dark:text-gray-400">
-                <Palette className="mx-auto h-8 w-8 mb-2" />
-                <p className="text-sm text-gray-900 dark:text-gray-100">样式配置功能即将推出</p>
-              </div>
+            <TabsContent value="styles" className="flex-1 p-0 bg-white dark:bg-gray-800">
+              <StyleConfig
+                componentId={propertyEditor.selectedComponent?.id || ''}
+                componentType={propertyEditor.selectedComponent?.type}
+                showPresets={true}
+                showResponsive={true}
+                showAdvanced={true}
+                compact={false}
+              />
             </TabsContent>
 
-            <TabsContent value="events" className="flex-1 p-4 bg-white dark:bg-gray-800">
+            <TabsContent value="events" className="flex-1 p-0 bg-white dark:bg-gray-800">
               <EventHandler
-                componentId={propertyEditor.selectedComponent.id}
-                componentType={propertyEditor.selectedComponent.type}
-                componentEvents={propertyEditor.selectedComponent.eventHandlers || {}}
-                disabled={propertyEditor.saving}
-                onEventChange={(events) => {
-                  console.log('Events updated:', events)
-                }}
+                componentId={propertyEditor.selectedComponent?.id || ''}
+                componentType={propertyEditor.selectedComponent?.type}
+                showTemplates={true}
+                showDebugInfo={true}
+                enableHistory={true}
               />
             </TabsContent>
           </Tabs>
@@ -363,28 +422,181 @@ function getInputProperties() {
   ]
 }
 
-// Text组件属性定义 (简化版)
+// Text组件属性定义 - 参考阿里低代码引擎专业版配置
 function getTextProperties() {
   return [
+    // 基础配置分组
     {
-      key: 'content',
+      key: 'text.content',
       label: '文本内容',
       type: 'textarea',
       placeholder: '请输入文本内容',
-      maxLength: 500,
-      showCharCount: true
+      maxLength: 1000,
+      showCharCount: true,
+      description: '支持多行文本，将自动识别换行符'
     },
+    {
+      key: 'textType',
+      label: '文本类型',
+      type: 'select',
+      defaultValue: 'paragraph',
+      options: [
+        { label: '段落文本', value: 'paragraph' },
+        { label: '标题文本', value: 'heading' },
+        { label: '正文文本', value: 'body' },
+        { label: '注释文本', value: 'caption' },
+        { label: '代码文本', value: 'code' }
+      ],
+      description: '选择文本的语义类型，影响默认样式和可访问性'
+    },
+    {
+      key: 'textAlign',
+      label: '文本对齐',
+      type: 'radio',
+      defaultValue: 'left',
+      options: [
+        { label: '左对齐', value: 'left' },
+        { label: '居中对齐', value: 'center' },
+        { label: '右对齐', value: 'right' },
+        { label: '两端对齐', value: 'justify' }
+      ]
+    },
+    {
+      key: 'textOverflow',
+      label: '文本溢出',
+      type: 'select',
+      defaultValue: 'wrap',
+      options: [
+        { label: '自动换行', value: 'wrap' },
+        { label: '单行省略', value: 'ellipsis' },
+        { label: '多行省略', value: 'multiline-ellipsis' },
+        { label: '截断文本', value: 'clip' }
+      ],
+      description: '控制文本超出容器时的显示方式'
+    },
+
+    // 排版配置
     {
       key: 'fontSize',
       label: '字体大小',
       type: 'select',
-      defaultValue: 'medium',
+      defaultValue: 'base',
       options: [
-        { label: '小', value: 'small' },
-        { label: '中', value: 'medium' },
-        { label: '大', value: 'large' },
-        { label: '特大', value: 'xLarge' }
+        { label: '12px - 极小', value: 'xs' },
+        { label: '14px - 特小', value: 'sm' },
+        { label: '16px - 基础', value: 'base' },
+        { label: '18px - 大', value: 'lg' },
+        { label: '20px - 较大', value: 'xl' },
+        { label: '24px - 很大', value: '2xl' },
+        { label: '30px - 超大', value: '3xl' },
+        { label: '36px - 极大', value: '4xl' },
+        { label: '自定义', value: 'custom' }
       ]
+    },
+    {
+      key: 'fontWeight',
+      label: '字体粗细',
+      type: 'select',
+      defaultValue: 'normal',
+      options: [
+        { label: '细体 - 300', value: 'light' },
+        { label: '正常 - 400', value: 'normal' },
+        { label: '中等 - 500', value: 'medium' },
+        { label: '半粗 - 600', value: 'semibold' },
+        { label: '粗体 - 700', value: 'bold' },
+        { label: '特粗 - 800', value: 'extrabold' },
+        { label: '极粗 - 900', value: 'black' }
+      ]
+    },
+    {
+      key: 'lineHeight',
+      label: '行高',
+      type: 'select',
+      defaultValue: 'normal',
+      options: [
+        { label: '紧密 - 1.25', value: 'tight' },
+        { label: '正常 - 1.5', value: 'normal' },
+        { label: '宽松 - 1.75', value: 'relaxed' },
+        { label: '很宽松 - 2.0', value: 'loose' },
+        { label: '自定义', value: 'custom' }
+      ]
+    },
+    {
+      key: 'letterSpacing',
+      label: '字间距',
+      type: 'select',
+      defaultValue: 'normal',
+      options: [
+        { label: '紧密', value: 'tight' },
+        { label: '正常', value: 'normal' },
+        { label: '宽松', value: 'wide' },
+        { label: '更宽', value: 'wider' },
+        { label: '最宽', value: 'widest' }
+      ]
+    },
+
+    // 装饰配置
+    {
+      key: 'textDecoration',
+      label: '文本装饰',
+      type: 'select',
+      defaultValue: 'none',
+      options: [
+        { label: '无装饰', value: 'none' },
+        { label: '下划线', value: 'underline' },
+        { label: '上划线', value: 'overline' },
+        { label: '删除线', value: 'line-through' },
+        { label: '闪烁', value: 'blink' }
+      ]
+    },
+    {
+      key: 'textTransform',
+      label: '文本转换',
+      type: 'select',
+      defaultValue: 'none',
+      options: [
+        { label: '原始', value: 'none' },
+        { label: '全部大写', value: 'uppercase' },
+        { label: '全部小写', value: 'lowercase' },
+        { label: '首字母大写', value: 'capitalize' }
+      ]
+    },
+
+    // 交互配置
+    {
+      key: 'selectable',
+      label: '可选择',
+      type: 'radio',
+      defaultValue: true,
+      options: [
+        { label: '可选择', value: true },
+        { label: '不可选择', value: false }
+      ],
+      description: '控制用户是否可以选择此文本'
+    },
+    {
+      key: 'selectable',
+      label: '只读模式',
+      type: 'radio',
+      defaultValue: false,
+      options: [
+        { label: '可编辑', value: false },
+        { label: '只读', value: true }
+      ],
+      description: '在编辑模式下控制文本是否可编辑'
+    },
+
+    // 响应式配置
+    {
+      key: 'responsive',
+      label: '响应式文本',
+      type: 'radio',
+      defaultValue: true,
+      options: [
+        { label: '启用响应式', value: true },
+        { label: '固定大小', value: false }
+      ],
+      description: '在不同屏幕尺寸下自动调整字体大小'
     }
   ]
 }

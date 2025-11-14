@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils'
 
 export interface LowcodeTextProps {
   content?: string
+  text?: {
+    content?: string
+  }
   variant?: 'body' | 'caption'
   size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl'
   weight?: 'normal' | 'medium' | 'semibold' | 'bold'
@@ -22,7 +25,8 @@ export interface LowcodeTextProps {
 export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
   (
     {
-      content = '这是一段示例文本',
+      content,
+      text,
       variant = 'body',
       size = 'base',
       weight = 'normal',
@@ -35,6 +39,8 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
     },
     ref
   ) => {
+    // 兼容两种数据结构：优先使用 text.content，否则使用 content
+    const displayContent = text?.content || content || '这是一段示例文本'
     // 根据variant决定使用哪个HTML标签
     const Tag = variant === 'caption' ? 'span' : 'p'
 
@@ -128,7 +134,7 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
 
     return (
       <Tag ref={ref} className={classes} style={inlineStyles} {...props}>
-        {content}
+        {displayContent}
       </Tag>
     )
   }

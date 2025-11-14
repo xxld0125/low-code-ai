@@ -131,7 +131,7 @@ export function usePropertyEditor(
     })
 
     return unsubscribe
-  }, [componentId, debugLog])
+  }, [componentId])
 
   // 选择组件
   useEffect(() => {
@@ -152,7 +152,7 @@ export function usePropertyEditor(
         })
       }
     }
-  }, [componentId, store.selectedComponentId, store, designerStore, debugLog])
+  }, [componentId, store.selectedComponentId, store, designerStore])
 
   // 自动保存逻辑
   const scheduleAutoSave = useCallback(() => {
@@ -176,7 +176,7 @@ export function usePropertyEditor(
         console.error('Auto save failed:', error)
       }
     }, autoSaveDelay)
-  }, [autoSave, autoSaveDelay, store.dirtyProperties.size, store, debugLog])
+  }, [autoSave, autoSaveDelay, store.dirtyProperties.size, store])
 
   // 验证属性
   const validateProperty = useCallback((
@@ -203,7 +203,7 @@ export function usePropertyEditor(
 
     debugLog('Property validated', { key, value, result })
     return result
-  }, [store, showValidationErrors, debugLog])
+  }, [store, showValidationErrors])
 
   // 更新单个属性
   const updateProperty = useCallback((
@@ -212,21 +212,37 @@ export function usePropertyEditor(
   ) => {
     debugLog('Updating property', { key, value })
 
+    // 避免无效更新 - 检查值是否真的发生了变化
+    const currentValue = store.previewProperties[key]
+    if (currentValue === value) {
+      debugLog('Value unchanged, skipping update', { key, currentValue })
+      return
+    }
+
     const oldValue = store.previewProperties[key]
 
     // 检查是否为样式属性
     const isStyleProperty = key.startsWith('style.')
+    // 检查是否为嵌套文本属性
+    const isTextProperty = key.startsWith('text.')
 
     if (enablePerformanceOptimization && isStyleProperty && componentId) {
       // 使用性能优化的样式更新
       const styleProperty = key.replace('style.', '')
       store.updateStylePropertyOptimized(componentId, styleProperty, value)
+    } else if (isTextProperty && componentId) {
+      // 处理嵌套文本属性，例如 text.content -> { text: { content: value } }
+      const textProperty = key.replace('text.', '')
+      const textObject = store.previewProperties.text || {}
+      const newTextObject = { ...textObject, [textProperty]: value }
+      store.updateProperty('text', newTextObject)
     } else {
       // 使用常规属性更新
       store.updateProperty(key, value)
     }
 
-    // 添加到预览管理器
+    
+    // 添加到预览管理器（仅在内存中，不直接同步到designer-store）
     if (componentId && enablePreview) {
       previewManager.addUpdate(componentId, key, oldValue, value)
     }
@@ -241,6 +257,7 @@ export function usePropertyEditor(
     scheduleAutoSave()
   }, [
     store,
+    designerStore,
     autoValidate,
     validateOnChange,
     scheduleAutoSave,
@@ -256,18 +273,72 @@ export function usePropertyEditor(
   ) => {
     debugLog('Updating properties', { updates })
 
-    // 分离样式属性和常规属性
+    // 分离不同类型的属性
     const styleUpdates: Record<string, PropertyValue> = {}
+    const eventUpdates: Record<string, PropertyValue> = {}
+    const textUpdates: Record<string, PropertyValue> = {}
     const regularUpdates: Record<string, PropertyValue> = {}
 
     Object.entries(updates).forEach(([key, value]) => {
       if (key.startsWith('style.')) {
         const styleProperty = key.replace('style.', '')
         styleUpdates[styleProperty] = value
+      } else if (key.startsWith('event.')) {
+        const eventType = key.replace('event.', '')
+        eventUpdates[eventType] = value
+      } else if (key.startsWith('text.')) {
+        const textProperty = key.replace('text.', '')
+        textUpdates[textProperty] = value
       } else {
         regularUpdates[key] = value
       }
     })
+
+    // 同步到designer-store - 实时预览
+    const component = designerStore.components[componentId]
+    if (component) {
+      const designerUpdates: any = {}
+
+      // 样式属性
+      if (Object.keys(styleUpdates).length > 0) {
+        designerUpdates.styles = {
+          ...component.styles,
+          ...styleUpdates
+        }
+      }
+
+      // 事件属性
+      if (Object.keys(eventUpdates).length > 0) {
+        designerUpdates.events = {
+          ...component.events,
+          ...eventUpdates
+        }
+      }
+
+      // 文本属性
+      if (Object.keys(textUpdates).length > 0) {
+        designerUpdates.props = {
+          ...component.props,
+          text: {
+            ...component.props.text,
+            ...textUpdates
+          }
+        }
+      }
+
+      // 常规属性
+      if (Object.keys(regularUpdates).length > 0) {
+        designerUpdates.props = {
+          ...component.props,
+          ...regularUpdates
+        }
+      }
+
+      // 批量更新designer-store
+      if (Object.keys(designerUpdates).length > 0) {
+        designerStore.updateComponent(componentId, designerUpdates)
+      }
+    }
 
     // 分别处理样式和常规属性更新
     if (enablePerformanceOptimization && Object.keys(styleUpdates).length > 0 && componentId) {
@@ -295,6 +366,7 @@ export function usePropertyEditor(
     scheduleAutoSave()
   }, [
     store,
+    designerStore,
     autoValidate,
     validateOnChange,
     scheduleAutoSave,
@@ -314,7 +386,7 @@ export function usePropertyEditor(
       debugLog('Save failed', error)
       throw error
     }
-  }, [store, debugLog])
+  }, [store])
 
   // 重置更改
   const resetChanges = useCallback(() => {
@@ -331,26 +403,26 @@ export function usePropertyEditor(
     setValidationState({})
 
     debugLog('Changes reset completed')
-  }, [store, debugLog])
+  }, [store])
 
   // 应用预览
   const applyPreview = useCallback(() => {
     debugLog('Applying preview')
     // 这会将预览属性应用到实际属性中
     store.saveProperties()
-  }, [store, debugLog])
+  }, [store])
 
   // 丢弃预览
   const discardPreview = useCallback(() => {
     debugLog('Discarding preview')
     store.resetProperties()
-  }, [store, debugLog])
+  }, [store])
 
   // 设置预览模式
   const setPreviewMode = useCallback((enabled: boolean) => {
     debugLog('Setting preview mode', { enabled })
     store.setPreviewMode(enabled)
-  }, [store, debugLog])
+  }, [store])
 
   // 事件处理器操作
   const addEventHandler = useCallback((
@@ -360,7 +432,7 @@ export function usePropertyEditor(
     debugLog('Adding event handler', { eventType, handler })
     store.addEventHandler(eventType, handler)
     scheduleAutoSave()
-  }, [store, scheduleAutoSave, debugLog])
+  }, [store, scheduleAutoSave])
 
   const updateEventHandler = useCallback((
     eventType: string,
@@ -370,7 +442,7 @@ export function usePropertyEditor(
     debugLog('Updating event handler', { eventType, index, handler })
     store.updateEventHandler(eventType, index, handler)
     scheduleAutoSave()
-  }, [store, scheduleAutoSave, debugLog])
+  }, [store, scheduleAutoSave])
 
   const removeEventHandler = useCallback((
     eventType: string,
@@ -379,18 +451,18 @@ export function usePropertyEditor(
     debugLog('Removing event handler', { eventType, index })
     store.removeEventHandler(eventType, index)
     scheduleAutoSave()
-  }, [store, scheduleAutoSave, debugLog])
+  }, [store, scheduleAutoSave])
 
   // 历史操作
   const undo = useCallback(() => {
     debugLog('Undo operation')
     store.undo()
-  }, [store, debugLog])
+  }, [store])
 
   const redo = useCallback(() => {
     debugLog('Redo operation')
     store.redo()
-  }, [store, debugLog])
+  }, [store])
 
   // 计算属性
   const isDirty = useMemo(() => store.dirtyProperties.size > 0, [store.dirtyProperties.size])
