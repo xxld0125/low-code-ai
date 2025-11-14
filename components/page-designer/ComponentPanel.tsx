@@ -54,174 +54,134 @@ const createPreviewAdapter = (PreviewComponent: React.FC<any>) => {
   return AdapterComponent
 }
 
-// 组件分类配置
+// 组件分类配置 - 参考阿里低代码引擎优化分类体系
 const COMPONENT_CATEGORIES = [
   {
-    id: 'form',
-    name: '表单组件',
-    description: '表单输入和验证组件',
-    icon: List,
-    color: 'bg-purple-500',
-  },
-  {
-    id: 'display',
-    name: '展示组件',
-    description: '内容展示和显示组件',
+    id: 'container',
+    name: '容器组件',
+    description: '基础容器和布局组件',
     icon: LayoutGrid,
     color: 'bg-blue-500',
   },
   {
-    id: 'layout',
-    name: '布局组件',
-    description: '页面布局和容器组件',
+    id: 'content',
+    name: '内容组件',
+    description: '文本和内容展示组件',
+    icon: List,
+    color: 'bg-purple-500',
+  },
+  {
+    id: 'form',
+    name: '表单组件',
+    description: '表单输入和验证组件',
     icon: Settings,
     color: 'bg-green-500',
   },
   {
-    id: 'business',
-    name: '业务组件',
-    description: '特定业务场景组件',
-    icon: Info,
+    id: 'navigation',
+    name: '导航组件',
+    description: '导航和链接组件',
+    icon: ChevronRight,
     color: 'bg-orange-500',
+  },
+  {
+    id: 'feedback',
+    name: '反馈组件',
+    description: '提示和状态反馈组件',
+    icon: Info,
+    color: 'bg-red-500',
+  },
+  {
+    id: 'data',
+    name: '数据组件',
+    description: '数据展示和表格组件',
+    icon: Settings,
+    color: 'bg-teal-500',
   },
 ] as const
 
-// 基础组件配置
+// 优化组件配置 - 参考阿里低代码引擎重新组织
 const BASIC_COMPONENTS = [
-  // 表单组件
-  {
-    type: 'button',
-    name: '按钮',
-    description: '可点击的按钮组件',
-    category: 'form',
-    icon: '🔘',
-    preview: createPreviewAdapter(ButtonPreview),
-    keywords: ['button', 'btn', '按钮', '点击'],
-  },
-  {
-    type: 'input',
-    name: '输入框',
-    description: '文本输入组件',
-    category: 'form',
-    icon: '📝',
-    preview: createPreviewAdapter(InputPreview),
-    keywords: ['input', 'text', '输入', '文本框'],
-  },
-  {
-    type: 'textarea',
-    name: '文本域',
-    description: '多行文本输入组件',
-    category: 'form',
-    icon: '📄',
-    preview: createPreviewAdapter(TextareaPreview),
-    keywords: ['textarea', 'text', '文本域', '多行输入'],
-  },
-  {
-    type: 'select',
-    name: '选择器',
-    description: '下拉选择组件',
-    category: 'form',
-    icon: '📋',
-    preview: createPreviewAdapter(SelectPreview),
-    keywords: ['select', 'dropdown', '选择器', '下拉'],
-  },
-  {
-    type: 'checkbox',
-    name: '复选框',
-    description: '多选框组件',
-    category: 'form',
-    icon: '☑️',
-    preview: createPreviewAdapter(CheckboxPreview),
-    keywords: ['checkbox', '多选', '复选框', '勾选'],
-  },
-  {
-    type: 'radio',
-    name: '单选框',
-    description: '单选框组件',
-    category: 'form',
-    icon: '⚪',
-    preview: createPreviewAdapter(RadioPreview),
-    keywords: ['radio', '单选', '单选框', '选择'],
-  },
-  // 展示组件
-  {
-    type: 'text',
-    name: '文本',
-    description: '文本显示组件',
-    category: 'display',
-    icon: '📝',
-    preview: TextPreview,
-    keywords: ['text', 'paragraph', '文本', '段落'],
-  },
-  {
-    type: 'heading',
-    name: '标题',
-    description: '标题显示组件',
-    category: 'display',
-    icon: '📰',
-    preview: HeadingPreview,
-    keywords: ['heading', 'title', '标题', '大标题'],
-  },
-  {
-    type: 'image',
-    name: '图片',
-    description: '图片显示组件',
-    category: 'display',
-    icon: '🖼️',
-    preview: ImagePreview,
-    keywords: ['image', 'img', '图片', '图像'],
-  },
-  {
-    type: 'card',
-    name: '卡片',
-    description: '卡片容器组件',
-    category: 'display',
-    icon: '🃏',
-    preview: CardPreview,
-    keywords: ['card', 'container', '卡片', '容器'],
-  },
-  {
-    type: 'badge',
-    name: '徽章',
-    description: '徽章标识组件',
-    category: 'display',
-    icon: '🏷️',
-    preview: BadgePreview,
-    keywords: ['badge', 'label', '徽章', '标签'],
-  },
-  // 布局组件
+  // 容器组件
   {
     type: 'container',
     name: '容器',
     description: '基础容器组件，用于包裹和组织其他组件',
-    category: 'layout',
+    category: 'container',
     icon: '📦',
     preview: createPreviewAdapter(ContainerPreview),
-    keywords: ['container', 'wrapper', '容器', '容器'],
+    keywords: ['container', 'wrapper', '容器', '盒子'],
   },
   {
     type: 'row',
-    name: '行',
+    name: '行容器',
     description: '水平布局容器，用于将子组件水平排列',
-    category: 'layout',
+    category: 'container',
     icon: '↔️',
     preview: createPreviewAdapter(RowPreview),
     keywords: ['row', 'horizontal', 'flex', '行', '水平'],
   },
   {
     type: 'col',
-    name: '列',
+    name: '列容器',
     description: '栅格列组件，用于在Row组件中创建列布局',
-    category: 'layout',
+    category: 'container',
     icon: '↕️',
     preview: createPreviewAdapter(ColPreview),
     keywords: ['col', 'column', 'grid', '列', '栅格'],
   },
   {
+    type: 'card',
+    name: '卡片容器',
+    description: '卡片容器组件，提供边框和阴影效果',
+    category: 'container',
+    icon: '🃏',
+    preview: CardPreview,
+    keywords: ['card', 'container', '卡片', '容器'],
+  },
+
+  // 内容组件
+  {
+    type: 'heading',
+    name: '标题',
+    description: '标题显示组件，支持不同级别',
+    category: 'content',
+    icon: '📰',
+    preview: HeadingPreview,
+    keywords: ['heading', 'title', '标题', '大标题'],
+  },
+  {
+    type: 'text',
+    name: '文本',
+    description: '文本显示组件，支持段落和样式',
+    category: 'content',
+    icon: '📝',
+    preview: TextPreview,
+    keywords: ['text', 'paragraph', '文本', '段落'],
+  },
+  {
+    type: 'image',
+    name: '图片',
+    description: '图片显示组件，支持多种格式和样式',
+    category: 'content',
+    icon: '🖼️',
+    preview: ImagePreview,
+    keywords: ['image', 'img', '图片', '图像'],
+  },
+  {
+    type: 'badge',
+    name: '徽章',
+    description: '徽章标识组件，用于状态标记',
+    category: 'content',
+    icon: '🏷️',
+    preview: BadgePreview,
+    keywords: ['badge', 'label', '徽章', '标签'],
+  },
+  {
     type: 'divider',
     name: '分割线',
     description: '分割线组件，用于分隔内容区域',
-    category: 'layout',
+    category: 'content',
     icon: '➖',
     preview: createPreviewAdapter(DividerPreview),
     keywords: ['divider', 'separator', '分割线', '分隔'],
@@ -230,10 +190,153 @@ const BASIC_COMPONENTS = [
     type: 'spacer',
     name: '间距',
     description: '间距组件，用于在元素之间创建空间',
-    category: 'layout',
+    category: 'content',
     icon: '⬜',
     preview: createPreviewAdapter(SpacerPreview),
     keywords: ['spacer', 'space', 'gap', '间距', '空间'],
+  },
+
+  // 表单组件
+  {
+    type: 'button',
+    name: '按钮',
+    description: '可点击的按钮组件，支持多种样式和状态',
+    category: 'form',
+    icon: '🔘',
+    preview: createPreviewAdapter(ButtonPreview),
+    keywords: ['button', 'btn', '按钮', '点击'],
+  },
+  {
+    type: 'input',
+    name: '输入框',
+    description: '文本输入组件，支持验证和多种输入类型',
+    category: 'form',
+    icon: '📝',
+    preview: createPreviewAdapter(InputPreview),
+    keywords: ['input', 'text', '输入', '文本框'],
+  },
+  {
+    type: 'textarea',
+    name: '文本域',
+    description: '多行文本输入组件，支持自动调整高度',
+    category: 'form',
+    icon: '📄',
+    preview: createPreviewAdapter(TextareaPreview),
+    keywords: ['textarea', 'text', '文本域', '多行输入'],
+  },
+  {
+    type: 'select',
+    name: '选择器',
+    description: '下拉选择组件，支持单选和多选',
+    category: 'form',
+    icon: '📋',
+    preview: createPreviewAdapter(SelectPreview),
+    keywords: ['select', 'dropdown', '选择器', '下拉'],
+  },
+  {
+    type: 'checkbox',
+    name: '复选框',
+    description: '多选框组件，支持组合和验证',
+    category: 'form',
+    icon: '☑️',
+    preview: createPreviewAdapter(CheckboxPreview),
+    keywords: ['checkbox', '多选', '复选框', '勾选'],
+  },
+  {
+    type: 'radio',
+    name: '单选框',
+    description: '单选框组件，支持组合和必选验证',
+    category: 'form',
+    icon: '⚪',
+    preview: createPreviewAdapter(RadioPreview),
+    keywords: ['radio', '单选', '单选框', '选择'],
+  },
+
+  // 导航组件 - 新增分类
+  {
+    type: 'breadcrumb',
+    name: '面包屑',
+    description: '面包屑导航组件，显示层级路径',
+    category: 'navigation',
+    icon: '🧭',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['breadcrumb', 'nav', '面包屑', '导航'],
+  },
+  {
+    type: 'menu',
+    name: '菜单',
+    description: '菜单组件，支持下拉和展开',
+    category: 'navigation',
+    icon: '📋',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['menu', 'nav', '菜单', '导航'],
+  },
+  {
+    type: 'pagination',
+    name: '分页',
+    description: '分页组件，用于数据列表分页',
+    category: 'navigation',
+    icon: '📄',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['pagination', 'page', '分页', '翻页'],
+  },
+
+  // 反馈组件 - 新增分类
+  {
+    type: 'alert',
+    name: '警告提示',
+    description: '警告提示组件，支持多种类型和图标',
+    category: 'feedback',
+    icon: '⚠️',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['alert', 'warning', '警告', '提示'],
+  },
+  {
+    type: 'loading',
+    name: '加载中',
+    description: '加载状态组件，支持多种加载动画',
+    category: 'feedback',
+    icon: '⏳',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['loading', 'spinner', '加载', '进度'],
+  },
+  {
+    type: 'message',
+    name: '消息提示',
+    description: '消息提示组件，支持顶部弹出和全局提示',
+    category: 'feedback',
+    icon: '💬',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['message', 'toast', '消息', '通知'],
+  },
+
+  // 数据组件 - 新增分类
+  {
+    type: 'table',
+    name: '表格',
+    description: '数据表格组件，支持排序、筛选和分页',
+    category: 'data',
+    icon: '📊',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['table', 'grid', '表格', '数据表'],
+  },
+  {
+    type: 'list',
+    name: '列表',
+    description: '数据列表组件，支持多种布局和交互',
+    category: 'data',
+    icon: '📋',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['list', 'data', '列表', '数据'],
+  },
+  {
+    type: 'timeline',
+    name: '时间轴',
+    description: '时间轴组件，显示事件时间线',
+    category: 'data',
+    icon: '📅',
+    preview: () => null, // 暂时为空，后续实现
+    keywords: ['timeline', 'time', '时间轴', '时间线'],
   },
 ] as const
 
@@ -405,7 +508,7 @@ export const ComponentPanel: React.FC<{
 }> = ({ className, onComponentSelect }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(['form', 'display', 'layout'])
+    new Set(['container', 'content', 'form']) // 默认展开最常用的分类
   )
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 

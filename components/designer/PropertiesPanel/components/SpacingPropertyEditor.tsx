@@ -28,16 +28,16 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import {
-  BorderAll,
-  BorderTop,
-  BorderRight,
-  BorderBottom,
-  BorderLeft,
-  Corners,
+  Square,
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
+  ArrowLeft,
+  Circle,
   Link,
   Link2,
   RotateCcw,
-  Grid3x3,
+  Grid,
   AlignCenter
 } from 'lucide-react'
 import type { PropertyEditorProps } from '@/types/designer'
@@ -275,15 +275,15 @@ export function SpacingPropertyEditor({
   const getDirectionIcon = useCallback((direction: keyof SpacingValue) => {
     switch (direction) {
       case 'top':
-        return <BorderTop className="w-4 h-4" />
+        return <ArrowUp className="w-4 h-4" />
       case 'right':
-        return <BorderRight className="w-4 h-4" />
+        return <ArrowRight className="w-4 h-4" />
       case 'bottom':
-        return <BorderBottom className="w-4 h-4" />
+        return <ArrowDown className="w-4 h-4" />
       case 'left':
-        return <BorderLeft className="w-4 h-4" />
+        return <ArrowLeft className="w-4 h-4" />
       default:
-        return <BorderAll className="w-4 h-4" />
+        return <Square className="w-4 h-4" />
     }
   }, [])
 
@@ -330,7 +330,7 @@ export function SpacingPropertyEditor({
                     className="h-6 w-6 p-0"
                     disabled={disabled}
                   >
-                    <Grid3x3 className="w-3 h-3" />
+                    <Grid className="w-3 h-3" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -450,7 +450,7 @@ export function SpacingPropertyEditor({
         {/* 预设值选择 */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Corners className="w-3 h-3 text-muted-foreground" />
+            <Circle className="w-3 h-3 text-muted-foreground" />
             <Label className="text-xs text-muted-foreground">快速设置</Label>
           </div>
           <div className="flex flex-wrap gap-1">

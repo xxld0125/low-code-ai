@@ -26,7 +26,7 @@ import {
   Copy,
   RefreshCw,
   Palette,
-  Swatch,
+  Square,
   Droplet
 } from 'lucide-react'
 import type { PropertyEditorProps } from '@/types/designer'
@@ -270,7 +270,7 @@ export function ColorPropertyEditor({
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 h-8">
                   <TabsTrigger value="preset" className="text-xs">
-                    <Swatch className="w-3 h-3 mr-1" />
+                    <Square className="w-3 h-3 mr-1" />
                     预设
                   </TabsTrigger>
                   <TabsTrigger value="picker" className="text-xs">

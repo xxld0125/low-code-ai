@@ -1,626 +1,722 @@
 /**
- * 样式配置组件
- * 整合颜色、尺寸、间距等样式编辑器，提供完整的样式配置界面
+ * 专业版样式配置组件
+ * 参考阿里低代码引擎设计理念
+ * 提供更专业、紧凑、功能完整的样式配置体验
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
+'use client'
+
+import React, { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Palette,
-  Ruler,
   Layout,
-  Settings,
   Save,
   RotateCcw,
-  Eye,
-  EyeOff,
-  Zap,
-  Monitor,
-  Smartphone,
-  Tablet
+  Plus,
+  Minus,
+  ChevronDown,
+  ChevronRight,
+  Type,
+  Box,
+  Move,
+  Square
 } from 'lucide-react'
 import { usePropertyStore } from '@/stores/property-store/property-store'
-import { useStyleStore } from '@/stores/style-store'
-import ColorPropertyEditor from './ColorPropertyEditor'
-import SizePropertyEditor from './SizePropertyEditor'
-import SpacingPropertyEditor from './SpacingPropertyEditor'
-import type { CSSProperties, StylePreset } from '@/types/designer'
-
-// 样式配置分组
-interface StyleGroup {
-  id: string
-  title: string
-  icon: React.ReactNode
-  properties: StyleProperty[]
-  defaultExpanded?: boolean
-}
-
-interface StyleProperty {
-  id: string
-  label: string
-  type: 'color' | 'size' | 'spacing' | 'select' | 'switch'
-  defaultValue?: string | number | boolean
-  options?: Array<{ value: string; label: string }>
-  min?: number
-  max?: number
-  step?: number
-  description?: string
-  property?: string // 用于特定组件的属性名
-}
 
 interface StyleConfigProps {
   componentId: string
-  className?: string
+  componentType?: string
   showPresets?: boolean
   showResponsive?: boolean
   showAdvanced?: boolean
   compact?: boolean
 }
 
-// 预定义的样式属性配置
-const STYLE_GROUPS: StyleGroup[] = [
-  {
-    id: 'layout',
-    title: '布局',
-    icon: <Layout className="w-4 h-4" />,
-    defaultExpanded: true,
-    properties: [
-      { id: 'display', label: '显示方式', type: 'select', defaultValue: 'block',
-        options: [
-          { value: 'block', label: '块级' },
-          { value: 'inline', label: '行内' },
-          { value: 'inline-block', label: '行内块' },
-          { value: 'flex', label: '弹性布局' },
-          { value: 'grid', label: '网格布局' },
-          { value: 'none', label: '隐藏' }
-        ]
-      },
-      { id: 'width', label: '宽度', type: 'size', defaultValue: 'auto' },
-      { id: 'height', label: '高度', type: 'size', defaultValue: 'auto' },
-      { id: 'maxWidth', label: '最大宽度', type: 'size' },
-      { id: 'maxHeight', label: '最大高度', type: 'size' },
-      { id: 'minWidth', label: '最小宽度', type: 'size' },
-      { id: 'minHeight', label: '最小高度', type: 'size' },
-    ]
-  },
-  {
-    id: 'spacing',
-    title: '间距',
-    icon: <Ruler className="w-4 h-4" />,
-    defaultExpanded: true,
-    properties: [
-      { id: 'margin', label: '外边距', type: 'spacing', defaultValue: '0' },
-      { id: 'marginTop', label: '上边距', type: 'spacing' },
-      { id: 'marginRight', label: '右边距', type: 'spacing' },
-      { id: 'marginBottom', label: '下边距', type: 'spacing' },
-      { id: 'marginLeft', label: '左边距', type: 'spacing' },
-      { id: 'padding', label: '内边距', type: 'spacing', defaultValue: '0' },
-      { id: 'paddingTop', label: '上内边距', type: 'spacing' },
-      { id: 'paddingRight', label: '右内边距', type: 'spacing' },
-      { id: 'paddingBottom', label: '下内边距', type: 'spacing' },
-      { id: 'paddingLeft', label: '左内边距', type: 'spacing' },
-    ]
-  },
-  {
-    id: 'colors',
-    title: '颜色',
-    icon: <Palette className="w-4 h-4" />,
-    defaultExpanded: true,
-    properties: [
-      { id: 'backgroundColor', label: '背景颜色', type: 'color' },
-      { id: 'color', label: '文字颜色', type: 'color', defaultValue: '#000000' },
-      { id: 'borderColor', label: '边框颜色', type: 'color' },
-    ]
-  },
-  {
-    id: 'borders',
-    title: '边框',
-    icon: <Settings className="w-4 h-4" />,
-    defaultExpanded: false,
-    properties: [
-      { id: 'borderWidth', label: '边框宽度', type: 'size', defaultValue: '0', min: 0, max: 10 },
-      { id: 'borderRadius', label: '圆角', type: 'size', defaultValue: '0', min: 0, max: 50 },
-      { id: 'borderStyle', label: '边框样式', type: 'select', defaultValue: 'solid',
-        options: [
-          { value: 'solid', label: '实线' },
-          { value: 'dashed', label: '虚线' },
-          { value: 'dotted', label: '点线' },
-          { value: 'none', label: '无' }
-        ]
-      },
-    ]
-  },
-  {
-    id: 'position',
-    title: '定位',
-    icon: <Layout className="w-4 h-4" />,
-    defaultExpanded: false,
-    properties: [
-      { id: 'position', label: '定位方式', type: 'select', defaultValue: 'static',
-        options: [
-          { value: 'static', label: '静态' },
-          { value: 'relative', label: '相对' },
-          { value: 'absolute', label: '绝对' },
-          { value: 'fixed', label: '固定' },
-          { value: 'sticky', label: '粘性' }
-        ]
-      },
-      { id: 'zIndex', label: '层级', type: 'size', min: 0, max: 9999 },
-      { id: 'top', label: '顶部位置', type: 'size' },
-      { id: 'right', label: '右侧位置', type: 'size' },
-      { id: 'bottom', label: '底部位置', type: 'size' },
-      { id: 'left', label: '左侧位置', type: 'size' },
-    ]
-  },
-]
+interface StyleSectionProps {
+  title: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+  compact?: boolean
+}
 
-// 响应式断点
-const RESPONSIVE_BREAKPOINTS = [
-  { name: 'base', label: '默认', icon: <Monitor className="w-3 h-3" /> },
-  { name: 'sm', label: '小屏', icon: <Smartphone className="w-3 h-3" /> },
-  { name: 'md', label: '中屏', icon: <Tablet className="w-3 h-3" /> },
-  { name: 'lg', label: '大屏', icon: <Monitor className="w-3 h-3" /> },
-  { name: 'xl', label: '超大', icon: <Monitor className="w-3 h-3" /> },
-]
-
-export function StyleConfig({
-  componentId,
-  className,
-  showPresets = true,
-  showResponsive = true,
-  showAdvanced = true,
+function StyleSection({
+  title,
+  children,
+  defaultOpen = true,
   compact = false,
-}: StyleConfigProps) {
-  const [activeTab, setActiveTab] = useState('properties')
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(STYLE_GROUPS.filter(g => g.defaultExpanded).map(g => g.id))
-  )
-  const [currentBreakpoint, setCurrentBreakpoint] = useState('base')
-  const [showPreview, setShowPreview] = useState(true)
-
-  const {
-    previewProperties,
-    dirtyProperties,
-    updateProperty,
-    updateProperties,
-    saveProperties,
-    resetProperties,
-    validationErrors,
-    stylePresets,
-    appliedPreset,
-    loadStylePresets,
-    applyStylePreset,
-    setPreviewMode,
-    loading,
-    saving,
-    error,
-  } = usePropertyStore()
-
-  const {
-    currentStyles,
-    previewStyles,
-    responsiveStyles,
-    styleValidationErrors,
-    validateAllStyles,
-    getBreakpointStyles,
-    setCurrentBreakpoint: setStyleBreakpoint,
-  } = useStyleStore()
-
-  // 加载样式预设
-  useEffect(() => {
-    if (showPresets) {
-      loadStylePresets()
-    }
-  }, [showPresets, loadStylePresets])
-
-  // 同步断点
-  useEffect(() => {
-    setStyleBreakpoint(currentBreakpoint)
-  }, [currentBreakpoint, setStyleBreakpoint])
-
-  // 获取当前断点的样式值
-  const getCurrentBreakpointStyles = useCallback(() => {
-    if (currentBreakpoint === 'base') {
-      return previewStyles
-    }
-    return getBreakpointStyles(currentBreakpoint)
-  }, [currentBreakpoint, previewStyles, getBreakpointStyles])
-
-  // 处理样式属性更新
-  const handleStyleUpdate = useCallback((propertyId: string, value: unknown) => {
-    updateProperty(propertyId, value)
-  }, [updateProperty])
-
-  // 处理批量样式更新
-  const handleBatchStyleUpdate = useCallback((updates: Record<string, unknown>) => {
-    updateProperties(updates)
-  }, [updateProperties])
-
-  // 应用样式预设
-  const handleApplyPreset = useCallback((presetId: string) => {
-    applyStylePreset(presetId)
-  }, [applyStylePreset])
-
-  // 切换分组展开状态
-  const toggleGroupExpanded = useCallback((groupId: string) => {
-    setExpandedGroups(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(groupId)) {
-        newSet.delete(groupId)
-      } else {
-        newSet.add(groupId)
-      }
-      return newSet
-    })
-  }, [])
-
-  // 获取属性值
-  const getPropertyValue = useCallback((propertyId: string) => {
-    const currentStyles = getCurrentBreakpointStyles()
-    return currentStyles[propertyId] || ''
-  }, [getCurrentBreakpointStyles])
-
-  // 获取验证错误
-  const getValidationError = useCallback((propertyId: string) => {
-    return validationErrors[propertyId] || styleValidationErrors[propertyId]
-  }, [validationErrors, styleValidationErrors])
-
-  // 渲染属性编辑器
-  const renderPropertyEditor = useCallback((property: StyleProperty) => {
-    const value = getPropertyValue(property.id)
-    const error = getValidationError(property.id)
-    const isDirty = dirtyProperties.has(property.id)
-
-    const commonProps = {
-      key: property.id,
-      label: property.label,
-      value,
-      error,
-      description: property.description,
-      disabled: loading || saving,
-      onChange: (newValue: unknown) => handleStyleUpdate(property.id, newValue),
-      className: cn('transition-all duration-200', isDirty && 'border-l-2 border-l-primary'),
-    }
-
-    switch (property.type) {
-      case 'color':
-        return (
-          <ColorPropertyEditor
-            {...commonProps}
-            showPresets={!compact}
-          />
-        )
-
-      case 'size':
-        return (
-          <SizePropertyEditor
-            {...commonProps}
-            property={property.property}
-            showPresets={!compact}
-            showSlider={!compact}
-            min={property.min}
-            max={property.max}
-            step={property.step}
-          />
-        )
-
-      case 'spacing':
-        return (
-          <SpacingPropertyEditor
-            {...commonProps}
-            type="margin"
-            showVisualEditor={!compact}
-            showLinkedControl={true}
-          />
-        )
-
-      case 'select':
-        return (
-          <div key={property.id} className="space-y-2">
-            <label className="text-sm font-medium">{property.label}</label>
-            <select
-              value={String(value || property.defaultValue)}
-              onChange={(e) => handleStyleUpdate(property.id, e.target.value)}
-              className="w-full p-2 border rounded-md"
-              disabled={loading || saving}
-            >
-              {property.options?.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {error && (
-              <div className="text-xs text-destructive">{error}</div>
-            )}
-          </div>
-        )
-
-      case 'switch':
-        return (
-          <div key={property.id} className="flex items-center justify-between">
-            <label className="text-sm font-medium">{property.label}</label>
-            <input
-              type="checkbox"
-              checked={Boolean(value)}
-              onChange={(e) => handleStyleUpdate(property.id, e.target.checked)}
-              disabled={loading || saving}
-              className="w-4 h-4"
-            />
-          </div>
-        )
-
-      default:
-        return null
-    }
-  }, [
-    getPropertyValue,
-    getValidationError,
-    dirtyProperties,
-    loading,
-    saving,
-    handleStyleUpdate,
-    compact
-  ])
-
-  const hasChanges = dirtyProperties.size > 0
-  const hasValidationErrors = Object.keys(validationErrors).length > 0 || Object.keys(styleValidationErrors).length > 0
+  icon
+}: StyleSectionProps & { icon?: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className={cn('space-y-4', className)}>
-      {/* 头部工具栏 */}
-      <div className="flex items-center justify-between">
+    <div className={cn(
+      "border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800",
+      compact && "border-dashed"
+    )}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-between text-left"
+      >
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold">样式配置</h3>
-          {hasChanges && (
-            <Badge variant="secondary" className="text-xs">
-              {dirtyProperties.size} 个更改
-            </Badge>
-          )}
+          {icon}
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</span>
         </div>
-
-        <div className="flex items-center gap-1">
-          {showResponsive && (
-            <div className="flex items-center border rounded-md">
-              {RESPONSIVE_BREAKPOINTS.map((breakpoint) => (
-                <Button
-                  key={breakpoint.name}
-                  variant={currentBreakpoint === breakpoint.name ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentBreakpoint(breakpoint.name)}
-                  className="h-8 px-2"
-                  title={breakpoint.label}
-                >
-                  {breakpoint.icon}
-                  <span className="hidden sm:inline ml-1 text-xs">
-                    {breakpoint.label}
-                  </span>
-                </Button>
-              ))}
-            </div>
-          )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPreview(!showPreview)}
-            className="h-8 w-8 p-0"
-          >
-            {showPreview ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-          </Button>
-
-          {hasChanges && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetProperties}
-                disabled={loading || saving}
-                className="h-8 w-8 p-0"
-                title="重置更改"
-              >
-                <RotateCcw className="w-3 h-3" />
-              </Button>
-
-              <Button
-                variant="default"
-                size="sm"
-                onClick={saveProperties}
-                disabled={loading || saving || hasValidationErrors}
-                className="h-8"
-              >
-                {saving ? '保存中...' : '保存'}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* 错误提示 */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {hasValidationErrors && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            存在 {Object.keys(validationErrors).length + Object.keys(styleValidationErrors).length} 个验证错误，请检查后再保存
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* 主内容区域 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className={cn(
-          "grid w-full",
-          showPresets ? "grid-cols-3" : "grid-cols-2"
-        )}>
-          <TabsTrigger value="properties" className="text-xs">
-            <Settings className="w-3 h-3 mr-1" />
-            属性
-          </TabsTrigger>
-          <TabsTrigger value="responsive" className="text-xs">
-            <Monitor className="w-3 h-3 mr-1" />
-            响应式
-          </TabsTrigger>
-          {showPresets && (
-            <TabsTrigger value="presets" className="text-xs">
-              <Zap className="w-3 h-3 mr-1" />
-              预设
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        {/* 属性编辑标签页 */}
-        <TabsContent value="properties" className="space-y-4 mt-4">
-          {compact ? (
-            // 紧凑模式：简单的分组
-            <Accordion type="single" collapsible className="w-full">
-              {STYLE_GROUPS.map((group) => (
-                <AccordionItem key={group.id} value={group.id}>
-                  <AccordionTrigger className="text-sm">
-                    <div className="flex items-center gap-2">
-                      {group.icon}
-                      {group.title}
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="space-y-3 pt-4">
-                    {group.properties.map(renderPropertyEditor)}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : (
-            // 完整模式：可折叠的卡片
-            <>
-              {STYLE_GROUPS.map((group) => (
-              <Collapsible
-                key={group.id}
-                open={expandedGroups.has(group.id)}
-                onOpenChange={() => toggleGroupExpanded(group.id)}
-              >
-                <CollapsibleTrigger asChild>
-                  <Card className="cursor-pointer">
-                    <CardHeader className="py-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        {group.icon}
-                        {group.title}
-                        <div className="ml-auto">
-                          {expandedGroups.has(group.id) ? '▼' : '▶'}
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent>
-                  <CardContent className="pt-0 space-y-3">
-                    {group.properties.map(renderPropertyEditor)}
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-            </>
-          )}
-        </TabsContent>
-
-        {/* 响应式配置标签页 */}
-        <TabsContent value="responsive" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Monitor className="w-4 h-4" />
-                响应式样式配置
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                当前编辑：<Badge variant="outline">{currentBreakpoint}</Badge>
-              </div>
-
-              <div className="grid gap-4">
-                {/* 这里可以添加响应式特定的编辑器 */}
-                <div className="text-center text-muted-foreground py-8">
-                  响应式样式编辑器正在开发中...
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 样式预设标签页 */}
-        {showPresets && (
-          <TabsContent value="presets" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  样式预设
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {appliedPreset && (
-                  <div className="flex items-center justify-between p-2 bg-muted rounded">
-                    <span className="text-sm">当前预设：</span>
-                    <Badge>{appliedPreset}</Badge>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-2">
-                  {stylePresets.map((preset) => (
-                    <Button
-                      key={preset.id}
-                      variant={appliedPreset === preset.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleApplyPreset(preset.id)}
-                      className="h-auto p-3 flex flex-col items-start"
-                    >
-                      <div className="font-medium text-sm">{preset.name}</div>
-                      {preset.description && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {preset.description}
-                        </div>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-
-                {stylePresets.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    暂无可用预设
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {isOpen ? (
+          <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         )}
-      </Tabs>
+      </button>
+      {isOpen && (
+        <div className="px-3 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
 
+function ResponsiveSelector({
+  value,
+  onChange
+}: {
+  value: string;
+  onChange: (value: string) => void
+}) {
+  const devices = [
+    { id: 'default', icon: Monitor, label: '默认' },
+    { id: 'sm', icon: Smartphone, label: '小屏' },
+    { id: 'md', icon: Tablet, label: '中屏' },
+    { id: 'lg', icon: Monitor, label: '大屏' },
+    { id: 'xl', icon: Monitor, label: '超大' },
+  ]
+
+  return (
+    <div className="flex gap-1 p-1 bg-muted rounded-lg">
+      {devices.map((device) => (
+        <Button
+          key={device.id}
+          variant={value === device.id ? "default" : "ghost"}
+          size="sm"
+          onClick={() => onChange(device.id)}
+          className={cn(
+            "flex-1 h-7 text-xs",
+            value === device.id && "shadow-sm"
+          )}
+        >
+          <device.icon className="w-3 h-3" />
+        </Button>
+      ))}
+    </div>
+  )
+}
+
+// 专业数值输入组件 - 参考阿里低代码引擎设计
+function NumberInput({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  step = 1,
+  unit = '',
+  placeholder = '0',
+  showSlider = false
+}: {
+  label: string
+  value: number | string
+  onChange: (value: number | string) => void
+  min?: number
+  max?: number
+  step?: number
+  unit?: string
+  placeholder?: string
+  showSlider?: boolean
+}) {
+  const [inputValue, setInputValue] = useState(String(value || ''))
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setInputValue(newValue)
+
+    if (newValue === '' || newValue === 'auto') {
+      onChange(newValue)
+      return
+    }
+
+    const numValue = parseFloat(newValue)
+    if (!isNaN(numValue)) {
+      if (min !== undefined && numValue < min) return
+      if (max !== undefined && numValue > max) return
+      onChange(numValue)
+    }
+  }
+
+  const handleIncrement = () => {
+    const current = typeof value === 'number' ? value : parseFloat(value) || 0
+    const newValue = current + step
+    if (max === undefined || newValue <= max) {
+      onChange(newValue)
+      setInputValue(String(newValue))
+    }
+  }
+
+  const handleDecrement = () => {
+    const current = typeof value === 'number' ? value : parseFloat(value) || 0
+    const newValue = current - step
+    if (min === undefined || newValue >= min) {
+      onChange(newValue)
+      setInputValue(String(newValue))
+    }
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{label}</label>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDecrement}
+          className="h-6 w-6 p-0 border border-gray-300 dark:border-gray-600"
+          disabled={(min !== undefined && typeof value === 'number' && value <= min)}
+        >
+          <Minus className="w-3 h-3" />
+        </Button>
+        <div className="relative flex-1">
+          <Input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            className="h-6 text-xs px-2 border border-gray-300 dark:border-gray-600 rounded-none"
+          />
+          {unit && (
+            <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
+              {unit}
+            </span>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleIncrement}
+          className="h-6 w-6 p-0 border border-gray-300 dark:border-gray-600"
+          disabled={(max !== undefined && typeof value === 'number' && value >= max)}
+        >
+          <Plus className="w-3 h-3" />
+        </Button>
+      </div>
+      {showSlider && typeof value === 'number' && (
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => {
+            const newValue = parseFloat(e.target.value)
+            onChange(newValue)
+            setInputValue(String(newValue))
+          }}
+          className="w-full h-1"
+        />
+      )}
+    </div>
+  )
+}
+
+// 四方向间距输入组件
+function SpacingInput({
+  label,
+  value,
+  onChange,
+  unit = 'px'
+}: {
+  label: string
+  value: { top: number; right: number; bottom: number; left: number }
+  onChange: (value: { top: number; right: number; bottom: number; left: number }) => void
+  unit?: string
+}) {
+  const handleValueChange = (direction: keyof typeof value, newValue: number | string) => {
+    const numValue = typeof newValue === 'number' ? newValue : parseFloat(newValue) || 0
+    onChange({
+      ...value,
+      [direction]: numValue
+    })
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{label}</div>
+      <div className="grid grid-cols-2 gap-2">
+        <NumberInput
+          label="上"
+          value={value.top}
+          onChange={(val) => handleValueChange('top', val)}
+          unit={unit}
+        />
+        <NumberInput
+          label="右"
+          value={value.right}
+          onChange={(val) => handleValueChange('right', val)}
+          unit={unit}
+        />
+        <NumberInput
+          label="下"
+          value={value.bottom}
+          onChange={(val) => handleValueChange('bottom', val)}
+          unit={unit}
+        />
+        <NumberInput
+          label="左"
+          value={value.left}
+          onChange={(val) => handleValueChange('left', val)}
+          unit={unit}
+        />
+      </div>
+    </div>
+  )
+}
+
+// 颜色选择组件
+function ColorInput({
+  label,
+  value,
+  onChange
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  const [inputValue, setInputValue] = useState(value || '')
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setInputValue(newValue)
+    onChange(newValue)
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{label}</label>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value || '#000000'}
+          onChange={(e) => {
+            onChange(e.target.value)
+            setInputValue(e.target.value)
+          }}
+          className="w-6 h-6 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+        />
+        <Input
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="#000000"
+          className="h-6 text-xs px-2 flex-1 border border-gray-300 dark:border-gray-600"
+        />
+      </div>
+    </div>
+  )
+}
+
+function ColorEditor({
+  label,
+  value,
+  onChange
+}: {
+  label: string
+  value: string | null
+  onChange: (value: string | null) => void
+}) {
+  const [inputValue, setInputValue] = useState(value || '')
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value)
+    onChange(e.target.value || null)
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="text-xs font-medium text-foreground">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value || '#000000'}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-8 h-8 border border-border rounded cursor-pointer"
+        />
+        <input
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="#000000"
+          className="flex-1 h-8 text-xs px-2 border border-border rounded bg-background"
+        />
+      </div>
+    </div>
+  )
+}
+
+export function StyleConfig({
+  componentId,
+  componentType,
+  showPresets = true,
+  showResponsive = true,
+  showAdvanced = true,
+  compact = false
+}: StyleConfigProps) {
+  const [activeTab, setActiveTab] = useState('properties')
+  const [breakpoint, setBreakpoint] = useState('default')
+  const [styleChanges, setStyleChanges] = useState(0)
+
+  // 使用propertyStore获取组件属性
+  const { selectedComponent } = usePropertyStore()
+
+  // 模拟样式数据 - 重新设计为更专业的结构
+  const mockStyles = {
+    // 布局属性
+    display: 'block',
+    width: 'auto',
+    height: 'auto',
+    position: 'static',
+    zIndex: 'auto',
+
+    // 间距属性
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    padding: { top: 8, right: 8, bottom: 8, left: 8 },
+
+    // 文字属性
+    fontSize: 14,
+    lineHeight: 1.5,
+    fontWeight: 'normal',
+    fontFamily: 'inherit',
+    color: '#000000',
+    textAlign: 'left',
+
+    // 背景属性
+    backgroundColor: 'transparent',
+    opacity: 100,
+
+    // 边框属性
+    border: 'none',
+    borderRadius: 0,
+    boxShadow: 'none'
+  }
+
+  // 处理样式更新
+  const handleStyleUpdate = useCallback((property: string, value: any) => {
+    console.log('Style update:', property, value)
+    setStyleChanges(prev => prev + 1)
+  }, [])
+
+  // 重置样式
+  const handleResetStyles = useCallback(() => {
+    console.log('Reset styles')
+    setStyleChanges(0)
+  }, [])
+
+  return (
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800">
+      {/* 顶部功能区 - 参考阿里低代码引擎设计 */}
+      <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <div className="space-y-3">
+          {/* 类名绑定区域 */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">类名绑定</span>
+            <Input
+              placeholder="输入CSS类名"
+              className="h-6 text-xs flex-1 border-gray-300 dark:border-gray-600"
+            />
+          </div>
+
+          {/* 行内样式区域 */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">行内样式</span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetStyles}
+                disabled={styleChanges === 0}
+                className="h-6 px-2 text-xs border-gray-300 dark:border-gray-600"
+              >
+                重置
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                disabled={styleChanges === 0}
+                className="h-6 px-2 text-xs"
+              >
+                应用
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 主要编辑区域 */}
+      <ScrollArea className="flex-1">
+        <div className="p-3 space-y-2">
+
+          {/* 组件信息 */}
+          <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+            组件ID: {componentId}
+            {componentType && ` • 类型: ${componentType}`}
+          </div>
+
+          {/* 布局分组 */}
+          <StyleSection title="布局" icon={<Layout className="w-4 h-4" />} defaultOpen={true}>
+            <div className="space-y-3">
+              {/* 显示模式 */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">显示模式</label>
+                <Select value={mockStyles.display} onValueChange={(value) => handleStyleUpdate('display', value)}>
+                  <SelectTrigger className="h-6 text-xs border-gray-300 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="block">块级</SelectItem>
+                    <SelectItem value="inline">行内</SelectItem>
+                    <SelectItem value="inline-block">行内块</SelectItem>
+                    <SelectItem value="flex">弹性</SelectItem>
+                    <SelectItem value="grid">网格</SelectItem>
+                    <SelectItem value="none">隐藏</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 尺寸 */}
+              <div className="grid grid-cols-2 gap-3">
+                <NumberInput
+                  label="宽度"
+                  value={mockStyles.width}
+                  onChange={(value) => handleStyleUpdate('width', value)}
+                  placeholder="auto"
+                />
+                <NumberInput
+                  label="高度"
+                  value={mockStyles.height}
+                  onChange={(value) => handleStyleUpdate('height', value)}
+                  placeholder="auto"
+                />
+              </div>
+
+              {/* 位置 */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">定位</label>
+                <Select value={mockStyles.position} onValueChange={(value) => handleStyleUpdate('position', value)}>
+                  <SelectTrigger className="h-6 text-xs border-gray-300 dark:border-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="static">静态</SelectItem>
+                    <SelectItem value="relative">相对</SelectItem>
+                    <SelectItem value="absolute">绝对</SelectItem>
+                    <SelectItem value="fixed">固定</SelectItem>
+                    <SelectItem value="sticky">粘性</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 层级 */}
+              <NumberInput
+                label="zIndex"
+                value={mockStyles.zIndex}
+                onChange={(value) => handleStyleUpdate('zIndex', value)}
+                placeholder="auto"
+              />
+            </div>
+          </StyleSection>
+
+          {/* 间距分组 */}
+          <StyleSection title="间距" icon={<Box className="w-4 h-4" />} defaultOpen={true}>
+            <div className="space-y-4">
+              {/* 外边距 */}
+              <div>
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">MARGIN</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <NumberInput
+                    label="上"
+                    value={mockStyles.margin.top}
+                    onChange={(value) => handleStyleUpdate('margin.top', value)}
+                    unit="px"
+                  />
+                  <NumberInput
+                    label="右"
+                    value={mockStyles.margin.right}
+                    onChange={(value) => handleStyleUpdate('margin.right', value)}
+                    unit="px"
+                  />
+                  <NumberInput
+                    label="下"
+                    value={mockStyles.margin.bottom}
+                    onChange={(value) => handleStyleUpdate('margin.bottom', value)}
+                    unit="px"
+                  />
+                  <NumberInput
+                    label="左"
+                    value={mockStyles.margin.left}
+                    onChange={(value) => handleStyleUpdate('margin.left', value)}
+                    unit="px"
+                  />
+                </div>
+              </div>
+
+              {/* 内边距 */}
+              <div>
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">PADDING</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <NumberInput
+                    label="上"
+                    value={mockStyles.padding.top}
+                    onChange={(value) => handleStyleUpdate('padding.top', value)}
+                    unit="px"
+                  />
+                  <NumberInput
+                    label="右"
+                    value={mockStyles.padding.right}
+                    onChange={(value) => handleStyleUpdate('padding.right', value)}
+                    unit="px"
+                  />
+                  <NumberInput
+                    label="下"
+                    value={mockStyles.padding.bottom}
+                    onChange={(value) => handleStyleUpdate('padding.bottom', value)}
+                    unit="px"
+                  />
+                  <NumberInput
+                    label="左"
+                    value={mockStyles.padding.left}
+                    onChange={(value) => handleStyleUpdate('padding.left', value)}
+                    unit="px"
+                  />
+                </div>
+              </div>
+            </div>
+          </StyleSection>
+
+          {/* 文字分组 */}
+          <StyleSection title="文字" icon={<Type className="w-4 h-4" />} defaultOpen={true}>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <NumberInput
+                  label="字号"
+                  value={mockStyles.fontSize}
+                  onChange={(value) => handleStyleUpdate('fontSize', value)}
+                  unit="px"
+                  min={8}
+                  max={72}
+                />
+                <NumberInput
+                  label="行高"
+                  value={mockStyles.lineHeight}
+                  onChange={(value) => handleStyleUpdate('lineHeight', value)}
+                  min={0.5}
+                  max={3}
+                  step={0.1}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">字重</label>
+                  <Select value={mockStyles.fontWeight} onValueChange={(value) => handleStyleUpdate('fontWeight', value)}>
+                    <SelectTrigger className="h-6 text-xs border-gray-300 dark:border-gray-600">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">正常</SelectItem>
+                      <SelectItem value="bold">粗体</SelectItem>
+                      <SelectItem value="lighter">细体</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="300">300</SelectItem>
+                      <SelectItem value="400">400</SelectItem>
+                      <SelectItem value="500">500</SelectItem>
+                      <SelectItem value="600">600</SelectItem>
+                      <SelectItem value="700">700</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">对齐</label>
+                  <Select value={mockStyles.textAlign} onValueChange={(value) => handleStyleUpdate('textAlign', value)}>
+                    <SelectTrigger className="h-6 text-xs border-gray-300 dark:border-gray-600">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="left">左对齐</SelectItem>
+                      <SelectItem value="center">居中</SelectItem>
+                      <SelectItem value="right">右对齐</SelectItem>
+                      <SelectItem value="justify">两端对齐</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <ColorInput
+                label="文字颜色"
+                value={mockStyles.color}
+                onChange={(value) => handleStyleUpdate('color', value)}
+              />
+
+              <NumberInput
+                label="透明度"
+                value={mockStyles.opacity}
+                onChange={(value) => handleStyleUpdate('opacity', value)}
+                min={0}
+                max={100}
+                unit="%"
+                showSlider={true}
+              />
+            </div>
+          </StyleSection>
+
+          {/* 背景分组 */}
+          <StyleSection title="背景" icon={<Palette className="w-4 h-4" />} defaultOpen={true}>
+            <div className="space-y-3">
+              <ColorInput
+                label="背景颜色"
+                value={mockStyles.backgroundColor}
+                onChange={(value) => handleStyleUpdate('backgroundColor', value)}
+              />
+            </div>
+          </StyleSection>
+
+          {/* 边框分组 */}
+          <StyleSection title="边框" icon={<Square className="w-4 h-4" />} defaultOpen={false}>
+            <div className="space-y-3">
+              <NumberInput
+                label="圆角"
+                value={mockStyles.borderRadius}
+                onChange={(value) => handleStyleUpdate('borderRadius', value)}
+                unit="px"
+                min={0}
+                max={50}
+              />
+            </div>
+          </StyleSection>
+
+        </div>
+      </ScrollArea>
+    </div>
+  )
+}
+
+// 默认导出
 export default StyleConfig
