@@ -11,6 +11,10 @@ export interface LowcodeTextProps {
   content?: string
   text?: {
     content?: string
+    size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl'
+    weight?: 'normal' | 'medium' | 'semibold' | 'bold'
+    textAlign?: 'left' | 'center' | 'right' | 'justify'
+    decoration?: 'none' | 'underline' | 'line-through'
   }
   variant?: 'body' | 'caption'
   size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl'
@@ -39,8 +43,14 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
     },
     ref
   ) => {
-    // 兼容两种数据结构：优先使用 text.content，否则使用 content
+    // 兼容两种数据结构：优先使用 text 对象中的属性，否则使用直接传入的 props
     const displayContent = text?.content || content || '这是一段示例文本'
+
+    // 从 text 对象中获取样式属性，如果有的话
+    const textSize = text?.size || size
+    const textWeight = text?.weight || weight
+    const textAlign = text?.textAlign || align
+    const textDecoration = text?.decoration || decoration
     // 根据variant决定使用哪个HTML标签
     const Tag = variant === 'caption' ? 'span' : 'p'
 
@@ -113,11 +123,11 @@ export const Text = React.forwardRef<HTMLParagraphElement, LowcodeTextProps>(
       // 基础样式
       'leading-relaxed',
 
-      // 动态样式
-      getSizeClass(size),
-      getWeightClass(weight),
-      getAlignClass(align),
-      getDecorationClass(decoration),
+      // 动态样式 - 使用从 text 对象中提取的属性
+      getSizeClass(textSize),
+      getWeightClass(textWeight),
+      getAlignClass(textAlign),
+      getDecorationClass(textDecoration),
 
       // variant特定样式
       variant === 'caption' && 'text-gray-500',

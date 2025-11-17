@@ -109,7 +109,18 @@ export function ComponentPropertiesPanel({
 
   // 渲染属性编辑器
   const renderPropertyEditor = (property: any) => {
-    const value = propertyEditor.previewProperties[property.key] || property.defaultValue
+    // 处理嵌套属性获取，如 text.size, text.weight, text.textAlign
+    let value = property.defaultValue
+
+    if (property.key.startsWith('text.') && property.key !== 'text.content') {
+      // 处理嵌套的文本属性
+      const nestedProperty = property.key.replace('text.', '')
+      const textObject = propertyEditor.previewProperties.text || {}
+      value = textObject[nestedProperty] || property.defaultValue
+    } else {
+      // 处理普通属性
+      value = propertyEditor.previewProperties[property.key] || property.defaultValue
+    }
 
     switch (property.type) {
       case 'text':
@@ -247,8 +258,8 @@ export function ComponentPropertiesPanel({
             </TabsList>
 
             {/* 属性编辑内容 - 专业分组布局 */}
-            <TabsContent value="properties" className="flex-1 p-0 bg-white dark:bg-gray-800">
-              <div className="p-4 space-y-6 max-h-full overflow-y-auto">
+            <TabsContent value="properties" className="flex-1 p-0 bg-white dark:bg-gray-800 overflow-hidden">
+              <div className="p-4 space-y-6 h-full overflow-y-auto">
                 {componentProperties.map((property, index) => {
                   // 添加分组标题
                   const sectionTitles = ['基础配置', '排版配置', '装饰配置', '交互配置', '响应式配置']
@@ -260,10 +271,15 @@ export function ComponentPropertiesPanel({
 
                   function getSectionForProperty(prop: any) {
                     const key = prop.key
-                    if (['content', 'textType', 'textAlign', 'textOverflow'].includes(key)) return 0
-                    if (['fontSize', 'fontWeight', 'lineHeight', 'letterSpacing'].includes(key)) return 1
+                    // 基础配置
+                    if (['text.content', 'textType', 'text.textAlign', 'textOverflow'].includes(key)) return 0
+                    // 排版配置
+                    if (['text.size', 'text.weight', 'lineHeight', 'letterSpacing'].includes(key)) return 1
+                    // 装饰配置
                     if (['textDecoration', 'textTransform'].includes(key)) return 2
+                    // 交互配置
                     if (['selectable'].includes(prop.label) || prop.key === 'selectable') return 3
+                    // 响应式配置
                     if (['responsive'].includes(key)) return 4
                     return -1
                   }
@@ -450,7 +466,7 @@ function getTextProperties() {
       description: '选择文本的语义类型，影响默认样式和可访问性'
     },
     {
-      key: 'textAlign',
+      key: 'text.textAlign',
       label: '文本对齐',
       type: 'radio',
       defaultValue: 'left',
@@ -477,7 +493,7 @@ function getTextProperties() {
 
     // 排版配置
     {
-      key: 'fontSize',
+      key: 'text.size',
       label: '字体大小',
       type: 'select',
       defaultValue: 'base',
@@ -494,7 +510,7 @@ function getTextProperties() {
       ]
     },
     {
-      key: 'fontWeight',
+      key: 'text.weight',
       label: '字体粗细',
       type: 'select',
       defaultValue: 'normal',

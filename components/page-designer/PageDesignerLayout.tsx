@@ -169,12 +169,12 @@ export const PageDesignerLayout: React.FC<PageDesignerLayoutProps> = ({ classNam
 
   // 转换为数组格式以兼容现有组件，并混合预览数据
   const componentsArray = Object.values(components).map(component => {
-    // 如果有预览数据，则使用预览数据替换组件的props
-    const selectedComponentId = component.id
+    // 只有选中的组件才应用预览数据，避免影响其他组件
+    const isSelected = selectionState.selectedComponentIds.includes(component.id)
     const hasPreviewData = previewProperties && Object.keys(previewProperties).length > 0
 
-    if (hasPreviewData && selectedComponentId) {
-      // 混合预览数据到组件props中
+    if (isSelected && hasPreviewData) {
+      // 只对选中的组件混合预览数据
       return {
         ...component,
         props: {

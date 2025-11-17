@@ -144,12 +144,25 @@ export function usePropertyEditor(
       store.selectComponent(componentId)
 
       if (component) {
-        // 确保属性数据正确初始化
-        store.updateProperties({
+        // 确保属性数据正确初始化，需要处理文本属性的嵌套结构
+        const properties = {
           ...component.props,
           styles: component.styles || {},
           events: component.events || {}
-        })
+        }
+
+        // 如果组件有直接的文本属性（向后兼容），将其转换为嵌套结构
+        if (component.props.text) {
+          properties.text = {
+            ...component.props.text,
+            // 如果还有直接的size、weight、align属性，也合并进来
+            ...(component.props.size && { size: component.props.size }),
+            ...(component.props.weight && { weight: component.props.weight }),
+            ...(component.props.align && { textAlign: component.props.align })
+          }
+        }
+
+        store.updateProperties(properties)
       }
     }
   }, [componentId, store.selectedComponentId, store, designerStore])
