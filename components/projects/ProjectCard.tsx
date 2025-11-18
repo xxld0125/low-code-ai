@@ -56,6 +56,8 @@ import {
   ExternalLink,
   Edit,
   Eye,
+  Database,
+  Layout,
 } from 'lucide-react'
 
 interface ProjectCardProps {
@@ -200,12 +202,33 @@ export function ProjectCard({
                   <DropdownMenuItem asChild>
                     <Link href={`/protected/projects/${project.id}`} className="flex items-center">
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      打开项目
+                      项目详情
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/protected/projects/${project.id}/data-model`}
+                      className="flex items-center"
+                    >
+                      <Database className="mr-2 h-4 w-4" />
+                      数据模型设计
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/protected/projects/${project.id}/page-builder`}
+                      className="flex items-center"
+                    >
+                      <Layout className="mr-2 h-4 w-4" />
+                      页面设计器
                     </Link>
                   </DropdownMenuItem>
 
                   {canManageProject && (
                     <>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={openRenameDialog} className="flex items-center">
                         <Edit className="mr-2 h-4 w-4" />
                         重命名项目

@@ -1,20 +1,23 @@
-import { Badge } from './ui/badge'
-import { Button } from './ui/button'
+'use client'
+
+import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import Link from 'next/link'
 
 export function EnvVarWarning() {
   return (
-    <div className="flex items-center gap-4">
-      <Badge variant={'outline'} className="font-normal">
-        Supabase environment variables required
-      </Badge>
-      <div className="flex gap-2">
-        <Button size="sm" variant={'outline'} disabled>
-          Sign in
-        </Button>
-        <Button size="sm" variant={'default'} disabled>
-          Sign up
-        </Button>
-      </div>
-    </div>
+    <Alert variant="destructive" className="mb-4">
+      <AlertCircle className="h-4 w-4" />
+      <AlertDescription>
+        <strong>环境变量缺失</strong> - 请配置
+        <Link
+          href="https://nextjs.org/docs/basic-features/environment-variables"
+          className="ml-1 underline hover:no-underline"
+        >
+          环境变量
+        </Link>
+        以正常运行应用程序。
+      </AlertDescription>
+    </Alert>
   )
 }

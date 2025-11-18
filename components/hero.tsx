@@ -1,53 +1,26 @@
-import { NextLogo } from './next-logo'
-import { SupabaseLogo } from './supabase-logo'
-import { Button } from './ui/button'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { ArrowRight } from 'lucide-react'
 
 export function Hero() {
   return (
-    <div className="flex flex-col items-center gap-16">
-      <div className="flex items-center justify-center gap-8">
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <SupabaseLogo />
-        </a>
-        <span className="h-6 rotate-45 border-l" />
-        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
-          <NextLogo />
-        </a>
-      </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
-      <p className="mx-auto max-w-xl text-center text-3xl !leading-tight lg:text-4xl">
-        The fastest way to build apps with{' '}
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Supabase
-        </a>{' '}
-        and{' '}
-        <a
-          href="https://nextjs.org/"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Next.js
-        </a>
-      </p>
-      <div className="my-8 w-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent p-[1px]" />
-
-      <div className="flex flex-col items-center gap-4">
-        <p className="text-muted-foreground">Ready to design your data models?</p>
-        <Button asChild size="lg">
-          <Link href="/protected/designer">Launch Data Model Designer</Link>
-        </Button>
-        <p className="text-sm text-muted-foreground">Sign in required to access the designer</p>
+    <div className="relative isolate px-6 py-24 sm:py-32 lg:px-8">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">FlowBase</h2>
+        <p className="mt-6 text-lg leading-8 text-gray-600">
+          专业的全栈低代码开发平台，让应用构建更简单、更高效。
+          基于现代技术栈，提供从数据模型到页面设计的完整开发能力。
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-x-6">
+          <Button variant="default" size="lg" asChild>
+            <Link href="/protected/projects">
+              开始使用 <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button variant="outline" size="lg" asChild>
+            <Link href="/docs">查看文档</Link>
+          </Button>
+        </div>
       </div>
     </div>
   )

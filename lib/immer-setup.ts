@@ -1,5 +1,6 @@
-// 初始化Immer的MapSet插件，以支持Set和Map类型的状态管理
+// 简化的 Immer 初始化文件
+// 在 MVP 版本中，我们只启用基本的 Immer 功能
 import { enableMapSet } from 'immer'
 
-// 在应用启动时启用MapSet插件
+// 启用 Map 和 Set 支持
 enableMapSet()
