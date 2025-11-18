@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>低代码页面设计器 - 高保真原型</title>
+
+    <!-- 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- 设计器主题样式 -->
+    <link rel="stylesheet" href="designer_theme.css">
+
+    <style>
+        /* 自定义动画 */
+        @keyframes slideInDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .animate-slideInDown { animation: slideInDown 0.4s ease-out; }
+        .animate-slideInLeft { animation: slideInLeft 0.35s ease-out; }
+        .animate-slideInRight { animation: slideInRight 0.35s ease-out 0.1s both; }
+        .animate-fadeIn { animation: fadeIn 0.45s ease-out 0.05s both; }
+        .animate-pulse { animation: pulse 1.5s infinite; }
+        .animate-shake { animation: shake 0.4s ease-out; }
+
+        /* 拖拽样式 */
+        .dragging {
+            opacity: 0.6;
+            cursor: grabbing !important;
+            transform: scale(0.95) rotate(2deg);
+            transition: transform 0.15s ease-out;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--component-selected);
+            background: var(--drag-placeholder);
+            transition: all 0.3s ease-out;
+        }
+
+        .drop-zone.active {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* 组件选中效果 */
+        .canvas-component.selected {
+            border-color: var(--component-selected) !important;
+            box-shadow: 0 0 0 1px var(--component-selected), var(--shadow-md);
+        }
+
+        .canvas-component:hover {
+            border-color: var(--component-hover);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-1px);
+        }
+
+        /* 按钮交互效果 */
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* 输入框聚焦效果 */
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--ring);
+            transform: scale(1.01);
+        }
+
+        /* Toast 通知样式 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--destructive); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--muted); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--muted-foreground);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--foreground); }
+
+        /* 隐藏滚动条但保持功能 */
+        .hide-scrollbar {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="overflow-hidden">
+    <!-- 主容器 -->
+    <div id="app" class="h-screen flex flex-col bg-background">
+
+        <!-- 顶部工具栏 -->
+        <header class="designer-header animate-slideInDown">
+            <div class="flex items-center space-x-6">
+                <!-- Logo和标题 -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i data-lucide="layout" class="w-5 h-5 text-primary-foreground"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-foreground">低代码设计器</h1>
+                </div>
+
+                <!-- 项目信息 -->
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-muted-foreground">项目: 我的第一个页面</span>
+                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">已保存</span>
+                </div>
+
+                <!-- 统计信息 -->
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-muted-foreground">组件: <span id="componentCount" class="font-medium text-foreground">0</span>/50</span>
+                    <span class="text-muted-foreground">画布: 1200x800</span>
+                </div>
+            </div>
+
+            <!-- 操作按钮组 -->
+            <div class="flex items-center space-x-3">
+                <button onclick="handleSave()" class="btn-primary inline-flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all duration-200 text-sm font-medium">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>保存</span>
+                </button>
+
+                <button onclick="handlePreview()" class="inline-flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors text-sm font-medium">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                    <span>预览</span>
+                </button>
+
+                <button onclick="handleClearCanvas()" class="inline-flex items-center space-x-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors text-sm font-medium">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>清空</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- 左侧组件面板 -->
+            <aside class="designer-panel animate-slideInLeft" style="width: 256px;">
+                <div class="p-4 border-b border-border">
+                    <h2 class="text-lg font-semibold text-foreground">组件面板</h2>
+                    <p class="text-sm text-muted-foreground mt-1">拖拽组件到画布</p>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    <!-- 基础组件 -->
+                    <div>
+                        <h3 class="text-sm font-medium text-muted-foreground mb-3">基础组件</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- 文本组件 -->
+                            <div class="component-card" draggable="true" data-component-type="Text" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                                <div class="component-icon" style="background: hsl(217 91% 60% / 0.15); color: var(--component-text);">
+                                    <i data-lucide="type" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">文本</div>
+                                    <div class="text-xs text-muted-foreground">显示文本</div>
+                                </div>
+                            </div>
+
+                            <!-- 按钮组件 -->
+                            <div class="component-card" draggable="true" data-component-type="Button" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                                <div class="component-icon" style="background: hsl(142 76% 36% / 0.15); color: var(--component-button);">
+                                    <i data-lucide="mouse-pointer" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">按钮</div>
+                                    <div class="text-xs text-muted-foreground">点击操作</div>
+                                </div>
+                            </div>
+
+                            <!-- 输入框组件 -->
+                            <div class="component-card" draggable="true" data-component-type="Input" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                                <div class="component-icon" style="background: hsl(274 87% 66% / 0.15); color: var(--component-input);">
+                                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">输入框</div>
+                                    <div class="text-xs text-muted-foreground">文本输入</div>
+                                </div>
+                            </div>
+
+                            <!-- 图片组件 -->
+                            <div class="component-card" draggable="true" data-component-type="Image" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                                <div class="component-icon" style="background: hsl(38 92% 50% / 0.15); color: var(--component-image);">
+                                    <i data-lucide="image" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">图片</div>
+                                    <div class="text-xs text-muted-foreground">显示图片</div>
+                                </div>
+                            </div>
+
+                            <!-- 卡片组件 -->
+                            <div class="component-card" draggable="true" data-component-type="Card" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                                <div class="component-icon" style="background: hsl(199 89% 48% / 0.15); color: var(--component-card);">
+                                    <i data-lucide="square" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">卡片</div>
+                                    <div class="text-xs text-muted-foreground">内容容器</div>
+                                </div>
+                            </div>
+
+                            <!-- 复选框组件 -->
+                            <div class="component-card" draggable="true" data-component-type="Checkbox" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                                <div class="component-icon" style="background: hsl(0 84.2% 60.2% / 0.15); color: var(--component-checkbox);">
+                                    <i data-lucide="check-square" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">复选框</div>
+                                    <div class="text-xs text-muted-foreground">选择选项</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 中间画布区域 -->
+            <main class="flex-1 designer-canvas animate-fadeIn" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                <div id="canvasContainer" class="relative" style="min-height: 800px; width: 1200px; background-image: radial-gradient(circle, hsl(0 0% 89.8%) 1px, transparent 1px); background-size: 16px 16px;">
+                    <!-- 画布内容将动态插入这里 -->
+
+                    <!-- 空状态提示 -->
+                    <div id="emptyState" class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="layout" class="w-8 h-8 text-muted-foreground"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-foreground mb-2">开始设计您的页面</h3>
+                            <p class="text-muted-foreground text-sm">从左侧拖拽组件到画布开始设计</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- 右侧属性面板 -->
+            <aside class="designer-panel designer-panel-right animate-slideInRight" style="width: 320px;">
+                <!-- 空状态 -->
+                <div id="propertyEmptyState" class="h-full flex items-center justify-center">
+                    <div class="text-center p-6">
+                        <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="settings" class="w-6 h-6 text-muted-foreground"></i>
+                        </div>
+                        <h3 class="text-sm font-medium text-foreground mb-1">选择一个组件</h3>
+                        <p class="text-xs text-muted-foreground">点击画布中的组件以编辑其属性</p>
+                    </div>
+                </div>
+
+                <!-- 属性编辑器 (动态显示) -->
+                <div id="propertyEditor" class="hidden h-full">
+                    <div class="p-4 border-b border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-foreground">
+                                    <span id="selectedComponentName">组件</span>属性
+                                </h3>
+                                <p class="text-sm text-muted-foreground mt-1">
+                                    ID: <span id="selectedComponentId" class="font-mono text-xs">component-123</span>
+                                </p>
+                            </div>
+                            <button onclick="handleDeleteComponent()" class="p-2 text-destructive hover:bg-destructive/10 rounded-md transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="property-panel overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 200px);">
+                        <!-- 基础属性 -->
+                        <div class="property-section">
+                            <h4 class="property-label">基础属性</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-1">文本内容</label>
+                                    <input type="text" id="componentText" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="输入文本内容" oninput="handlePropertyChange('text', this.value)">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-1">占位符</label>
+                                    <input type="text" id="componentPlaceholder" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="输入占位符文本" oninput="handlePropertyChange('placeholder', this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 样式属性 -->
+                        <div class="property-section">
+                            <h4 class="property-label">样式设置</h4>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground mb-1">背景颜色</label>
+                                        <input type="color" id="componentBgColor" class="w-full h-10 border border-input rounded-md cursor-pointer" value="#ffffff" oninput="handlePropertyChange('backgroundColor', this.value)">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground mb-1">文字颜色</label>
+                                        <input type="color" id="componentTextColor" class="w-full h-10 border border-input rounded-md cursor-pointer" value="#000000" oninput="handlePropertyChange('color', this.value)">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-1">字体大小</label>
+                                    <select id="componentFontSize" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" onchange="handlePropertyChange('fontSize', this.value)">
+                                        <option value="12px">12px</option>
+                                        <option value="14px">14px</option>
+                                        <option value="16px" selected>16px</option>
+                                        <option value="18px">18px</option>
+                                        <option value="20px">20px</option>
+                                        <option value="24px">24px</option>
+                                        <option value="32px">32px</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-1">字体粗细</label>
+                                    <select id="componentFontWeight" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" onchange="handlePropertyChange('fontWeight', this.value)">
+                                        <option value="300">细体</option>
+                                        <option value="400" selected>正常</option>
+                                        <option value="500">中等</option>
+                                        <option value="600">半粗</option>
+                                        <option value="700">粗体</option>
+                                    </select>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground mb-1">内边距</label>
+                                        <input type="number" id="componentPadding" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="8" min="0" max="50" oninput="handlePropertyChange('padding', this.value + 'px')">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground mb-1">圆角</label>
+                                        <input type="number" id="componentBorderRadius" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="4" min="0" max="50" oninput="handlePropertyChange('borderRadius', this.value + 'px')">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 位置属性 -->
+                        <div class="property-section">
+                            <h4 class="property-label">位置信息</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-1">X 坐标</label>
+                                    <input type="number" id="componentPosX" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="0" oninput="handlePositionChange('x', this.value)">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-1">Y 坐标</label>
+                                    <input type="number" id="componentPosY" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="0" oninput="handlePositionChange('y', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // 全局状态管理
+        const state = {
+            components: [],
+            selectedComponent: null,
+            nextComponentId: 1,
+            isDragging: false,
+            draggedComponentType: null,
+            dropZoneActive: false
+        };
+
+        // 初始化 Lucide 图标
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initializeApp();
+        });
+
+        // 应用初始化
+        function initializeApp() {
+            // 设置画布事件监听
+            setupCanvasEvents();
+
+            // 初始化组件计数
+            updateComponentCount();
+
+            // 设置键盘快捷键
+            setupKeyboardShortcuts();
+        }
+
+        // 设置画布事件
+        function setupCanvasEvents() {
+            const canvas = document.querySelector('.designer-canvas');
+
+            canvas.addEventListener('click', (e) => {
+                if (e.target === canvas || e.target.id === 'canvasContainer') {
+                    // 点击空白区域取消选择
+                    deselectComponent();
+                }
+            });
+        }
+
+        // 设置键盘快捷键
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Delete 键删除选中组件
+                if (e.key === 'Delete' && state.selectedComponent) {
+                    handleDeleteComponent();
+                }
+
+                // Ctrl+S 保存
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    handleSave();
+                }
+
+                // Escape 取消选择
+                if (e.key === 'Escape') {
+                    deselectComponent();
+                }
+            });
+        }
+
+        // 拖拽开始
+        function handleDragStart(e) {
+            state.isDragging = true;
+            state.draggedComponentType = e.target.dataset.componentType;
+
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('componentType', state.draggedComponentType);
+
+            // 改变光标
+            document.body.style.cursor = 'grabbing';
+        }
+
+        // 拖拽结束
+        function handleDragEnd(e) {
+            state.isDragging = false;
+            state.draggedComponentType = null;
+
+            e.target.classList.remove('dragging');
+            document.body.style.cursor = 'default';
+
+            // 清除任何激活的放置区域
+            clearDropZone();
+        }
+
+        // 拖拽经过
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+
+            if (state.isDragging) {
+                showDropZone(e);
+            }
+        }
+
+        // 拖拽离开
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('designer-canvas')) {
+                clearDropZone();
+            }
+        }
+
+        // 显示放置区域
+        function showDropZone(e) {
+            clearDropZone();
+
+            const canvas = document.querySelector('.designer-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const dropZone = document.createElement('div');
+            dropZone.className = 'drop-zone active';
+            dropZone.style.position = 'absolute';
+            dropZone.style.left = (x - 40) + 'px';
+            dropZone.style.top = (y - 20) + 'px';
+            dropZone.style.width = '80px';
+            dropZone.style.height = '40px';
+            dropZone.style.borderRadius = '8px';
+            dropZone.id = 'dropZone';
+
+            document.getElementById('canvasContainer').appendChild(dropZone);
+        }
+
+        // 清除放置区域
+        function clearDropZone() {
+            const dropZone = document.getElementById('dropZone');
+            if (dropZone) {
+                dropZone.remove();
+            }
+        }
+
+        // 放置组件
+        function handleDrop(e) {
+            e.preventDefault();
+
+            if (!state.draggedComponentType) return;
+
+            const canvas = document.querySelector('.designer-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const container = document.getElementById('canvasContainer');
+            const containerRect = container.getBoundingClientRect();
+
+            let x = e.clientX - containerRect.left - 40;
+            let y = e.clientY - containerRect.top - 20;
+
+            // 智能定位：对齐到网格
+            const gridSize = 8;
+            x = Math.round(x / gridSize) * gridSize;
+            y = Math.round(y / gridSize) * gridSize;
+
+            // 确保组件不会超出画布边界
+            x = Math.max(0, Math.min(x, containerRect.width - 80));
+            y = Math.max(0, Math.min(y, containerRect.height - 40));
+
+            // 创建新组件
+            const component = createComponent(state.draggedComponentType, x, y);
+
+            // 添加到状态
+            state.components.push(component);
+
+            // 渲染组件
+            renderComponent(component);
+
+            // 选中新组件
+            selectComponent(component);
+
+            // 隐藏空状态
+            hideEmptyState();
+
+            // 更新组件计数
+            updateComponentCount();
+
+            // 显示成功提示
+            showToast('success', '组件已添加', `已添加 ${getComponentDisplayName(component.type)} 组件`);
+
+            clearDropZone();
+        }
+
+        // 创建组件
+        function createComponent(type, x, y) {
+            const component = {
+                id: `component-${state.nextComponentId++}`,
+                type: type,
+                position: { x, y },
+                props: getDefaultProps(type),
+                styles: getDefaultStyles(type)
+            };
+
+            return component;
+        }
+
+        // 获取组件默认属性
+        function getDefaultProps(type) {
+            const defaultProps = {
+                Text: { text: '文本内容' },
+                Button: { text: '按钮' },
+                Input: { placeholder: '请输入内容' },
+                Image: { src: '', alt: '图片' },
+                Card: { title: '卡片标题', content: '卡片内容' },
+                Checkbox: { label: '选项', checked: false }
+            };
+
+            return defaultProps[type] || {};
+        }
+
+        // 获取组件默认样式
+        function getDefaultStyles(type) {
+            return {
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                fontSize: '14px',
+                fontWeight: '400',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #e5e7eb',
+                minWidth: '80px',
+                minHeight: '32px'
+            };
+        }
+
+        // 渲染组件
+        function renderComponent(component) {
+            const container = document.getElementById('canvasContainer');
+
+            const element = document.createElement('div');
+            element.className = 'canvas-component';
+            element.id = component.id;
+            element.style.left = component.position.x + 'px';
+            element.style.top = component.position.y + 'px';
+            element.style.backgroundColor = component.styles.backgroundColor;
+            element.style.color = component.styles.color;
+            element.style.fontSize = component.styles.fontSize;
+            element.style.fontWeight = component.styles.fontWeight;
+            element.style.padding = component.styles.padding;
+            element.style.borderRadius = component.styles.borderRadius;
+            element.style.border = component.styles.border;
+            element.style.minWidth = component.styles.minWidth;
+            element.style.minHeight = component.styles.minHeight;
+            element.style.display = 'flex';
+            element.style.alignItems = 'center';
+            element.style.justifyContent = 'center';
+            element.style.cursor = 'pointer';
+            element.style.transition = 'all 0.2s ease-out';
+            element.style.userSelect = 'none';
+
+            // 设置组件内容
+            element.innerHTML = getComponentContent(component);
+
+            // 添加点击事件
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectComponent(component);
+            });
+
+            // 添加拖拽移动功能
+            makeElementDraggable(element, component);
+
+            container.appendChild(element);
+
+            // 添加入场动画
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+                element.style.opacity = '1';
+            }, 10);
+        }
+
+        // 获取组件显示内容
+        function getComponentContent(component) {
+            switch (component.type) {
+                case 'Text':
+                    return `<span>${component.props.text}</span>`;
+
+                case 'Button':
+                    return `<button style="background: var(--primary); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;">${component.props.text}</button>`;
+
+                case 'Input':
+                    return `<input type="text" placeholder="${component.props.placeholder}" style="border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 4px; background: white;" readonly>`;
+
+                case 'Image':
+                    return `<div style="width: 120px; height: 80px; background: #f3f4f6; border: 1px dashed #d1d5db; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 12px;">图片组件</div>`;
+
+                case 'Card':
+                    return `<div style="background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><div style="font-weight: 600; margin-bottom: 4px;">${component.props.title}</div><div style="font-size: 12px; color: #6b7280;">${component.props.content}</div></div>`;
+
+                case 'Checkbox':
+                    return `<label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" ${component.props.checked ? 'checked' : ''} style="margin-right: 6px;" readonly><span>${component.props.label}</span></label>`;
+
+                default:
+                    return `<span>未知组件</span>`;
+            }
+        }
+
+        // 使元素可拖拽移动
+        function makeElementDraggable(element, component) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            element.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+                    return; // 防止与内部元素交互冲突
+                }
+
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialX = component.position.x;
+                initialY = component.position.y;
+
+                element.style.cursor = 'grabbing';
+                element.style.zIndex = '1000';
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                const newX = initialX + dx;
+                const newY = initialY + dy;
+
+                // 对齐到网格
+                const gridSize = 8;
+                const snappedX = Math.round(newX / gridSize) * gridSize;
+                const snappedY = Math.round(newY / gridSize) * gridSize;
+
+                component.position.x = snappedX;
+                component.position.y = snappedY;
+
+                element.style.left = snappedX + 'px';
+                element.style.top = snappedY + 'px';
+
+                // 更新属性面板中的位置信息
+                if (state.selectedComponent && state.selectedComponent.id === component.id) {
+                    document.getElementById('componentPosX').value = snappedX;
+                    document.getElementById('componentPosY').value = snappedY;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    element.style.cursor = 'pointer';
+                    element.style.zIndex = '';
+                }
+            });
+        }
+
+        // 选择组件
+        function selectComponent(component) {
+            // 取消之前的选择
+            deselectComponent();
+
+            state.selectedComponent = component;
+
+            // 添加选中样式
+            const element = document.getElementById(component.id);
+            if (element) {
+                element.classList.add('selected');
+            }
+
+            // 显示属性面板
+            showPropertyPanel(component);
+        }
+
+        // 取消选择
+        function deselectComponent() {
+            if (state.selectedComponent) {
+                const element = document.getElementById(state.selectedComponent.id);
+                if (element) {
+                    element.classList.remove('selected');
+                }
+            }
+
+            state.selectedComponent = null;
+            hidePropertyPanel();
+        }
+
+        // 显示属性面板
+        function showPropertyPanel(component) {
+            document.getElementById('propertyEmptyState').classList.add('hidden');
+            document.getElementById('propertyEditor').classList.remove('hidden');
+
+            // 填充组件信息
+            document.getElementById('selectedComponentName').textContent = getComponentDisplayName(component.type);
+            document.getElementById('selectedComponentId').textContent = component.id;
+
+            // 填充属性值
+            fillPropertyValues(component);
+        }
+
+        // 隐藏属性面板
+        function hidePropertyPanel() {
+            document.getElementById('propertyEmptyState').classList.remove('hidden');
+            document.getElementById('propertyEditor').classList.add('hidden');
+        }
+
+        // 填充属性值
+        function fillPropertyValues(component) {
+            // 基础属性
+            document.getElementById('componentText').value = component.props.text || '';
+            document.getElementById('componentPlaceholder').value = component.props.placeholder || '';
+
+            // 样式属性
+            document.getElementById('componentBgColor').value = rgbToHex(component.styles.backgroundColor || '#ffffff');
+            document.getElementById('componentTextColor').value = rgbToHex(component.styles.color || '#000000');
+            document.getElementById('componentFontSize').value = component.styles.fontSize || '14px';
+            document.getElementById('componentFontWeight').value = component.styles.fontWeight || '400';
+            document.getElementById('componentPadding').value = parseInt(component.styles.padding) || 8;
+            document.getElementById('componentBorderRadius').value = parseInt(component.styles.borderRadius) || 4;
+
+            // 位置属性
+            document.getElementById('componentPosX').value = component.position.x || 0;
+            document.getElementById('componentPosY').value = component.position.y || 0;
+        }
+
+        // 处理属性变化
+        function handlePropertyChange(property, value) {
+            if (!state.selectedComponent) return;
+
+            // 更新组件数据
+            state.selectedComponent.props[property] = value;
+
+            // 重新渲染组件
+            updateComponent(state.selectedComponent);
+        }
+
+        // 处理位置变化
+        function handlePositionChange(axis, value) {
+            if (!state.selectedComponent) return;
+
+            const numValue = parseInt(value) || 0;
+            state.selectedComponent.position[axis] = numValue;
+
+            // 更新元素位置
+            const element = document.getElementById(state.selectedComponent.id);
+            if (element) {
+                if (axis === 'x') {
+                    element.style.left = numValue + 'px';
+                } else {
+                    element.style.top = numValue + 'px';
+                }
+            }
+        }
+
+        // 更新组件
+        function updateComponent(component) {
+            const element = document.getElementById(component.id);
+            if (!element) return;
+
+            // 更新样式
+            if (component.styles.backgroundColor) {
+                element.style.backgroundColor = component.styles.backgroundColor;
+            }
+            if (component.styles.color) {
+                element.style.color = component.styles.color;
+            }
+            if (component.styles.fontSize) {
+                element.style.fontSize = component.styles.fontSize;
+            }
+            if (component.styles.fontWeight) {
+                element.style.fontWeight = component.styles.fontWeight;
+            }
+            if (component.styles.padding) {
+                element.style.padding = component.styles.padding;
+            }
+            if (component.styles.borderRadius) {
+                element.style.borderRadius = component.styles.borderRadius;
+            }
+
+            // 更新内容
+            element.innerHTML = getComponentContent(component);
+
+            showToast('success', '属性已更新', '组件属性已成功更新');
+        }
+
+        // 删除组件
+        function handleDeleteComponent() {
+            if (!state.selectedComponent) return;
+
+            if (confirm('确定要删除这个组件吗？')) {
+                const component = state.selectedComponent;
+
+                // 从状态中移除
+                state.components = state.components.filter(c => c.id !== component.id);
+
+                // 从DOM中移除
+                const element = document.getElementById(component.id);
+                if (element) {
+                    // 添加删除动画
+                    element.style.transform = 'scale(0) rotate(180deg)';
+                    element.style.opacity = '0';
+
+                    setTimeout(() => {
+                        element.remove();
+                    }, 300);
+                }
+
+                // 取消选择
+                deselectComponent();
+
+                // 更新计数
+                updateComponentCount();
+
+                // 显示空状态（如果需要）
+                if (state.components.length === 0) {
+                    showEmptyState();
+                }
+
+                showToast('success', '组件已删除', '组件已从画布中移除');
+            }
+        }
+
+        // 清空画布
+        function handleClearCanvas() {
+            if (state.components.length === 0) {
+                showToast('warning', '画布已空', '画布上没有组件需要清空');
+                return;
+            }
+
+            if (confirm('确定要清空画布上的所有组件吗？此操作不可撤销。')) {
+                // 清空状态
+                state.components = [];
+                state.selectedComponent = null;
+
+                // 清空画布
+                const container = document.getElementById('canvasContainer');
+                const components = container.querySelectorAll('.canvas-component');
+                components.forEach(comp => comp.remove());
+
+                // 显示空状态
+                showEmptyState();
+
+                // 隐藏属性面板
+                hidePropertyPanel();
+
+                // 更新计数
+                updateComponentCount();
+
+                showToast('success', '画布已清空', '所有组件已从画布移除');
+            }
+        }
+
+        // 保存设计
+        function handleSave() {
+            // 模拟保存过程
+            showToast('success', '保存成功', '页面设计已保存到服务器');
+
+            // 这里可以添加实际的保存逻辑
+            console.log('保存的设计数据:', state.components);
+        }
+
+        // 预览设计
+        function handlePreview() {
+            showToast('info', '预览功能', '预览功能正在开发中');
+        }
+
+        // 显示空状态
+        function showEmptyState() {
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+
+        // 隐藏空状态
+        function hideEmptyState() {
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        // 更新组件计数
+        function updateComponentCount() {
+            document.getElementById('componentCount').textContent = state.components.length;
+        }
+
+        // 获取组件显示名称
+        function getComponentDisplayName(type) {
+            const names = {
+                Text: '文本',
+                Button: '按钮',
+                Input: '输入框',
+                Image: '图片',
+                Card: '卡片',
+                Checkbox: '复选框'
+            };
+            return names[type] || type;
+        }
+
+        // 显示 Toast 通知
+        function showToast(type, title, message) {
+            const container = document.getElementById('toastContainer');
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="flex-1">
+                        <div class="font-medium text-sm">${title}</div>
+                        <div class="text-xs text-muted-foreground mt-1">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-muted-foreground hover:text-foreground">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // 重新创建图标
+            lucide.createIcons();
+
+            // 显示动画
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // 自动隐藏
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // 辅助函数：RGB 转 HEX
+        function rgbToHex(color) {
+            if (color.startsWith('#')) return color;
+
+            const rgb = color.match(/\d+/g);
+            if (!rgb) return '#000000';
+
+            const hex = rgb.map(x => {
+                const hex = parseInt(x).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            });
+
+            return '#' + hex.join('');
+        }
+    </script>
+</body>
+</html>

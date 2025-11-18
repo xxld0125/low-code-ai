@@ -57,12 +57,12 @@ const CORE_COMPONENTS = [
 
 export function SimpleComponentPanel({ onAddComponent }: SimpleComponentPanelProps) {
   return (
-    <Card className="h-full w-full">
-      <CardHeader>
-        <CardTitle className="text-lg">组件面板</CardTitle>
+    <Card className="h-full w-full bg-white">
+      <CardHeader className="bg-white">
+        <CardTitle className="text-lg text-gray-900">组件面板</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="mb-4 text-sm text-gray-600">选择组件添加到画布</div>
+      <CardContent className="space-y-4 bg-white">
+        <div className="mb-4 text-sm text-gray-700">选择组件添加到画布</div>
 
         <div className="grid grid-cols-2 gap-3">
           {CORE_COMPONENTS.map(component => (
@@ -76,8 +76,8 @@ export function SimpleComponentPanel({ onAddComponent }: SimpleComponentPanelPro
                 <component.icon size={20} />
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium">{component.name}</div>
-                <div className="mt-1 text-xs text-gray-500">{component.description}</div>
+                <div className="text-sm font-medium text-gray-900">{component.name}</div>
+                <div className="mt-1 text-xs text-gray-600">{component.description}</div>
               </div>
             </Button>
           ))}

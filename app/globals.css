@@ -4,85 +4,73 @@
 
 @layer base {
   :root {
+    /* 基础色彩 */
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
+
+    /* 卡片和弹出层 */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
+
+    /* 主要色彩系统 */
+    --primary: 217 91% 60%; /* 蓝色品牌主色 */
     --primary-foreground: 0 0% 98%;
+    --primary-hover: 217 91% 55%; /* 主色悬停状态 */
+    --primary-active: 217 91% 50%; /* 主色激活状态 */
+
+    /* 辅助色彩系统 */
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
+
+    /* 功能色彩系统 */
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 217 91% 60%; /* 使用品牌色作为强调色 */
+    --accent-foreground: 0 0% 98%;
+
+    /* 状态色彩 */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
+    --success: 142 76% 36%; /* 成功绿 */
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%; /* 警告橙 */
+    --warning-foreground: 0 0% 98%;
+    --info: 199 89% 48%; /* 信息蓝 */
+    --info-foreground: 0 0% 98%;
+
+    /* 边框和输入框 */
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
+    --ring: 217 91% 60%; /* 使用品牌色作为焦点环 */
 
-  /* 高对比度主题 */
-  .high-contrast {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 211 96% 26%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 20%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 40%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 0%;
-    --input: 0 0% 0%;
-    --ring: 211 96% 26%;
-    --chart-1: 211 96% 26%;
-    --chart-2: 142 76% 26%;
-    --chart-3: 0 84% 40%;
-    --chart-4: 38 92% 40%;
-    --chart-5: 199 89% 38%;
+    /* 图表色彩系统 */
+    --chart-1: 217 91% 60%; /* 品牌蓝 */
+    --chart-2: 142 76% 36%; /* 成功绿 */
+    --chart-3: 38 92% 50%; /* 警告橙 */
+    --chart-4: 274 87% 66%; /* 紫色 */
+    --chart-5: 0 84.2% 60.2%; /* 红色 */
+
+    /* 低代码平台专用色彩 */
+    --component-bg: 0 0% 98%; /* 组件背景 */
+    --component-border: 0 0% 92%; /* 组件边框 */
+    --canvas-bg: 0 0% 96%; /* 画布背景 */
+    --panel-bg: 0 0% 100%; /* 面板背景 */
+    --drag-preview: 217 91% 60%; /* 拖拽预览色 */
+
+    /* 阴影 */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* 圆角 */
+    --radius: 0.5rem;
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
   }
 }
 

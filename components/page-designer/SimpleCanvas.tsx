@@ -23,8 +23,9 @@ const SimpleComponentRenderer = ({
   onUpdate: (updates: any) => void
 }) => {
   const baseClasses = cn(
-    'absolute cursor-pointer transition-all',
-    isSelected && 'ring-2 ring-blue-500 ring-offset-2'
+    'absolute cursor-pointer transition-all duration-200 hover:z-10',
+    isSelected &&
+      'ring-2 ring-primary ring-offset-2 shadow-lg scale-[1.02] border border-primary/20'
   )
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -60,14 +61,15 @@ const SimpleComponentRenderer = ({
           <button
             style={{
               ...commonStyle,
-              backgroundColor: styles.backgroundColor || '#3b82f6',
-              color: styles.color || '#ffffff',
+              backgroundColor: styles.backgroundColor || 'hsl(var(--primary))',
+              color: styles.color || 'hsl(var(--primary-foreground))',
               padding: '8px 16px',
-              border: 'none',
-              borderRadius: '4px',
+              border: '1px solid hsl(var(--primary))',
+              borderRadius: '6px',
               cursor: 'pointer',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             }}
-            className={cn(baseClasses, 'font-medium')}
+            className={cn(baseClasses, 'font-medium transition-all hover:shadow-md')}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -84,11 +86,14 @@ const SimpleComponentRenderer = ({
             style={{
               ...commonStyle,
               padding: '8px 12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '4px',
-              backgroundColor: '#ffffff',
+              border: '2px solid hsl(var(--border))',
+              borderRadius: '6px',
+              backgroundColor: 'hsl(var(--background))',
             }}
-            className={cn(baseClasses, 'focus:outline-none focus:ring-2 focus:ring-blue-500')}
+            className={cn(
+              baseClasses,
+              'transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
+            )}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -217,15 +222,33 @@ export function SimpleCanvas({
       if (componentType) {
         // 从组件面板添加新组件
         const rect = e.currentTarget.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
+        let x = e.clientX - rect.left
+        let y = e.clientY - rect.top
+
+        // 网格吸附逻辑（20px网格）
+        const gridSize = 20
+        x = Math.round(x / gridSize) * gridSize
+        y = Math.round(y / gridSize) * gridSize
+
+        // 确保组件不会超出画布边界
+        x = Math.max(20, Math.min(x, 1160)) // 留出组件宽度空间
+        y = Math.max(120, Math.min(y, 760)) // 留出组件高度空间
 
         // 这个逻辑由父组件处理
       } else if (componentId) {
         // 移动现有组件
         const rect = e.currentTarget.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
+        let x = e.clientX - rect.left
+        let y = e.clientY - rect.top
+
+        // 网格吸附逻辑
+        const gridSize = 20
+        x = Math.round(x / gridSize) * gridSize
+        y = Math.round(y / gridSize) * gridSize
+
+        // 边界约束
+        x = Math.max(20, Math.min(x, 1160))
+        y = Math.max(120, Math.min(y, 760))
 
         onUpdateComponent(componentId, {
           position: { x, y },
@@ -246,15 +269,15 @@ export function SimpleCanvas({
   )
 
   return (
-    <div className="h-full w-full overflow-auto bg-gray-50">
-      <div className="min-h-full min-w-full p-8">
+    <div className="bg-canvas-bg h-full w-full overflow-auto">
+      <div className="min-h-full min-w-full p-4 lg:p-8">
         {/* 画布区域 */}
         <div
-          className="relative mx-auto rounded-lg bg-white shadow-lg"
+          className="bg-panel-bg relative mx-auto rounded-xl border border-border shadow-lg"
           style={{
-            width: '1200px',
+            width: 'min(1200px, 100%)',
             minHeight: '800px',
-            backgroundImage: 'radial-gradient(circle, #e5e7eb 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px)',
             backgroundSize: '20px 20px',
           }}
           onDragOver={handleDragOver}
@@ -262,9 +285,11 @@ export function SimpleCanvas({
           onClick={handleCanvasClick}
         >
           {/* 画布标题 */}
-          <div className="absolute left-0 right-0 top-0 rounded-t-lg border-b border-gray-200 bg-white bg-opacity-90 p-4">
-            <div className="text-sm font-medium text-gray-700">设计画布 (1200x800)</div>
-            <div className="text-xs text-gray-500">拖拽组件到此处或点击左侧组件面板添加</div>
+          <div className="absolute left-0 right-0 top-0 rounded-t-xl border-b border-border bg-card/95 p-4 shadow-sm backdrop-blur-sm">
+            <div className="text-sm font-medium text-foreground">设计画布</div>
+            <div className="text-xs text-muted-foreground">
+              拖拽组件到此处或点击左侧组件面板添加
+            </div>
           </div>
 
           {/* 渲染所有组件 */}
@@ -281,10 +306,23 @@ export function SimpleCanvas({
           {/* 空状态提示 */}
           {components.length === 0 && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="mb-4 text-6xl">🎨</div>
-                <div className="mb-2 text-xl font-medium text-gray-700">开始设计你的页面</div>
-                <div className="text-gray-500">从左侧拖拽组件到画布或点击组件添加</div>
+              <div className="max-w-md text-center">
+                <div className="mb-6 text-6xl opacity-60">🎨</div>
+                <div className="mb-3 text-xl font-semibold text-foreground">开始设计你的页面</div>
+                <div className="text-sm leading-relaxed text-muted-foreground">
+                  从左侧拖拽组件到画布，或点击组件快速添加。使用右侧属性面板调整组件样式和行为。
+                </div>
+                <div className="mt-4 flex justify-center gap-2">
+                  <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    拖拽添加
+                  </div>
+                  <div className="bg-success/10 text-success inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                    点击选择
+                  </div>
+                  <div className="bg-info/10 text-info inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                    属性编辑
+                  </div>
+                </div>
               </div>
             </div>
           )}

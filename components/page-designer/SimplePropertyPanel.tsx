@@ -26,14 +26,14 @@ export function SimplePropertyPanel({
       <div className="flex h-full flex-col">
         <div className="border-b border-gray-200 p-4">
           <h2 className="text-lg font-semibold text-gray-900">属性面板</h2>
-          <p className="mt-1 text-sm text-gray-600">选择组件进行配置</p>
+          <p className="mt-1 text-sm text-gray-700">选择组件进行配置</p>
         </div>
 
         <div className="flex flex-1 items-center justify-center">
-          <div className="text-center text-gray-500">
+          <div className="text-center text-gray-600">
             <div className="mb-2 text-4xl">🎯</div>
-            <div>请选择一个组件</div>
-            <div className="text-sm">在画布中点击组件开始配置</div>
+            <div className="text-gray-800">请选择一个组件</div>
+            <div className="text-sm text-gray-700">在画布中点击组件开始配置</div>
           </div>
         </div>
       </div>
@@ -78,7 +78,9 @@ export function SimplePropertyPanel({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="text">文本内容</Label>
+              <Label htmlFor="text" className="text-gray-800">
+                文本内容
+              </Label>
               <textarea
                 id="text"
                 className="w-full resize-none rounded-md border border-gray-300 p-2"
@@ -95,7 +97,9 @@ export function SimplePropertyPanel({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="buttonText">按钮文字</Label>
+              <Label htmlFor="buttonText" className="text-gray-800">
+                按钮文字
+              </Label>
               <Input
                 id="buttonText"
                 value={props.text || ''}
@@ -110,7 +114,9 @@ export function SimplePropertyPanel({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="placeholder">占位符</Label>
+              <Label htmlFor="placeholder" className="text-gray-800">
+                占位符
+              </Label>
               <Input
                 id="placeholder"
                 value={props.placeholder || ''}
@@ -125,7 +131,9 @@ export function SimplePropertyPanel({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="cardTitle">卡片标题</Label>
+              <Label htmlFor="cardTitle" className="text-gray-800">
+                卡片标题
+              </Label>
               <Input
                 id="cardTitle"
                 value={props.title || ''}
@@ -134,7 +142,9 @@ export function SimplePropertyPanel({
               />
             </div>
             <div>
-              <Label htmlFor="cardContent">卡片内容</Label>
+              <Label htmlFor="cardContent" className="text-gray-800">
+                卡片内容
+              </Label>
               <textarea
                 id="cardContent"
                 className="w-full resize-none rounded-md border border-gray-300 p-2"
@@ -151,7 +161,9 @@ export function SimplePropertyPanel({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="checkboxText">选项文字</Label>
+              <Label htmlFor="checkboxText" className="text-gray-800">
+                选项文字
+              </Label>
               <Input
                 id="checkboxText"
                 value={props.text || ''}
@@ -166,7 +178,9 @@ export function SimplePropertyPanel({
                 checked={props.checked || false}
                 onChange={e => handlePropsChange('checked', e.target.checked)}
               />
-              <Label htmlFor="checkboxChecked">默认选中</Label>
+              <Label htmlFor="checkboxChecked" className="text-gray-800">
+                默认选中
+              </Label>
             </div>
           </div>
         )
@@ -175,7 +189,9 @@ export function SimplePropertyPanel({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="imageUrl">图片地址</Label>
+              <Label htmlFor="imageUrl" className="text-gray-800">
+                图片地址
+              </Label>
               <Input
                 id="imageUrl"
                 value={props.src || ''}
@@ -184,7 +200,9 @@ export function SimplePropertyPanel({
               />
             </div>
             <div>
-              <Label htmlFor="imageAlt">图片描述</Label>
+              <Label htmlFor="imageAlt" className="text-gray-800">
+                图片描述
+              </Label>
               <Input
                 id="imageAlt"
                 value={props.alt || ''}
@@ -196,7 +214,7 @@ export function SimplePropertyPanel({
         )
 
       default:
-        return <div className="py-4 text-center text-gray-500">该组件暂无可配置属性</div>
+        return <div className="py-4 text-center text-gray-600">该组件暂无可配置属性</div>
     }
   }
 
@@ -207,7 +225,7 @@ export function SimplePropertyPanel({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">属性面板</h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-700">
               {selectedComponent.type} - {selectedComponent.id.slice(-8)}
             </p>
           </div>
@@ -228,7 +246,7 @@ export function SimplePropertyPanel({
           className={`flex-1 px-4 py-2 text-sm font-medium ${
             activeTab === 'properties'
               ? 'border-b-2 border-blue-500 bg-blue-50 text-blue-700'
-              : 'text-gray-600 hover:text-gray-900'
+              : 'text-gray-700 hover:text-gray-900'
           }`}
           onClick={() => setActiveTab('properties')}
         >
@@ -238,7 +256,7 @@ export function SimplePropertyPanel({
           className={`flex-1 px-4 py-2 text-sm font-medium ${
             activeTab === 'styles'
               ? 'border-b-2 border-blue-500 bg-blue-50 text-blue-700'
-              : 'text-gray-600 hover:text-gray-900'
+              : 'text-gray-700 hover:text-gray-900'
           }`}
           onClick={() => setActiveTab('styles')}
         >
@@ -250,28 +268,32 @@ export function SimplePropertyPanel({
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'properties' && (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-sm font-medium">
+            <Card className="bg-white">
+              <CardHeader className="bg-white">
+                <CardTitle className="flex items-center text-sm font-medium text-gray-900">
                   <Settings className="mr-2 h-4 w-4" />
                   基础属性
                 </CardTitle>
               </CardHeader>
-              <CardContent>{renderPropertyEditor(selectedComponent.type)}</CardContent>
+              <CardContent className="bg-white">
+                {renderPropertyEditor(selectedComponent.type)}
+              </CardContent>
             </Card>
           </div>
         )}
 
         {activeTab === 'styles' && (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">位置</CardTitle>
+            <Card className="bg-white">
+              <CardHeader className="bg-white">
+                <CardTitle className="text-sm font-medium text-gray-900">位置</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 bg-white">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="posX">X 坐标</Label>
+                    <Label htmlFor="posX" className="text-gray-800">
+                      X 坐标
+                    </Label>
                     <Input
                       id="posX"
                       type="number"
@@ -285,7 +307,9 @@ export function SimplePropertyPanel({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="posY">Y 坐标</Label>
+                    <Label htmlFor="posY" className="text-gray-800">
+                      Y 坐标
+                    </Label>
                     <Input
                       id="posY"
                       type="number"
@@ -302,20 +326,20 @@ export function SimplePropertyPanel({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">颜色</CardTitle>
+            <Card className="bg-white">
+              <CardHeader className="bg-white">
+                <CardTitle className="text-sm font-medium text-gray-900">颜色</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 bg-white">
                 <div>
-                  <Label>背景颜色</Label>
+                  <Label className="text-gray-800">背景颜色</Label>
                   <ColorPicker
                     value={selectedComponent.styles.backgroundColor || '#ffffff'}
                     onChange={color => handleStylesChange('backgroundColor', color)}
                   />
                 </div>
                 <div>
-                  <Label>文字颜色</Label>
+                  <Label className="text-gray-800">文字颜色</Label>
                   <ColorPicker
                     value={selectedComponent.styles.color || '#000000'}
                     onChange={color => handleStylesChange('color', color)}
@@ -324,14 +348,16 @@ export function SimplePropertyPanel({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">尺寸</CardTitle>
+            <Card className="bg-white">
+              <CardHeader className="bg-white">
+                <CardTitle className="text-sm font-medium text-gray-900">尺寸</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 bg-white">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="width">宽度</Label>
+                    <Label htmlFor="width" className="text-gray-800">
+                      宽度
+                    </Label>
                     <Input
                       id="width"
                       value={selectedComponent.styles.width || 'auto'}
@@ -340,7 +366,9 @@ export function SimplePropertyPanel({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="height">高度</Label>
+                    <Label htmlFor="height" className="text-gray-800">
+                      高度
+                    </Label>
                     <Input
                       id="height"
                       value={selectedComponent.styles.height || 'auto'}

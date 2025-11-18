@@ -1,0 +1,384 @@
+/* 低代码设计器主题样式 - 现代专业风格 */
+
+:root {
+  /* 基础色彩系统 - 与项目保持一致 */
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 3.9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 3.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 3.9%);
+
+  /* 主色调 - 使用项目品牌色 */
+  --primary: hsl(217 91% 60%);
+  --primary-foreground: hsl(0 0% 98%);
+  --primary-hover: hsl(217 91% 55%);
+  --primary-active: hsl(217 91% 50%);
+  --secondary: hsl(0 0% 96.1%);
+  --secondary-foreground: hsl(0 0% 9%);
+  --muted: hsl(0 0% 96.1%);
+  --muted-foreground: hsl(0 0% 45.1%);
+  --accent: hsl(217 91% 60%);
+  --accent-foreground: hsl(0 0% 98%);
+
+  /* 功能色彩 - 与项目保持一致 */
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --success: hsl(142 76% 36%);
+  --success-foreground: hsl(0 0% 98%);
+  --warning: hsl(38 92% 50%);
+  --warning-foreground: hsl(0 0% 98%);
+  --info: hsl(199 89% 48%);
+  --info-foreground: hsl(0 0% 98%);
+
+  /* 边框和输入 */
+  --border: hsl(0 0% 89.8%);
+  --input: hsl(0 0% 89.8%);
+  --ring: hsl(217 91% 60%);
+
+  /* 低代码平台专用色彩 - 与项目保持一致 */
+  --component-bg: hsl(0 0% 98%);
+  --component-border: hsl(0 0% 92%);
+  --canvas-bg: hsl(0 0% 96%);
+  --panel-bg: hsl(0 0% 100%);
+  --drag-preview: hsl(217 91% 60%);
+  --component-selected: hsl(217 91% 60%);
+  --component-hover: hsl(0 0% 95%);
+  --drag-placeholder: hsl(217 91% 60% / 0.15);
+
+  /* 组件类型颜色 - 使用项目图表色彩 */
+  --component-text: hsl(217 91% 60%); /* 品牌蓝 */
+  --component-button: hsl(142 76% 36%); /* 成功绿 */
+  --component-input: hsl(274 87% 66%); /* 紫色 */
+  --component-image: hsl(38 92% 50%); /* 警告橙 */
+  --component-card: hsl(199 89% 48%); /* 信息蓝 */
+  --component-checkbox: hsl(0 84.2% 60.2%); /* 红色 */
+
+  /* 图表色彩 - 与项目保持一致 */
+  --chart-1: hsl(217 91% 60%);
+  --chart-2: hsl(142 76% 36%);
+  --chart-3: hsl(38 92% 50%);
+  --chart-4: hsl(274 87% 66%);
+  --chart-5: hsl(0 84.2% 60.2%);
+
+  /* 侧边栏颜色 - 使用项目色彩 */
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(0 0% 3.9%);
+  --sidebar-primary: hsl(217 91% 60%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(0 0% 96.1%);
+  --sidebar-accent-foreground: hsl(0 0% 9%);
+  --sidebar-border: hsl(0 0% 89.8%);
+  --sidebar-ring: hsl(217 91% 60%);
+
+  /* 字体系统 */
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+
+  /* 设计令牌 */
+  --radius: 0.5rem;
+  /* 阴影 - 与项目保持一致 */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* 设计器专用尺寸 */
+  --header-height: 64px;
+  --panel-left-width: 256px;
+  --panel-right-width: 320px;
+  --component-card-height: 88px;
+  --component-icon-size: 20px;
+  --canvas-padding: 24px;
+  --grid-size: 8px;
+
+  /* 动画缓动函数 */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* 过渡时间 */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+
+  /* 字体大小 */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+
+  /* 间距 */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+}
+
+/* 设计器全局样式 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 顶部工具栏样式 */
+.designer-header {
+  height: var(--header-height);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+}
+
+/* 侧边面板样式 */
+.designer-panel {
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  height: calc(100vh - var(--header-height));
+}
+
+.designer-panel-right {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+/* 画布区域样式 */
+.designer-canvas {
+  background: var(--canvas-bg);
+  background-image:
+    linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  height: calc(100vh - var(--header-height));
+  overflow: auto;
+  position: relative;
+}
+
+/* 组件卡片样式 */
+.component-card {
+  height: var(--component-card-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: grab;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.component-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.component-card:active {
+  cursor: grabbing;
+  transform: translateY(0);
+}
+
+/* 组件图标样式 */
+.component-icon {
+  width: var(--component-icon-size);
+  height: var(--component-icon-size);
+  border-radius: calc(var(--radius) - 2px);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+/* 组件在画布中的样式 */
+.canvas-component {
+  position: absolute;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-out);
+  min-width: 80px;
+  min-height: 32px;
+}
+
+.canvas-component:hover {
+  border-color: var(--component-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.canvas-component.selected {
+  border-color: var(--component-selected);
+  box-shadow: 0 0 0 1px var(--component-selected);
+}
+
+.canvas-component.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* 拖拽占位符样式 */
+.drop-placeholder {
+  position: absolute;
+  border: 2px dashed var(--component-selected);
+  background: var(--drag-placeholder);
+  border-radius: var(--radius);
+  pointer-events: none;
+  animation: pulse 1.5s infinite;
+}
+
+/* 属性面板样式 */
+.property-panel {
+  padding: var(--space-4);
+}
+
+.property-section {
+  margin-bottom: var(--space-6);
+}
+
+.property-section:last-child {
+  margin-bottom: 0;
+}
+
+.property-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* 动画定义 */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 响应式工具类 */
+.panel-transition {
+  transition: width var(--transition-normal) var(--ease-out);
+}
+
+/* 深色模式支持 - 适配浅色调 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.12 0.01 220);
+    --foreground: oklch(0.95 0.01 220);
+    --card: oklch(0.15 0.02 220);
+    --card-foreground: oklch(0.95 0.01 220);
+    --popover: oklch(0.15 0.02 220);
+    --popover-foreground: oklch(0.95 0.01 220);
+    --primary: oklch(0.7 0.14 220);
+    --primary-foreground: oklch(0.12 0.01 220);
+    --secondary: oklch(0.2 0.02 220);
+    --secondary-foreground: oklch(0.95 0.01 220);
+    --muted: oklch(0.18 0.02 220);
+    --muted-foreground: oklch(0.65 0.01 220);
+    --accent: oklch(0.25 0.08 220);
+    --accent-foreground: oklch(0.95 0.01 220);
+    --destructive: oklch(0.65 0.12 20);
+    --destructive-foreground: oklch(0.95 0.01 220);
+    --border: oklch(0.25 0.02 220);
+    --input: oklch(0.25 0.02 220);
+    --ring: oklch(0.7 0.14 220);
+    --canvas-bg: oklch(0.12 0.01 220);
+    --canvas-grid: oklch(0.18 0.02 220);
+    --sidebar: oklch(0.15 0.02 220);
+    --sidebar-foreground: oklch(0.95 0.01 220);
+    --sidebar-primary: oklch(0.7 0.14 220);
+    --sidebar-primary-foreground: oklch(0.12 0.01 220);
+    --sidebar-accent: oklch(0.25 0.08 220);
+    --sidebar-accent-foreground: oklch(0.95 0.01 220);
+    --sidebar-border: oklch(0.25 0.02 220);
+    --sidebar-ring: oklch(0.7 0.14 220);
+  }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}

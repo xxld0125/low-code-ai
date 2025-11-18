@@ -55,6 +55,50 @@ export function SimplePageDesignerLayout({ projectId }: SimplePageDesignerLayout
   }
 
   const handleAddComponent = (componentType: string) => {
+    // 智能定位算法：避免组件重叠
+    const findNextPosition = () => {
+      const baseX = 50
+      const baseY = 120
+      const stepX = 180
+      const stepY = 80
+      const itemsPerRow = 6
+
+      let nextX = baseX
+      let nextY = baseY
+
+      // 查找空位置
+      for (let i = 0; i < components.length; i++) {
+        const row = Math.floor(i / itemsPerRow)
+        const col = i % itemsPerRow
+
+        const testX = baseX + col * stepX
+        const testY = baseY + row * stepY
+
+        // 检查该位置是否被占用
+        const isOccupied = components.some(
+          comp =>
+            Math.abs(comp.position.x - testX) < stepX * 0.8 &&
+            Math.abs(comp.position.y - testY) < stepY * 0.8
+        )
+
+        if (!isOccupied) {
+          nextX = testX
+          nextY = testY
+          break
+        }
+
+        // 如果当前位置被占用，继续寻找
+        if (i === components.length - 1) {
+          nextX = baseX + (components.length % itemsPerRow) * stepX
+          nextY = baseY + Math.floor(components.length / itemsPerRow) * stepY
+        }
+      }
+
+      return { x: nextX, y: nextY }
+    }
+
+    const position = findNextPosition()
+
     const newComponent = {
       id: `component-${Date.now()}`,
       type: componentType,
@@ -68,7 +112,7 @@ export function SimplePageDesignerLayout({ projectId }: SimplePageDesignerLayout
         backgroundColor: '#ffffff',
         color: '#000000',
       },
-      position: { x: 100, y: 100 },
+      position,
     }
     setComponents([...components, newComponent])
     setSelectedComponent(newComponent)

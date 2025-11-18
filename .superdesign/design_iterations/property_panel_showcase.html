@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>属性面板展示 - 低代码设计器</title>
+
+    <!-- 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- 设计器主题样式 -->
+    <link rel="stylesheet" href="designer_theme.css">
+
+    <style>
+        /* 自定义动画 */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .animate-slideInRight { animation: slideInRight 0.4s ease-out; }
+        .animate-slideInLeft { animation: slideInLeft 0.35s ease-out; }
+        .animate-fadeIn { animation: fadeIn 0.45s ease-out 0.05s both; }
+        .animate-bounce { animation: bounce 0.6s ease-in-out infinite; }
+
+        /* 组件卡片样式 */
+        .component-card {
+            height: 88px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card);
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+        }
+
+        .component-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .component-card.selected {
+            border-color: var(--component-selected);
+            box-shadow: 0 0 0 2px var(--component-selected);
+        }
+
+        /* 画布中的组件样式 */
+        .canvas-component {
+            position: absolute;
+            padding: 12px 16px;
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            background: var(--card);
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            min-width: 120px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .canvas-component:hover {
+            border-color: var(--component-hover);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .canvas-component.selected {
+            border-color: var(--component-selected);
+            box-shadow: 0 0 0 1px var(--component-selected), var(--shadow-md);
+        }
+
+        /* 颜色选择器样式 */
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+        }
+
+        .color-picker:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* 数值输入框样式 */
+        .number-input {
+            -moz-appearance: textfield;
+        }
+
+        .number-input::-webkit-outer-spin-button,
+        .number-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* 切换开关样式 */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--muted);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        /* 属性分组样式 */
+        .property-section {
+            opacity: 0;
+            animation: slideInLeft 0.3s ease-out forwards;
+        }
+
+        .property-section:nth-child(1) { animation-delay: 0.1s; }
+        .property-section:nth-child(2) { animation-delay: 0.2s; }
+        .property-section:nth-child(3) { animation-delay: 0.3s; }
+        .property-section:nth-child(4) { animation-delay: 0.4s; }
+
+        /* 交互效果 */
+        .property-item {
+            transition: all 0.2s ease-out;
+        }
+
+        .property-item:hover {
+            transform: translateX(2px);
+        }
+
+        /* Toast 通知样式 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--destructive); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        .toast.info { border-left: 4px solid var(--info); }
+
+        /* 拖拽轨迹动画 */
+        @keyframes dropPulse {
+            0% {
+                transform: scale(0);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.4;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 拖拽预览效果 */
+        .drag-preview {
+            position: absolute;
+            border: 2px dashed var(--component-selected);
+            background: var(--drag-placeholder);
+            border-radius: var(--radius);
+            pointer-events: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground overflow-hidden">
+    <!-- 主容器 -->
+    <div class="h-screen flex flex-col bg-background">
+
+        <!-- 顶部工具栏 -->
+        <header class="designer-header animate-slideInDown">
+            <div class="flex items-center space-x-6">
+                <!-- Logo和标题 -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i data-lucide="layout" class="w-5 h-5 text-primary-foreground"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-foreground">属性面板展示</h1>
+                </div>
+
+                <!-- 项目信息 -->
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-muted-foreground">组件配置演示</span>
+                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">演示模式</span>
+                </div>
+
+                <!-- 统计信息 -->
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-muted-foreground">组件: <span class="font-medium text-foreground">1</span>/50</span>
+                    <span class="text-muted-foreground">画布: 1200x800</span>
+                </div>
+            </div>
+
+            <!-- 操作按钮组 -->
+            <div class="flex items-center space-x-3">
+                <button onclick="handleSave()" class="inline-flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all text-sm font-medium">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>保存</span>
+                </button>
+
+                <button onclick="handlePreview()" class="inline-flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors text-sm font-medium">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                    <span>预览</span>
+                </button>
+
+                <button onclick="handleClearCanvas()" class="inline-flex items-center space-x-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors text-sm font-medium">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>清空</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- 左侧组件面板 -->
+            <aside class="designer-panel animate-slideInLeft" style="width: 256px;">
+                <div class="p-4 border-b border-border">
+                    <h2 class="text-lg font-semibold text-foreground">组件面板</h2>
+                    <p class="text-sm text-muted-foreground mt-1">选择组件添加到画布</p>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    <!-- 基础组件 -->
+                    <div>
+                        <h3 class="text-sm font-medium text-muted-foreground mb-3">基础组件</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- 文本组件 (已选中) -->
+                            <div class="component-card selected" onclick="selectComponent('text')">
+                                <div class="component-icon" style="background: hsl(217 91% 60% / 0.15); color: hsl(217 91% 60%);">
+                                    <i data-lucide="type" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">文本</div>
+                                    <div class="text-xs text-muted-foreground">显示文本</div>
+                                </div>
+                            </div>
+
+                            <!-- 按钮组件 -->
+                            <div class="component-card" onclick="selectComponent('button')">
+                                <div class="component-icon" style="background: hsl(142 76% 36% / 0.15); color: hsl(142 76% 36%);">
+                                    <i data-lucide="mouse-pointer" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">按钮</div>
+                                    <div class="text-xs text-muted-foreground">点击操作</div>
+                                </div>
+                            </div>
+
+                            <!-- 输入框组件 -->
+                            <div class="component-card" onclick="selectComponent('input')">
+                                <div class="component-icon" style="background: hsl(274 87% 66% / 0.15); color: hsl(274 87% 66%);">
+                                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">输入框</div>
+                                    <div class="text-xs text-muted-foreground">文本输入</div>
+                                </div>
+                            </div>
+
+                            <!-- 图片组件 -->
+                            <div class="component-card" onclick="selectComponent('image')">
+                                <div class="component-icon" style="background: hsl(38 92% 50% / 0.15); color: hsl(38 92% 50%);">
+                                    <i data-lucide="image" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">图片</div>
+                                    <div class="text-xs text-muted-foreground">显示图片</div>
+                                </div>
+                            </div>
+
+                            <!-- 卡片组件 -->
+                            <div class="component-card" onclick="selectComponent('card')">
+                                <div class="component-icon" style="background: hsl(199 89% 48% / 0.15); color: hsl(199 89% 48%);">
+                                    <i data-lucide="square" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">卡片</div>
+                                    <div class="text-xs text-muted-foreground">内容容器</div>
+                                </div>
+                            </div>
+
+                            <!-- 复选框组件 -->
+                            <div class="component-card" onclick="selectComponent('checkbox')">
+                                <div class="component-icon" style="background: hsl(0 84.2% 60.2% / 0.15); color: hsl(0 84.2% 60.2%);">
+                                    <i data-lucide="check-square" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">复选框</div>
+                                    <div class="text-xs text-muted-foreground">选择选项</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 中间画布区域 -->
+            <main class="flex-1 designer-canvas animate-fadeIn overflow-hidden">
+                <div class="relative w-full h-full flex items-center justify-center" style="background-image: radial-gradient(circle, hsl(0 0% 89.8%) 1px, transparent 1px); background-size: 16px 16px;">
+                    <div id="canvasContainer" class="relative flex flex-col items-center justify-center" style="height: 400px; width: 1050px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <!-- 初始空状态提示 -->
+                        <div id="emptyState" class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="layout" class="w-8 h-8 text-muted-foreground"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-foreground mb-2">准备添加组件</h3>
+                                <p class="text-muted-foreground text-sm">正在为您添加文本组件...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- 右侧属性面板 -->
+            <aside class="designer-panel designer-panel-right animate-slideInRight" style="width: 320px;">
+                <!-- 属性面板头部 -->
+                <div class="p-4 border-b border-border">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-foreground">文本属性</h3>
+                            <p class="text-sm text-muted-foreground">ID: component-text-001</p>
+                        </div>
+                        <button onclick="handleDeleteComponent()" class="p-2 text-destructive hover:bg-destructive/10 rounded-md transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 属性编辑区域 -->
+                <div class="property-panel overflow-y-auto" style="height: calc(100vh - 200px);">
+                    <div class="p-4 space-y-6">
+
+                        <!-- 基础属性 -->
+                        <div class="property-section">
+                            <h4 class="property-label">基础属性</h4>
+                            <div class="space-y-4">
+                                <!-- 文本内容 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">文本内容</label>
+                                    <textarea id="textContent" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" rows="3" oninput="updateTextContent()">这是一段示例文本内容</textarea>
+                                </div>
+
+                                <!-- 文本对齐 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">文本对齐</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button onclick="setTextAlign('left')" class="px-3 py-2 border border-input rounded-md text-sm hover:bg-accent transition-colors flex items-center justify-center">
+                                            <i data-lucide="align-left" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="setTextAlign('center')" class="px-3 py-2 border border-input rounded-md text-sm bg-primary text-primary-foreground flex items-center justify-center">
+                                            <i data-lucide="align-center" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="setTextAlign('right')" class="px-3 py-2 border border-input rounded-md text-sm hover:bg-accent transition-colors flex items-center justify-center">
+                                            <i data-lucide="align-right" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 样式属性 -->
+                        <div class="property-section">
+                            <h4 class="property-label">样式设置</h4>
+                            <div class="space-y-4">
+                                <!-- 背景颜色 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">背景颜色</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="color" id="bgColor" class="color-picker" value="#ffffff" oninput="updateStyles()">
+                                        <input type="text" id="bgColorText" class="flex-1 px-3 py-2 border border-input rounded-md bg-background text-sm font-mono" value="#ffffff" oninput="syncColorPicker('bg', this.value)">
+                                    </div>
+                                </div>
+
+                                <!-- 文字颜色 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">文字颜色</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="color" id="textColor" class="color-picker" value="#374151" oninput="updateStyles()">
+                                        <input type="text" id="textColorText" class="flex-1 px-3 py-2 border border-input rounded-md bg-background text-sm font-mono" value="#374151" oninput="syncColorPicker('text', this.value)">
+                                    </div>
+                                </div>
+
+                                <!-- 字体大小 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">字体大小</label>
+                                    <select id="fontSize" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" onchange="updateStyles()">
+                                        <option value="12px">12px</option>
+                                        <option value="14px">14px</option>
+                                        <option value="16px" selected>16px</option>
+                                        <option value="18px">18px</option>
+                                        <option value="20px">20px</option>
+                                        <option value="24px">24px</option>
+                                        <option value="32px">32px</option>
+                                    </select>
+                                </div>
+
+                                <!-- 字体粗细 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">字体粗细</label>
+                                    <select id="fontWeight" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" onchange="updateStyles()">
+                                        <option value="300">细体</option>
+                                        <option value="400" selected>正常</option>
+                                        <option value="500">中等</option>
+                                        <option value="600">半粗</option>
+                                        <option value="700">粗体</option>
+                                    </select>
+                                </div>
+
+                                <!-- 边框圆角 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">边框圆角</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="range" id="borderRadius" class="flex-1" min="0" max="20" value="4" oninput="updateStyles()">
+                                        <span id="borderRadiusValue" class="text-sm text-muted-foreground w-12">4px</span>
+                                    </div>
+                                </div>
+
+                                <!-- 内边距 -->
+                                <div class="property-item">
+                                    <label class="block text-sm font-medium text-foreground mb-2">内边距</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">水平</label>
+                                            <input type="number" id="paddingX" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm number-input" value="16" min="0" max="50" oninput="updateStyles()">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">垂直</label>
+                                            <input type="number" id="paddingY" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm number-input" value="12" min="0" max="50" oninput="updateStyles()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 位置属性 -->
+                        <div class="property-section">
+                            <h4 class="property-label">位置信息</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-2">X 坐标</label>
+                                    <input type="number" id="posX" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm" value="500" oninput="updatePosition()">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-foreground mb-2">Y 坐标</label>
+                                    <input type="number" id="posY" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm" value="300" oninput="updatePosition()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 高级设置 -->
+                        <div class="property-section">
+                            <h4 class="property-label">高级设置</h4>
+                            <div class="space-y-4">
+                                <!-- 阴影效果 -->
+                                <div class="property-item">
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-sm font-medium text-foreground">阴影效果</label>
+                                        <div class="toggle-switch" id="shadowToggle" onclick="toggleShadow()"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 禁用状态 -->
+                                <div class="property-item">
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-sm font-medium text-foreground">禁用状态</label>
+                                        <div class="toggle-switch" id="disabledToggle" onclick="toggleDisabled()"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部操作栏 -->
+                <div class="p-4 border-t border-border">
+                    <div class="flex space-x-3">
+                        <button onclick="resetProperties()" class="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors text-sm font-medium">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                            重置属性
+                        </button>
+                        <button onclick="copyStyles()" class="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium">
+                            <i data-lucide="copy" class="w-4 h-4 inline mr-2"></i>
+                            复制样式
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // 当前选中的组件
+        let selectedComponent = 'text';
+        let componentStyles = {
+            text: {
+                content: '这是一段示例文本内容',
+                bg: '#ffffff',
+                color: '#374151',
+                fontSize: '16px',
+                fontWeight: '400',
+                borderRadius: '4px',
+                paddingX: 16,
+                paddingY: 12,
+                shadow: false,
+                disabled: false,
+                align: 'center',
+                x: 500,
+                y: 300
+            }
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            // 延迟显示多个组件，模拟连续拖入效果
+            setTimeout(() => {
+                dropMultipleComponents();
+            }, 800);
+        });
+
+        // 模拟多个组件拖入效果
+        function dropMultipleComponents() {
+            const components = [
+                // 页面标题 - 居中显示
+                { type: 'text', content: '低代码设计器', x: 460, y: 120, delay: 0, fontSize: '28px', fontWeight: '600' },
+
+                // 副标题
+                { type: 'text', content: '拖拽式页面设计，让创建更简单', x: 430, y: 180, delay: 800, fontSize: '16px', fontWeight: '400' },
+
+                // 功能卡片
+                { type: 'card', content: { title: '核心功能', text: '支持拖拽添加组件、实时属性编辑、一键样式应用，让页面设计变得轻松高效' }, x: 375, y: 240, delay: 1600, width: 300 }
+            ];
+
+            components.forEach((config, index) => {
+                setTimeout(() => {
+                    dropComponent(config);
+
+                    // 最后一个组件添加完成后，初始化属性面板
+                    if (index === components.length - 1) {
+                        setTimeout(() => {
+                            selectFirstComponent();
+                            showToast('success', '页面加载完成', '组件已成功添加到画布');
+                        }, 1000);
+                    }
+                }, config.delay);
+            });
+        }
+
+        // 拖入单个组件
+        function dropComponent(config) {
+            const container = document.getElementById('canvasContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            // 第一次拖入时隐藏空状态
+            if (emptyState && config.delay === 0) {
+                emptyState.style.transition = 'opacity 0.3s ease-out';
+                emptyState.style.opacity = '0';
+                setTimeout(() => emptyState.remove(), 300);
+            }
+
+            setTimeout(() => {
+                let component = createComponentElement(config);
+                container.appendChild(component);
+
+                // 创建拖拽轨迹效果
+                createDropTrail();
+
+                // 触发弹跳动画
+                setTimeout(() => {
+                    component.style.transform = 'scale(1.1) rotate(2deg)';
+                    component.style.opacity = '1';
+
+                    setTimeout(() => {
+                        component.style.transform = 'scale(1) rotate(0deg)';
+
+                        // 只有第一个组件默认选中
+                        if (config.delay === 0) {
+                            component.classList.add('selected');
+                        }
+                    }, 200);
+                }, 100);
+            }, 500);
+        }
+
+        // 创建组件元素
+        function createComponentElement(config) {
+            const component = document.createElement('div');
+            component.className = 'canvas-component';
+            component.id = `${config.type}-component-${Date.now()}`;
+
+            let styles = `
+                position: relative;
+                transform: scale(0.8) rotate(-5deg);
+                opacity: 0;
+                transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+                cursor: pointer;
+                margin-bottom: 20px;
+            `;
+
+            // 应用自定义样式
+            if (config.fontSize) styles += `font-size: ${config.fontSize};`;
+            if (config.fontWeight) styles += `font-weight: ${config.fontWeight};`;
+            if (config.width) styles += `width: ${config.width}px;`;
+
+            switch (config.type) {
+                case 'text':
+                    styles += `
+                        background: #ffffff;
+                        color: #374151;
+                        padding: 8px 12px;
+                        border: 1px solid #d1d5db;
+                        border-radius: 4px;
+                        text-align: center;
+                    `;
+                    component.innerHTML = `<span>${config.content}</span>`;
+                    break;
+
+                case 'button':
+                    const bgColor = config.bgColor || '#3b82f6';
+                    styles += `
+                        background: ${bgColor};
+                        color: white;
+                        font-size: 14px;
+                        font-weight: 500;
+                        padding: 8px 16px;
+                        border: none;
+                        border-radius: 6px;
+                        text-align: center;
+                        ${config.width ? '' : 'min-width: 100px;'}
+                    `;
+                    component.innerHTML = `<span>${config.content}</span>`;
+                    break;
+
+                case 'input':
+                    styles += `
+                        background: #ffffff;
+                        color: #374151;
+                        font-size: 14px;
+                        padding: 8px 12px;
+                        border: 1px solid #d1d5db;
+                        border-radius: 6px;
+                        height: 40px;
+                        ${config.width ? '' : 'width: 200px;'}
+                    `;
+                    component.innerHTML = `<span style="color: #9ca3af;">${config.placeholder}</span>`;
+                    break;
+
+                case 'card':
+                    styles += `
+                        background: #ffffff;
+                        color: #374151;
+                        font-size: 14px;
+                        padding: 16px;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                        ${config.width ? '' : 'min-width: 250px;'}
+                    `;
+                    component.innerHTML = `
+                        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">${config.content.title}</div>
+                        <div style="color: #6b7280; line-height: 1.5;">${config.content.text}</div>
+                    `;
+                    break;
+            }
+
+            component.style.cssText = styles;
+            component.onclick = () => handleComponentClick(component, config.type);
+
+            return component;
+        }
+
+        // 处理组件点击
+        function handleComponentClick(component, type) {
+            // 移除所有选中状态
+            document.querySelectorAll('.canvas-component').forEach(comp => {
+                comp.classList.remove('selected');
+            });
+
+            // 添加选中状态
+            component.classList.add('selected');
+
+            if (type === 'text') {
+                initializePropertyPanel();
+                showToast('info', '已选择文本组件', '您可以在右侧面板编辑文本属性');
+            } else {
+                showToast('info', '功能演示', `当前仅展示文本组件的属性配置，您选择了${getComponentTypeName(type)}`);
+            }
+        }
+
+        // 获取组件类型名称
+        function getComponentTypeName(type) {
+            const names = {
+                text: '文本组件',
+                button: '按钮组件',
+                input: '输入框组件',
+                card: '卡片组件',
+                image: '图片组件'
+            };
+            return names[type] || type;
+        }
+
+        // 选择第一个组件
+        function selectFirstComponent() {
+            const firstComponent = document.querySelector('.canvas-component.selected');
+            if (firstComponent) {
+                initializePropertyPanel();
+            }
+        }
+
+        // 创建拖拽预览效果
+        function createDragPreview(x, y) {
+            const container = document.getElementById('canvasContainer');
+
+            const preview = document.createElement('div');
+            preview.className = 'drag-preview';
+            preview.style.cssText = `
+                position: absolute;
+                left: ${x - 100}px;
+                top: ${y - 20}px;
+                width: 200px;
+                height: 40px;
+            `;
+
+            container.appendChild(preview);
+
+            setTimeout(() => preview.remove(), 1500);
+        }
+
+        // 创建拖拽轨迹效果
+        function createDropTrail() {
+            const container = document.getElementById('canvasContainer');
+
+            // 创建轨迹点 - 从左上角到画布中心
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const dot = document.createElement('div');
+                    const progress = i / 4;
+                    const x = 100 + (525 - 100) * progress; // 从左侧到中心
+                    const y = 50 + (200 - 50) * progress;   // 从顶部到中心
+
+                    dot.style.cssText = `
+                        position: absolute;
+                        left: ${x}px;
+                        top: ${y}px;
+                        width: 8px;
+                        height: 8px;
+                        background: hsl(217 91% 60%);
+                        border-radius: 50%;
+                        transform: scale(0);
+                        opacity: 0.8;
+                        animation: dropPulse 0.6s ease-out forwards;
+                        animation-delay: ${i * 0.1}s;
+                        z-index: 1;
+                    `;
+
+                    container.appendChild(dot);
+
+                    setTimeout(() => dot.remove(), 1000);
+                }, i * 50);
+            }
+        }
+
+        // 初始化属性面板
+        function initializePropertyPanel() {
+            const selectedComponent = document.querySelector('.canvas-component.selected');
+            if (!selectedComponent) return;
+
+            // 更新组件信息显示
+            const componentId = selectedComponent.id;
+            const componentName = getComponentTypeName('text');
+
+            document.querySelector('#propertyPanel h3').textContent = `${componentName}属性`;
+            document.querySelector('#propertyPanel p.text-sm').textContent = `ID: ${componentId}`;
+
+            const styles = componentStyles.text;
+
+            document.getElementById('textContent').value = styles.content;
+            document.getElementById('bgColor').value = styles.bg;
+            document.getElementById('bgColorText').value = styles.bg;
+            document.getElementById('textColor').value = styles.color;
+            document.getElementById('textColorText').value = styles.color;
+            document.getElementById('fontSize').value = styles.fontSize;
+            document.getElementById('fontWeight').value = styles.fontWeight;
+            document.getElementById('borderRadius').value = parseInt(styles.borderRadius);
+            document.getElementById('borderRadiusValue').textContent = styles.borderRadius;
+            document.getElementById('paddingX').value = styles.paddingX;
+            document.getElementById('paddingY').value = styles.paddingY;
+            document.getElementById('posX').value = styles.x;
+            document.getElementById('posY').value = styles.y;
+
+            // 更新属性面板中组件文本的内容
+            const textSpan = selectedComponent.querySelector('span');
+            if (textSpan) {
+                styles.content = textSpan.textContent;
+                document.getElementById('textContent').value = styles.content;
+            }
+
+            // 更新样式以匹配实际组件
+            const computedStyles = window.getComputedStyle(selectedComponent);
+            if (computedStyles) {
+                styles.bg = rgbToHex(computedStyles.backgroundColor);
+                styles.color = rgbToHex(computedStyles.color);
+                styles.fontSize = computedStyles.fontSize;
+                styles.fontWeight = computedStyles.fontWeight;
+                styles.borderRadius = computedStyles.borderRadius;
+
+                // 同步到属性面板
+                document.getElementById('bgColor').value = styles.bg;
+                document.getElementById('bgColorText').value = styles.bg;
+                document.getElementById('textColor').value = styles.color;
+                document.getElementById('textColorText').value = styles.color;
+                document.getElementById('fontSize').value = styles.fontSize;
+                document.getElementById('fontWeight').value = styles.fontWeight;
+                document.getElementById('borderRadius').value = parseInt(styles.borderRadius);
+                document.getElementById('borderRadiusValue').textContent = styles.borderRadius;
+            }
+        }
+
+        // RGB转HEX辅助函数
+        function rgbToHex(color) {
+            if (color.startsWith('#')) return color;
+
+            const rgb = color.match(/\d+/g);
+            if (!rgb) return '#ffffff';
+
+            const hex = rgb.map(x => {
+                const h = parseInt(x).toString(16);
+                return h.length === 1 ? '0' + h : h;
+            });
+
+            return '#' + hex.join('');
+        }
+
+        // 选择组件
+        function selectComponent(type) {
+            if (type !== 'text') {
+                showToast('info', '功能演示', '当前仅展示文本组件的属性配置');
+                return;
+            }
+
+            // 更新选中状态
+            selectedComponent = type;
+
+            // 更新组件面板选中状态
+            document.querySelectorAll('.component-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // 更新画布组件选中状态
+            document.querySelectorAll('.canvas-component').forEach(comp => {
+                comp.classList.remove('selected');
+            });
+            document.getElementById('text-component').classList.add('selected');
+        }
+
+        // 更新文本内容
+        function updateTextContent() {
+            const selectedComponent = document.querySelector('.canvas-component.selected');
+            const textSpan = selectedComponent?.querySelector('span');
+
+            if (textSpan) {
+                const content = document.getElementById('textContent').value;
+                textSpan.textContent = content;
+                componentStyles.text.content = content;
+            }
+        }
+
+        // 设置文本对齐
+        function setTextAlign(align) {
+            const selectedComponent = document.querySelector('.canvas-component.selected');
+            if (selectedComponent) {
+                selectedComponent.style.textAlign = align;
+                componentStyles.text.align = align;
+
+                // 更新按钮状态
+                event.currentTarget.parentElement.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('bg-primary', 'text-primary-foreground');
+                });
+                event.currentTarget.classList.add('bg-primary', 'text-primary-foreground');
+            }
+        }
+
+        // 更新样式
+        function updateStyles() {
+            const selectedComponent = document.querySelector('.canvas-component.selected');
+            if (!selectedComponent) return;
+
+            const styles = componentStyles.text;
+
+            styles.bg = document.getElementById('bgColor').value;
+            styles.color = document.getElementById('textColor').value;
+            styles.fontSize = document.getElementById('fontSize').value;
+            styles.fontWeight = document.getElementById('fontWeight').value;
+            styles.borderRadius = document.getElementById('borderRadius').value + 'px';
+            styles.paddingX = parseInt(document.getElementById('paddingX').value);
+            styles.paddingY = parseInt(document.getElementById('paddingY').value);
+
+            selectedComponent.style.background = styles.bg;
+            selectedComponent.style.color = styles.color;
+            selectedComponent.style.fontSize = styles.fontSize;
+            selectedComponent.style.fontWeight = styles.fontWeight;
+            selectedComponent.style.borderRadius = styles.borderRadius;
+            selectedComponent.style.padding = `${styles.paddingY}px ${styles.paddingX}px`;
+
+            // 同步颜色输入
+            document.getElementById('bgColorText').value = styles.bg;
+            document.getElementById('textColorText').value = styles.color;
+            document.getElementById('borderRadiusValue').textContent = styles.borderRadius;
+        }
+
+        // 更新位置
+        function updatePosition() {
+            const selectedComponent = document.querySelector('.canvas-component.selected');
+            if (!selectedComponent) return;
+
+            const x = parseInt(document.getElementById('posX').value);
+            const y = parseInt(document.getElementById('posY').value);
+
+            selectedComponent.style.left = x + 'px';
+            selectedComponent.style.top = y + 'px';
+
+            componentStyles.text.x = x;
+            componentStyles.text.y = y;
+        }
+
+        // 同步颜色选择器
+        function syncColorPicker(type, value) {
+            if (type === 'bg') {
+                document.getElementById('bgColor').value = value;
+            } else {
+                document.getElementById('textColor').value = value;
+            }
+            updateStyles();
+        }
+
+        // 切换阴影
+        function toggleShadow() {
+            const toggle = document.getElementById('shadowToggle');
+            const component = document.getElementById('text-component');
+
+            toggle.classList.toggle('active');
+            const hasShadow = toggle.classList.contains('active');
+
+            if (hasShadow) {
+                component.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+            } else {
+                component.style.boxShadow = 'none';
+            }
+
+            componentStyles.text.shadow = hasShadow;
+        }
+
+        // 切换禁用状态
+        function toggleDisabled() {
+            const toggle = document.getElementById('disabledToggle');
+            const component = document.getElementById('text-component');
+
+            toggle.classList.toggle('active');
+            const isDisabled = toggle.classList.contains('active');
+
+            component.style.opacity = isDisabled ? '0.5' : '1';
+            component.style.pointerEvents = isDisabled ? 'none' : 'auto';
+
+            componentStyles.text.disabled = isDisabled;
+        }
+
+        // 重置属性
+        function resetProperties() {
+            const defaults = {
+                content: '这是一段示例文本内容',
+                bg: '#ffffff',
+                color: '#374151',
+                fontSize: '16px',
+                fontWeight: '400',
+                borderRadius: '4px',
+                paddingX: 16,
+                paddingY: 12,
+                shadow: false,
+                disabled: false,
+                align: 'center',
+                x: 500,
+                y: 300
+            };
+
+            componentStyles.text = { ...defaults };
+            initializeTextComponent();
+
+            showToast('success', '属性已重置', '文本组件属性已恢复为默认值');
+        }
+
+        // 复制样式
+        function copyStyles() {
+            const styles = componentStyles.text;
+            const css = `
+background-color: ${styles.bg};
+color: ${styles.color};
+font-size: ${styles.fontSize};
+font-weight: ${styles.fontWeight};
+border-radius: ${styles.borderRadius};
+padding: ${styles.paddingY}px ${styles.paddingX}px;
+text-align: ${styles.align};
+${styles.shadow ? 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);' : ''}
+            `.trim();
+
+            navigator.clipboard.writeText(css);
+            showToast('success', '样式已复制', 'CSS样式已复制到剪贴板');
+        }
+
+        // 删除组件
+        function handleDeleteComponent() {
+            const selectedComponent = document.querySelector('.canvas-component.selected');
+            if (!selectedComponent) {
+                showToast('warning', '请先选择组件', '请先选择要删除的组件');
+                return;
+            }
+
+            if (confirm('确定要删除这个组件吗？')) {
+                selectedComponent.style.transform = 'scale(0) rotate(180deg)';
+                selectedComponent.style.opacity = '0';
+
+                setTimeout(() => {
+                    selectedComponent.remove();
+                    showToast('success', '组件已删除', '组件已从画布移除');
+
+                    // 检查是否还有组件
+                    const remainingComponents = document.querySelectorAll('.canvas-component');
+                    if (remainingComponents.length === 0) {
+                        // 显示空状态
+                        const container = document.getElementById('canvasContainer');
+                        const emptyState = document.createElement('div');
+                        emptyState.id = 'emptyState';
+                        emptyState.className = 'absolute inset-0 flex items-center justify-center';
+                        emptyState.innerHTML = `
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="layout" class="w-8 h-8 text-muted-foreground"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-foreground mb-2">画布已清空</h3>
+                                <p class="text-muted-foreground text-sm">所有组件已从画布移除</p>
+                            </div>
+                        `;
+                        container.appendChild(emptyState);
+                        lucide.createIcons();
+                    }
+                }, 300);
+            }
+        }
+
+        // 保存
+        function handleSave() {
+            showToast('success', '保存成功', '页面设计已保存到服务器');
+        }
+
+        // 预览
+        function handlePreview() {
+            showToast('info', '预览功能', '预览功能正在开发中');
+        }
+
+        // 清空画布
+        function handleClearCanvas() {
+            if (confirm('确定要清空画布上的所有组件吗？')) {
+                const component = document.getElementById('text-component');
+                component.remove();
+                showToast('success', '画布已清空', '所有组件已从画布移除');
+            }
+        }
+
+        // Toast 通知
+        function showToast(type, title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="flex-1">
+                        <div class="font-medium text-sm">${title}</div>
+                        <div class="text-xs text-muted-foreground mt-1">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-muted-foreground hover:text-foreground">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
