@@ -14,8 +14,20 @@ export function useRelativeTime(
 
   useEffect(() => {
     const calculateRelativeTime = () => {
-      const targetDate = typeof date === 'string' ? new Date(date) :
-                        typeof date === 'number' ? new Date(date) : date
+      // 处理null、undefined或无效日期的情况
+      if (!date) {
+        setRelativeTime('未知时间')
+        return
+      }
+
+      const targetDate =
+        typeof date === 'string' ? new Date(date) : typeof date === 'number' ? new Date(date) : date
+
+      // 检查日期是否有效
+      if (isNaN(targetDate.getTime())) {
+        setRelativeTime('无效时间')
+        return
+      }
 
       const now = new Date()
       const diffInSeconds = Math.floor((now.getTime() - targetDate.getTime()) / 1000)
