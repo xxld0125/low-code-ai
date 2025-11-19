@@ -18,15 +18,15 @@
     <link rel="stylesheet" href="designer_theme.css">
 
     <style>
-        /* 自定义动画 */
+        /* 升级版动画系统 */
         @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from { transform: translateX(100%) scale(0.95); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
         }
 
-        @keyframes slideInLeft {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes slideInScale {
+            0% { transform: translateX(-20px) scale(0.9) rotate(-2deg); opacity: 0; }
+            100% { transform: translateX(0) scale(1) rotate(0deg); opacity: 1; }
         }
 
         @keyframes fadeIn {
@@ -34,15 +34,139 @@
             to { opacity: 1; }
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+        @keyframes slideInUp {
+            0% { transform: translateY(20px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
         }
 
-        .animate-slideInRight { animation: slideInRight 0.4s ease-out; }
-        .animate-slideInLeft { animation: slideInLeft 0.35s ease-out; }
-        .animate-fadeIn { animation: fadeIn 0.45s ease-out 0.05s both; }
-        .animate-bounce { animation: bounce 0.6s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(37, 99, 235, 0.5); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .animate-slideInRight { animation: slideInRight 0.4s var(--ease-out-back); }
+        .animate-slideInScale { animation: slideInScale 0.5s var(--ease-out-back); }
+        .animate-fadeIn { animation: fadeIn 0.45s var(--ease-out-expo) 0.05s both; }
+        .animate-slideInUp { animation: slideInUp 0.4s var(--ease-out-back) 0.1s both; }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+
+        /* 高级表单控件系统 */
+        .form-input {
+            width: 100%;
+            padding: var(--space-md) var(--space-lg);
+            border: 1px solid var(--input);
+            border-radius: var(--radius-md);
+            background: var(--background);
+            font-size: var(--text-sm);
+            transition: all var(--transition-fast) var(--ease-out-expo);
+            position: relative;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 2px var(--primary) / 0.2,
+                var(--shadow-md);
+            transform: scale(1.01);
+            z-index: 10;
+        }
+
+        .form-input:focus::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary) / 0.1, transparent);
+            animation: pulse-glow 2s infinite;
+            pointer-events: none;
+        }
+
+        .form-input.error {
+            border-color: var(--destructive);
+            box-shadow: 0 0 0 2px var(--destructive) / 0.2;
+            animation: pulse 1s infinite;
+        }
+
+        .form-input.success {
+            border-color: var(--success);
+            box-shadow: 0 0 0 2px var(--success) / 0.2;
+        }
+
+        .form-label {
+            display: block;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: var(--space-sm);
+            position: relative;
+            padding-left: var(--space-xs);
+        }
+
+        .form-label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            height: 12px;
+            width: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transform: translateY(-50%);
+        }
+
+        .property-section {
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            padding: var(--space-5);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .property-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--primary) / 0.2 50%,
+                transparent 100%);
+            animation: shimmer 3s infinite;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast) var(--ease-out-back);
+            position: relative;
+        }
+
+        .color-picker:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .color-picker:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 2px var(--primary) / 0.3,
+                var(--shadow-lg);
+        }
 
         /* 组件卡片样式 */
         .component-card {

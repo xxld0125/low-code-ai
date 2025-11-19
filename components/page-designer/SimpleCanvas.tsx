@@ -8,6 +8,7 @@ interface SimpleCanvasProps {
   selectedComponent: any
   onSelectComponent: (component: any) => void
   onUpdateComponent: (componentId: string, updates: any) => void
+  onAddComponent?: (componentType: string, position: { x: number; y: number }) => void
 }
 
 // 简化的组件渲染器
@@ -42,12 +43,23 @@ const SimpleComponentRenderer = ({
       ...styles,
     }
 
+    const animationClass = isSelected ? '' : 'animate-slideInScale'
+
     switch (type) {
       case 'Text':
         return (
           <div
-            style={commonStyle}
-            className={cn(baseClasses, 'px-3 py-2')}
+            style={{
+              ...commonStyle,
+              backgroundColor: styles.backgroundColor || 'var(--card)',
+              color: styles.color || 'var(--foreground)',
+              border: '1px solid var(--border)',
+              borderRadius: styles.borderRadius || 'var(--radius-lg)',
+              padding: '12px 16px',
+              boxShadow: 'var(--shadow-xs)',
+              minWidth: '120px',
+            }}
+            className={cn(baseClasses, animationClass, 'canvas-component')}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -61,15 +73,21 @@ const SimpleComponentRenderer = ({
           <button
             style={{
               ...commonStyle,
-              backgroundColor: styles.backgroundColor || 'hsl(var(--primary))',
-              color: styles.color || 'hsl(var(--primary-foreground))',
+              backgroundColor: styles.backgroundColor || 'var(--primary)',
+              color: styles.color || 'var(--primary-foreground)',
               padding: '8px 16px',
-              border: '1px solid hsl(var(--primary))',
-              borderRadius: '6px',
+              border: '1px solid var(--primary)',
+              borderRadius: styles.borderRadius || '6px',
               cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              boxShadow: 'var(--shadow-sm)',
+              fontWeight: '500',
+              minWidth: '100px',
             }}
-            className={cn(baseClasses, 'font-medium transition-all hover:shadow-md')}
+            className={cn(
+              baseClasses,
+              animationClass,
+              'canvas-component font-medium transition-all hover:shadow-md'
+            )}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -86,13 +104,16 @@ const SimpleComponentRenderer = ({
             style={{
               ...commonStyle,
               padding: '8px 12px',
-              border: '2px solid hsl(var(--border))',
-              borderRadius: '6px',
-              backgroundColor: 'hsl(var(--background))',
+              border: '2px solid var(--border)',
+              borderRadius: styles.borderRadius || '6px',
+              backgroundColor: styles.backgroundColor || 'var(--background)',
+              color: styles.color || 'var(--foreground)',
+              width: '200px',
             }}
             className={cn(
               baseClasses,
-              'transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
+              animationClass,
+              'canvas-component transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
             )}
             onClick={onSelect}
             draggable
@@ -108,14 +129,15 @@ const SimpleComponentRenderer = ({
               ...commonStyle,
               width: styles.width || '200px',
               height: styles.height || '150px',
-              backgroundColor: '#f3f4f6',
-              border: '2px dashed #d1d5db',
+              backgroundColor: 'var(--muted)',
+              border: '2px dashed var(--border)',
+              borderRadius: styles.borderRadius || 'var(--radius-lg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#6b7280',
+              color: 'var(--muted-foreground)',
             }}
-            className={cn(baseClasses, 'text-center')}
+            className={cn(baseClasses, animationClass, 'canvas-component text-center')}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -134,24 +156,28 @@ const SimpleComponentRenderer = ({
               ...commonStyle,
               width: styles.width || '300px',
               minHeight: styles.height || '200px',
-              backgroundColor: styles.backgroundColor || '#ffffff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
+              backgroundColor: styles.backgroundColor || 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: styles.borderRadius || 'var(--radius-xl)',
               padding: '16px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              boxShadow: 'var(--shadow-sm)',
             }}
-            className={cn(baseClasses, 'shadow-sm')}
+            className={cn(baseClasses, animationClass, 'canvas-component shadow-sm')}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
           >
             <div
-              style={{ color: styles.color || '#000000', fontWeight: 'bold', marginBottom: '8px' }}
+              style={{
+                color: styles.color || 'var(--foreground)',
+                fontWeight: '600',
+                marginBottom: '8px',
+              }}
             >
               {props.title || '卡片标题'}
             </div>
-            <div style={{ color: '#6b7280', fontSize: '14px' }}>
-              {props.content || '卡片内容区域'}
+            <div style={{ color: 'var(--muted-foreground)', fontSize: '14px', lineHeight: '1.5' }}>
+              {props.content || '卡片内容区域，可以放置各种文本和组件内容。'}
             </div>
           </div>
         )
@@ -164,8 +190,13 @@ const SimpleComponentRenderer = ({
               display: 'flex',
               alignItems: 'center',
               cursor: 'pointer',
+              backgroundColor: styles.backgroundColor || 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: styles.borderRadius || 'var(--radius-lg)',
+              padding: '8px 12px',
+              boxShadow: 'var(--shadow-xs)',
             }}
-            className={cn(baseClasses, 'text-sm')}
+            className={cn(baseClasses, animationClass, 'canvas-component text-sm')}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -176,7 +207,7 @@ const SimpleComponentRenderer = ({
               onChange={() => {
                 onUpdate({ props: { ...props, checked: !props.checked } })
               }}
-              className="mr-2"
+              className="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               onClick={e => e.stopPropagation()}
             />
             {props.text || '复选框选项'}
@@ -187,7 +218,11 @@ const SimpleComponentRenderer = ({
         return (
           <div
             style={commonStyle}
-            className={cn(baseClasses, 'border border-gray-300 bg-gray-100 px-3 py-2')}
+            className={cn(
+              baseClasses,
+              animationClass,
+              'canvas-component border border-border bg-muted px-3 py-2'
+            )}
             onClick={onSelect}
             draggable
             onDragStart={handleDragStart}
@@ -206,6 +241,7 @@ export function SimpleCanvas({
   selectedComponent,
   onSelectComponent,
   onUpdateComponent,
+  onAddComponent,
 }: SimpleCanvasProps) {
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -234,7 +270,10 @@ export function SimpleCanvas({
         x = Math.max(20, Math.min(x, 1160)) // 留出组件宽度空间
         y = Math.max(120, Math.min(y, 760)) // 留出组件高度空间
 
-        // 这个逻辑由父组件处理
+        // 调用父组件的添加组件函数
+        if (onAddComponent) {
+          onAddComponent(componentType, { x, y })
+        }
       } else if (componentId) {
         // 移动现有组件
         const rect = e.currentTarget.getBoundingClientRect()
@@ -255,7 +294,7 @@ export function SimpleCanvas({
         })
       }
     },
-    [onUpdateComponent]
+    [onUpdateComponent, onAddComponent]
   )
 
   const handleCanvasClick = useCallback(
@@ -269,23 +308,24 @@ export function SimpleCanvas({
   )
 
   return (
-    <div className="bg-canvas-bg h-full w-full overflow-auto">
-      <div className="min-h-full min-w-full p-4 lg:p-8">
+    <div className="h-full w-full overflow-auto">
+      <div className="p-6">
         {/* 画布区域 */}
         <div
-          className="bg-panel-bg relative mx-auto rounded-xl border border-border shadow-lg"
+          id="canvasContainer"
+          className="relative mx-auto rounded-xl border border-border bg-card shadow-lg"
           style={{
-            width: 'min(1200px, 100%)',
+            width: '1200px',
             minHeight: '800px',
-            backgroundImage: 'radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
+            backgroundImage: 'radial-gradient(circle, hsl(0 0% 89.8%) 1px, transparent 1px)',
+            backgroundSize: '16px 16px',
           }}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onClick={handleCanvasClick}
         >
-          {/* 画布标题 */}
-          <div className="absolute left-0 right-0 top-0 rounded-t-xl border-b border-border bg-card/95 p-4 shadow-sm backdrop-blur-sm">
+          {/* 画布标题栏 */}
+          <div className="absolute left-0 right-0 top-0 z-10 rounded-t-xl border-b border-border bg-card/95 p-4 shadow-sm backdrop-blur-sm">
             <div className="text-sm font-medium text-foreground">设计画布</div>
             <div className="text-xs text-muted-foreground">
               拖拽组件到此处或点击左侧组件面板添加
@@ -293,14 +333,15 @@ export function SimpleCanvas({
           </div>
 
           {/* 渲染所有组件 */}
-          {components.map(component => (
-            <SimpleComponentRenderer
-              key={component.id}
-              component={component}
-              isSelected={selectedComponent?.id === component.id}
-              onSelect={() => onSelectComponent(component)}
-              onUpdate={updates => onUpdateComponent(component.id, updates)}
-            />
+          {components.map((component, index) => (
+            <div key={component.id} style={{ animationDelay: `${index * 100}ms` }}>
+              <SimpleComponentRenderer
+                component={component}
+                isSelected={selectedComponent?.id === component.id}
+                onSelect={() => onSelectComponent(component)}
+                onUpdate={updates => onUpdateComponent(component.id, updates)}
+              />
+            </div>
           ))}
 
           {/* 空状态提示 */}
@@ -309,10 +350,10 @@ export function SimpleCanvas({
               <div className="max-w-md text-center">
                 <div className="mb-6 text-6xl opacity-60">🎨</div>
                 <div className="mb-3 text-xl font-semibold text-foreground">开始设计你的页面</div>
-                <div className="text-sm leading-relaxed text-muted-foreground">
+                <div className="mb-6 text-sm leading-relaxed text-muted-foreground">
                   从左侧拖拽组件到画布，或点击组件快速添加。使用右侧属性面板调整组件样式和行为。
                 </div>
-                <div className="mt-4 flex justify-center gap-2">
+                <div className="flex justify-center gap-2">
                   <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                     拖拽添加
                   </div>

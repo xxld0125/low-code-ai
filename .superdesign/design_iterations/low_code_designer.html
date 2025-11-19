@@ -18,20 +18,20 @@
     <link rel="stylesheet" href="designer_theme.css">
 
     <style>
-        /* 自定义动画 */
+        /* 升级版动画系统 */
         @keyframes slideInDown {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { transform: translateY(-100%) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
         }
 
-        @keyframes slideInLeft {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes slideInScale {
+            0% { transform: translateX(-20px) scale(0.9) rotate(-2deg); opacity: 0; }
+            100% { transform: translateX(0) scale(1) rotate(0deg); opacity: 1; }
         }
 
         @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from { transform: translateX(100%) scale(0.95); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
         }
 
         @keyframes fadeIn {
@@ -44,57 +44,135 @@
             50% { opacity: 0.5; }
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(37, 99, 235, 0.5); }
         }
 
-        .animate-slideInDown { animation: slideInDown 0.4s ease-out; }
-        .animate-slideInLeft { animation: slideInLeft 0.35s ease-out; }
-        .animate-slideInRight { animation: slideInRight 0.35s ease-out 0.1s both; }
-        .animate-fadeIn { animation: fadeIn 0.45s ease-out 0.05s both; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0) scale(1); }
+            40%, 43% { transform: translateY(-15px) scale(1.05); }
+            70% { transform: translateY(-7px) scale(1.02); }
+            90% { transform: translateY(-3px) scale(1.01); }
+        }
+
+        .animate-slideInDown { animation: slideInDown 0.4s var(--ease-out-back); }
+        .animate-slideInScale { animation: slideInScale 0.5s var(--ease-out-back); }
+        .animate-slideInRight { animation: slideInRight 0.35s var(--ease-out-back) 0.1s both; }
+        .animate-fadeIn { animation: fadeIn 0.45s var(--ease-out-expo) 0.05s both; }
         .animate-pulse { animation: pulse 1.5s infinite; }
-        .animate-shake { animation: shake 0.4s ease-out; }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-bounce { animation: bounce 2s infinite; }
 
         /* 拖拽样式 */
+        /* 高级拖拽系统 */
         .dragging {
             opacity: 0.6;
             cursor: grabbing !important;
             transform: scale(0.95) rotate(2deg);
-            transition: transform 0.15s ease-out;
+            transition: all var(--transition-fast) var(--ease-out-back);
+            box-shadow: var(--shadow-xl);
         }
 
         .drop-zone {
             border: 2px dashed var(--component-selected);
-            background: var(--drag-placeholder);
-            transition: all 0.3s ease-out;
+            background: linear-gradient(135deg,
+                var(--drag-placeholder) 0%,
+                var(--primary-light) / 0.1 100%);
+            transition: all var(--transition-normal) var(--ease-out-back);
+            backdrop-filter: blur(4px);
         }
 
         .drop-zone.active {
-            animation: pulse 1.5s infinite;
+            animation: bounce 1.5s infinite;
         }
 
-        /* 组件选中效果 */
+        /* 高级组件选中效果 */
         .canvas-component.selected {
             border-color: var(--component-selected) !important;
-            box-shadow: 0 0 0 1px var(--component-selected), var(--shadow-md);
+            box-shadow: 0 0 0 2px var(--component-selected), var(--shadow-lg);
+            transform: scale(1.02);
+            position: relative;
+        }
+
+        .canvas-component.selected::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: inherit;
+            border: 1px solid var(--component-selected);
+            opacity: 0.5;
+            animation: pulse-glow 2s infinite;
+            pointer-events: none;
         }
 
         .canvas-component:hover {
             border-color: var(--component-hover);
-            box-shadow: var(--shadow-sm);
-            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            transform: scale(1.01);
+            z-index: 10;
         }
 
-        /* 按钮交互效果 */
+        /* 高级按钮交互 */
+        .btn-primary {
+            transition: all var(--transition-fast) var(--ease-out-back);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.2) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-slow) var(--ease-out-expo);
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
         .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* 组件卡片涟漪效果 */
+        .component-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width var(--transition-slower) var(--ease-out-expo),
+                        height var(--transition-slower) var(--ease-out-expo);
+        }
+
+        .component-card:active::after {
+            width: 300px;
+            height: 300px;
         }
 
         /* 输入框聚焦效果 */
@@ -144,6 +222,93 @@
             -ms-overflow-style: none;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* 增强滑块样式 - 参考截图设计 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+            background: var(--border);
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid var(--background);
+            box-shadow: var(--shadow-sm);
+            cursor: grab;
+            transition: all var(--transition-fast) var(--ease-out-back);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: var(--shadow-md);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-track {
+            background: var(--border);
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid var(--background);
+            box-shadow: var(--shadow-sm);
+            cursor: grab;
+            transition: all var(--transition-fast) var(--ease-out-back);
+        }
+
+        /* 值显示框样式优化 - 参考截图 */
+        .min-w-\[60px\] {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm) var(--space-lg);
+            font-weight: 500;
+            text-align: center;
+            transition: all var(--transition-fast) var(--ease-out-back);
+            box-shadow: var(--shadow-xs);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .min-w-\[60px\]:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* 增强accent-primary色滑块 */
+        .accent-primary {
+            color: var(--primary);
+        }
+
+        .accent-primary::-webkit-slider-thumb {
+            background: var(--primary);
+        }
+
+        .accent-primary::-moz-range-thumb {
+            background: var(--primary);
+        }
     </style>
 </head>
 <body class="overflow-hidden">
@@ -209,13 +374,18 @@
                         <h3 class="text-sm font-medium text-muted-foreground mb-3">基础组件</h3>
                         <div class="grid grid-cols-2 gap-3">
                             <!-- 文本组件 -->
-                            <div class="component-card" draggable="true" data-component-type="Text" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
-                                <div class="component-icon" style="background: hsl(217 91% 60% / 0.15); color: var(--component-text);">
-                                    <i data-lucide="type" class="w-5 h-5"></i>
+                            <div class="component-card animate-slideInScale"
+                                 draggable="true"
+                                 data-component-type="Text"
+                                 ondragstart="handleDragStart(event)"
+                                 ondragend="handleDragEnd(event)"
+                                 style="animation-delay: 0ms; opacity: 0;">
+                                <div class="component-icon" style="background: linear-gradient(135deg, hsl(var(--component-text)) / 0.15, hsl(var(--component-text)) / 0.05); color: var(--component-text);">
+                                    <i data-lucide="type" class="w-6 h-6"></i>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-sm font-medium">文本</div>
-                                    <div class="text-xs text-muted-foreground">显示文本</div>
+                                    <div class="text-sm font-semibold hover:text-primary transition-colors">文本</div>
+                                    <div class="text-xs text-muted-foreground mt-1">显示文本内容</div>
                                 </div>
                             </div>
 
@@ -281,10 +451,66 @@
             <!-- 中间画布区域 -->
             <main class="flex-1 designer-canvas animate-fadeIn" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
                 <div id="canvasContainer" class="relative" style="min-height: 800px; width: 1200px; background-image: radial-gradient(circle, hsl(0 0% 89.8%) 1px, transparent 1px); background-size: 16px 16px;">
-                    <!-- 画布内容将动态插入这里 -->
+                    <!-- 组件预览展示 -->
+                    <div class="component-preview-section" style="position: absolute; top: 40px; left: 40px; right: 40px;">
+                        <h3 class="text-base font-semibold text-foreground mb-6">组件预览</h3>
 
-                    <!-- 空状态提示 -->
-                    <div id="emptyState" class="absolute inset-0 flex items-center justify-center">
+                        <!-- 第一行组件 -->
+                        <div class="flex gap-6 mb-8">
+                            <!-- 文本组件预览 -->
+                            <div class="canvas-component animate-slideInScale" style="animation-delay: 100ms;">
+                                <div style="padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); min-width: 120px;">
+                                    <div class="text-sm font-medium">文本组件示例</div>
+                                </div>
+                            </div>
+
+                            <!-- 按钮组件预览 -->
+                            <div class="canvas-component animate-slideInScale" style="animation-delay: 200ms;">
+                                <button style="padding: 8px 16px; background: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); border-radius: var(--radius-md); font-weight: 500;">
+                                    点击按钮
+                                </button>
+                            </div>
+
+                            <!-- 输入框组件预览 -->
+                            <div class="canvas-component animate-slideInScale" style="animation-delay: 300ms;">
+                                <input type="text" placeholder="请输入内容" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--background); width: 150px;">
+                            </div>
+
+                            <!-- 复选框组件预览 -->
+                            <div class="canvas-component animate-slideInScale" style="animation-delay: 400ms;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                    <span class="text-sm">选项标签</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 第二行组件 -->
+                        <div class="flex gap-6">
+                            <!-- 图片组件预览 -->
+                            <div class="canvas-component animate-slideInScale" style="animation-delay: 500ms;">
+                                <div style="width: 160px; height: 100px; background: var(--muted); border: 2px dashed var(--border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--muted-foreground);">
+                                    <div style="text-align: center;">
+                                        <div class="text-2xl mb-1">🖼️</div>
+                                        <div class="text-xs">图片组件</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 卡片组件预览 -->
+                            <div class="canvas-component animate-slideInScale" style="animation-delay: 600ms;">
+                                <div style="width: 280px; min-height: 140px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; box-shadow: var(--shadow-sm);">
+                                    <div style="font-weight: 600; margin-bottom: 8px; color: var(--foreground);">卡片标题</div>
+                                    <div style="font-size: 14px; color: var(--muted-foreground); line-height: 1.5;">
+                                        这是卡片内容区域，可以放置各种文本和组件内容。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空状态提示（隐藏） -->
+                    <div id="emptyState" class="absolute inset-0 flex items-center justify-center" style="display: none;">
                         <div class="text-center">
                             <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i data-lucide="layout" class="w-8 h-8 text-muted-foreground"></i>
@@ -383,34 +609,48 @@
                                     </select>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3">
+                                <!-- 内边距设置 - 按截图要求 -->
+                                <div class="space-y-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-foreground mb-1">内边距</label>
-                                        <input type="number" id="componentPadding" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="8" min="0" max="50" oninput="handlePropertyChange('padding', this.value + 'px')">
+                                        <label class="form-label">内边距 (Padding)</label>
+                                        <div class="flex items-center gap-3">
+                                            <input
+                                                type="range"
+                                                id="componentPadding"
+                                                class="flex-1 h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary"
+                                                value="8"
+                                                min="0"
+                                                max="50"
+                                                oninput="handlePropertyChange('padding', this.value + 'px'); document.getElementById('paddingValue').textContent = this.value + 'px'"
+                                            >
+                                            <div class="min-w-[60px] px-3 py-2 bg-background border border-border rounded-md text-center">
+                                                <span id="paddingValue" class="text-sm font-medium">8px</span>
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label class="block text-sm font-medium text-foreground mb-1">圆角</label>
-                                        <input type="number" id="componentBorderRadius" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="4" min="0" max="50" oninput="handlePropertyChange('borderRadius', this.value + 'px')">
+                                        <label class="form-label">圆角 (Border Radius)</label>
+                                        <div class="flex items-center gap-3">
+                                            <input
+                                                type="range"
+                                                id="componentBorderRadius"
+                                                class="flex-1 h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary"
+                                                value="4"
+                                                min="0"
+                                                max="50"
+                                                oninput="handlePropertyChange('borderRadius', this.value + 'px'); document.getElementById('borderRadiusValue').textContent = this.value + 'px'"
+                                            >
+                                            <div class="min-w-[60px] px-3 py-2 bg-background border border-border rounded-md text-center">
+                                                <span id="borderRadiusValue" class="text-sm font-medium">4px</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 位置属性 -->
-                        <div class="property-section">
-                            <h4 class="property-label">位置信息</h4>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-sm font-medium text-foreground mb-1">X 坐标</label>
-                                    <input type="number" id="componentPosX" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="0" oninput="handlePositionChange('x', this.value)">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-foreground mb-1">Y 坐标</label>
-                                    <input type="number" id="componentPosY" class="form-input w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="0" oninput="handlePositionChange('y', this.value)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                      </div>
                 </div>
             </aside>
         </div>
